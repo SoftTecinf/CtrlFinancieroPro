@@ -96,7 +96,6 @@
             <p id="fecha-sistema" class="hidden md:block text-[11px] font-bold uppercase tracking-widest text-stone-400 italic"></p>
         </header>
 
-        <!-- SECCIÓN HOME -->
         <section id="sec-home">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
                 <div class="balance-highlight p-6 rounded-xl-custom soft-shadow border border-[#E5DDD3]">
@@ -113,7 +112,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN INGRESOS -->
         <section id="sec-ingresos" class="hidden-section">
             <div class="flex justify-end items-center mb-6 gap-2">
                 <div class="toolbar-group">
@@ -131,7 +129,7 @@
                         <input type="text" id="in-desc" placeholder="Concepto" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase">
                         <input type="text" id="in-monto-mask" oninput="formatCurrency(this, 'in-monto-hidden')" placeholder="$ 0.00 MXN" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn">
                         <input type="hidden" id="in-monto-hidden" value="0">
-                        <button onclick="guardarRegistro('ingreso')" class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Guardar Registro</button>
+                        <button onclick="guardarRegistro('ingreso')" class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar Registro</button>
                     </div>
                 </div>
                 <div class="bg-white p-8 rounded-xl-custom soft-shadow">
@@ -141,7 +139,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN GASTOS -->
         <section id="sec-gastos" class="hidden-section">
             <div class="flex justify-end items-center mb-6 gap-2">
                 <div class="toolbar-group">
@@ -169,7 +166,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN ANÁLISIS (MODIFICADA) -->
         <section id="sec-resumen" class="hidden-section">
             <div class="flex flex-wrap justify-end items-center mb-6 gap-2">
                 <div class="toolbar-group">
@@ -191,8 +187,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN CONFIGURACIÓN -->
-         <section id="sec-config" class="hidden-section">
+        <section id="sec-config" class="hidden-section">
             <div class="max-w-2xl mx-auto space-y-6">
                 <div class="bg-white p-6 md:p-8 rounded-xl-custom soft-shadow">
                     <h2 class="text-xl font-semibold mb-6 italic text-stone-800">Categorías</h2>
@@ -225,6 +220,9 @@
     </main>
 
     <script>
+        // --- NUEVA VARIABLE GLOBAL PARA CONTROL DE EDICIÓN ---
+        let editandoId = null;
+
         let movimientos = JSON.parse(localStorage.getItem('movimientos_mxn')) || [];
         let categorias = JSON.parse(localStorage.getItem('cats_mxn')) || [
             {id: 1, nombre: 'VENTAS', tipo: 'ingreso'},
@@ -233,7 +231,7 @@
         let i = 1;
         let chartH, chartR, seccionActual = 'home';
         const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-
+        
         function formatCurrency(input, hiddenId) {
             let value = input.value.replace(/\D/g, "");
             let numericValue = value ? parseFloat(value) / 100 : 0;
@@ -264,24 +262,122 @@
             if(seccionActual === 'config') renderCategoriasConfig();
         }
 
+        // --- FUNCIÓN GUARDAR ACTUALIZADA (NUEVO + EDICIÓN) ---
         function guardarRegistro(tipo) {
             const pref = tipo === 'ingreso' ? 'in' : 'ex';
             const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
-            if(!monto || monto <= 0) return;
+            
+            if(!monto || monto <= 0) {
+                alert("Por favor ingresa un monto válido.");
+                return;
+            }
+            
             const descInput = document.getElementById(`${pref}-desc`).value.trim().toUpperCase();
-            movimientos.push({ 
-                id: Date.now(), 
-                tipo, 
+            const nuevaData = { 
                 fecha: document.getElementById(`${pref}-fecha`).value, 
                 cat: document.getElementById(`${pref}-categoria`).value, 
                 desc: descInput || 'SIN NOMBRE', 
                 monto 
-            });
+            };
+
+            if (editandoId) {
+                // Actualizar registro existente
+                const index = movimientos.findIndex(m => m.id === editandoId);
+                if (index !== -1) {
+                    movimientos[index] = { ...movimientos[index], ...nuevaData };
+                }
+                editandoId = null; // Limpiar estado de edición
+                
+                // Restaurar apariencia original del botón
+                const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+                btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+                btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
+            } else {
+                // Crear nuevo registro
+                movimientos.push({ 
+                    id: Date.now(), 
+                    tipo, 
+                    ...nuevaData 
+                });
+            }
+
+            // Guardar en LocalStorage y limpiar UI
             localStorage.setItem('movimientos_mxn', JSON.stringify(movimientos));
             document.getElementById(`${pref}-monto-mask`).value = "";
             document.getElementById(`${pref}-monto-hidden`).value = 0;
             document.getElementById(`${pref}-desc`).value = "";
+            
             refrescarVistaActual();
+        }
+
+        // --- FUNCIÓN DE LISTADO ACTUALIZADA CON BOTONES DE ACCIÓN ---
+        function actualizarListadoIndividual(tipo, contId, countId) {
+            const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo).reverse();
+            document.getElementById(countId).innerText = `${filtrados.length} items`;
+            const cont = document.getElementById(contId);
+            cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+            
+            filtrados.forEach(m => {
+                cont.innerHTML += `
+                    <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold uppercase text-stone-700">${m.desc}</p>
+                            <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha} | ${m.cat}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                                    ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                                </p>
+                            </div>
+                            <div class="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors" title="Editar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors" title="Eliminar">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- LÓGICA DE ELIMINACIÓN ---
+        function eliminarMovimiento(id) {
+            if(confirm("¿Deseas eliminar este registro de forma permanente?")) {
+                movimientos = movimientos.filter(m => m.id !== id);
+                localStorage.setItem('movimientos_mxn', JSON.stringify(movimientos));
+                refrescarVistaActual();
+            }
+        }
+
+        // --- LÓGICA DE EDICIÓN (CARGAR DATOS AL FORMULARIO) ---
+        function prepararEdicion(id, tipo) {
+            const mov = movimientos.find(m => m.id === id);
+            if(!mov) return;
+
+            editandoId = id;
+            const pref = tipo === 'ingreso' ? 'in' : 'ex';
+            
+            // Poblar campos del formulario
+            document.getElementById(`${pref}-fecha`).value = mov.fecha;
+            document.getElementById(`${pref}-categoria`).value = mov.cat;
+            document.getElementById(`${pref}-desc`).value = mov.desc;
+            
+            // Sincronizar inputs de monto (Máscara y Hidden)
+            const mask = document.getElementById(`${pref}-monto-mask`);
+            const hidden = document.getElementById(`${pref}-monto-hidden`);
+            hidden.value = mov.monto;
+            mask.value = mov.monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+
+            // Modificar el botón para indicar estado de edición
+            const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+            btn.innerText = "ACTUALIZAR REGISTRO";
+            btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+            
+            // Scroll suave hacia arriba para que el usuario vea el formulario lleno
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // FUNCIÓN DE REPORTE INTEGRADA (ESTADO RESULTADOS + BALANCE EN DISTINTAS PESTAÑAS)
@@ -427,25 +523,18 @@
             link.click();
         }
 
-        // --- FUNCIONES EXCEL (Sin cambios) ---
+        // --- FUNCIONES EXCEL ---
         function Encabezado(ws, texto, fila) {
-            // Combinamos las celdas en la fila específica
             ws.mergeCells(`A${fila}:D${fila}`);
-            
             const cell = ws.getCell(`A${fila}`);
             cell.value = texto.toUpperCase();
-            
-            // Estilos
             cell.font = { size: 12, bold: true, color: { argb: 'FF45423E' } };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
             cell.alignment = { horizontal: 'center' };
-            
-            // Configuración de la hoja (solo se necesita una vez, pero no estorba aquí)
             ws.views = [{ showGridLines: false }];
-            return fila + 1; // Devolvemos la siguiente fila disponible
+            return fila + 1;
         }
 
-        //--- Funciones Estado de Resultados
         function TitRepCont(ws, tit, monto, fila) {
             const cell = ws.getCell(`A${fila}`);
             cell.value = tit.toUpperCase();
@@ -460,7 +549,6 @@
             cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
             cell1.numFmt = '"$"#,##0.00';
             cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-            ws.columns.forEach(c => c.width = 25);
             return fila + 1;
         }
 
@@ -478,11 +566,8 @@
             cell1.value = monto;
             cell1.font = { size: 12,  color: { argb: 'FF45423E' } };
             cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (fila % 2 !== 0) ? 'FFB9AB97' : 'FFF2ECE5' }  };
-            const bordeContorno1 = { style: 'medium', color: { argb: 'FF7E705B' } };
             cell1.numFmt = '"$"#,##0.00';
             cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-
-            ws.getColumn(2).width = 25;
             return fila + 1;
         }
         
@@ -500,7 +585,6 @@
             cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
             cell1.numFmt = '"$"#,##0.00';
             cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-            ws.columns.forEach(c => c.width = 30);
             return fila + 1;
         }
        
@@ -647,16 +731,6 @@
             listaH.innerHTML = '';
             [...movimientos].reverse().slice(0, 10).forEach(m => {
                 listaH.innerHTML += `<div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white"><div><p class="text-xs font-semibold uppercase">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.fecha}</p></div><span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span></div>`;
-            });
-        }
-
-        function actualizarListadoIndividual(tipo, contId, countId) {
-            const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo).reverse();
-            document.getElementById(countId).innerText = `${filtrados.length} items`;
-            const cont = document.getElementById(contId);
-            cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-            filtrados.forEach(m => {
-                cont.innerHTML += `<div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center"><div><p class="text-sm font-semibold uppercase">${m.desc}</p><p class="text-[9px] opacity-40 uppercase">${m.fecha}</p></div><p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</p></div>`;
             });
         }
 
