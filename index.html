@@ -439,32 +439,67 @@
             }
         }
 
-        // --- AUTENTICACIÓN ---
-        async function ejecutarLogin() {
-            const usuario = document.getElementById('login-user').value;
-            const password = document.getElementById('login-pass').value;
-            const errorLabel = document.getElementById('login-error');
+        // --- MÓDULO DE AUTENTICACIÓN ACTUALIZADO CON OJITO FUNCIONAL ---
+        const AuthModule = {
+            togglePasswordVisibility() {
+                const passInput = document.getElementById('login-pass');
+                const eyeIcon = document.getElementById('eye-icon');
+                
+                if (passInput.type === 'password') {
+                    passInput.type = 'text';
+                    eyeIcon.innerHTML = `
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    `;
+                } else {
+                    passInput.type = 'password';
+                    eyeIcon.innerHTML = `
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    `;
+                }
+            },
 
-            if (!usuario || !password) {
-                errorLabel.innerText = "Por favor llena todos los campos.";
-                errorLabel.classList.remove('hidden');
-                return;
-            }
+            async ejecutarLogin() {
+                const user = document.getElementById('login-user').value.trim();
+                const pass = document.getElementById('login-pass').value;
+                const errorLabel = document.getElementById('login-error');
+                const btnSubmit = document.getElementById('btn-login-submit');
 
-            const res = await FetchAPI("login", { usuario, password });
-            if (res.success) {
-                localStorage.setItem('session_user', res.usuario);
-                localStorage.setItem('session_userName', res.userName);
+                if (!user || !pass) {
+                    alert("Por favor rellena todos los campos.");
+                    return;
+                }
+
                 errorLabel.classList.add('hidden');
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('user-display').innerText = res.userName;
-                await inicializarSincronizacion();
-            } else {
-                errorLabel.innerText = res.message;
-                errorLabel.classList.remove('hidden');
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "VERIFICANDO...";
+
+                const res = await ApiService.fetch("login", { usuario: user, password: pass });
+
+                if (res.success) {
+                    document.getElementById('user-greeting').innerText = `Hola, ${res.userName}`;
+                    document.getElementById('login-container').classList.add('hidden');
+                    document.getElementById('app-wrapper').classList.remove('hidden');
+                    
+                    // Inicializar y cargar datos del servidor
+                    await cargarDatosRemotos();
+                } else {
+                    errorLabel.classList.remove('hidden');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "INGRESAR";
+                }
+            },
+
+            cerrarSesion() {
+                document.getElementById('login-user').value = "";
+                document.getElementById('login-pass').value = "";
+                document.getElementById('login-error').value = "";
+                document.getElementById('app-wrapper').classList.add('hidden');
+                document.getElementById('login-container').classList.remove('hidden');
             }
-        }
+        };
 
         function cerrarSesion() {
             localStorage.removeItem('session_user');
