@@ -464,7 +464,7 @@
                     return;
                 }
 
-                // 1. ACTIVAMOS TU LOADING OVERLAY AL DAR CLIC
+                // 1. Activar el overlay de carga al dar clic
                 const loadingOverlay = document.getElementById('loading-overlay');
                 loadingOverlay.classList.remove('hidden');
 
@@ -472,27 +472,30 @@
                 btnSubmit.disabled = true;
                 btnSubmit.innerText = "VERIFICANDO...";
 
-                // Llamada al servidor en la nube
                 const res = await ApiService.fetch("login", { usuario: user, password: pass });
 
                 if (res.success) {
                     document.getElementById('user-greeting').innerText = `Hola, ${res.userName}`;
-                    document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('app-wrapper').classList.remove('hidden');
 
-                    // Inicializamos los componentes del sistema
+                    // ==========================================
+                    // EL CAMBIO CRUCIAL AQUÍ: 
+                    // Primero mostramos la app y ocultamos el login
+                    // ==========================================
+                    document.getElementById('login-container').classList.add('hidden');
+                    document.getElementById('app-wrapper').classList.remove('hidden'); // <-- Ahora el canvas ya existe físicamente para el navegador
+
+                    // Ahora sí ejecutamos de forma segura la inicialización y carga de datos
                     inicializarFiltros();
                     actualizarFechaHeader();
 
-                    // Esperamos a que los datos remotos terminen de descargarse
+                    // Esperamos a que los datos remotos se descarguen (esto ejecutará actualizarHome() y dibujará el gráfico sin romper nada)
                     await cargarDatosRemotos();
 
-                    // 2. OCULTAMOS EL OVERLAY una vez que TODO el sistema está listo
+                    // Finalmente ocultamos tu overlay de carga
                     loadingOverlay.classList.add('hidden');
                 } else {
-                    // 3. OCULTAMOS EL OVERLAY si las credenciales son incorrectas para mostrar el error
+                    // Si el login falla, quitamos el overlay para mostrar el error
                     loadingOverlay.classList.add('hidden');
-
                     errorLabel.classList.remove('hidden');
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "INGRESAR";
