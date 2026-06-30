@@ -65,15 +65,25 @@
             
             <div class="space-y-4 text-left">
                 <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Usuario</label>
-                    <input type="text" id="login-user" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border focus:border-stone-200 uppercase">
+                    <label
+                        class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Usuario</label>
+                    <input type="text" id="login-user" placeholder="Ej. admin"
+                        class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
+                    <label
+                        class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
                     <div class="relative">
-                        <input type="password" id="login-pass" class="w-full p-4 pr-12 rounded-xl bg-gray-50 outline-none text-sm border focus:border-stone-200">
-                        <button type="button" onclick="AuthModule.togglePasswordVisibility()" class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
-                            <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <input type="password" id="login-pass" placeholder="••••••••"
+                            class="w-full p-4 pr-12 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
+                        <button type="button" onclick="AuthModule.togglePasswordVisibility()"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
+                            <!-- Icono del Ojo (SVG) -->
+                            <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
                         </button>
                     </div>
                 </div>
