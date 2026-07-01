@@ -32,11 +32,11 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Usuario</label>
-                    <input type="text" id="login-user" placeholder="Ej. admin" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
+                    <input type="text" id="login-user" autocomplete="username" placeholder="Usuario" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
+                    <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
                 <p id="login-error" class="text-rose-500 text-xs font-semibold hidden text-center"></p>
                 <button type="submit" onclick="ejecutarLogin()" class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors">Ingresar</button>
