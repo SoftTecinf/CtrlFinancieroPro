@@ -440,16 +440,16 @@
                 if (passInput.type === 'password') {
                     passInput.type = 'text';
                     eyeIcon.innerHTML = `
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <line x1="1" y1="1" x2="23" y2="23"></line>
-                    `;
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            `;
                 } else {
                     passInput.type = 'password';
                     eyeIcon.innerHTML = `
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    `;
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            `;
                 }
             },
 
@@ -477,18 +477,15 @@
                 if (res.success) {
                     document.getElementById('user-greeting').innerText = `Hola, ${res.userName}`;
 
-                    // ==========================================
-                    // EL CAMBIO CRUCIAL AQUÍ: 
                     // Primero mostramos la app y ocultamos el login
-                    // ==========================================
                     document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('app-wrapper').classList.remove('hidden'); // <-- Ahora el canvas ya existe físicamente para el navegador
+                    document.getElementById('app-wrapper').classList.remove('hidden');
 
                     // Ahora sí ejecutamos de forma segura la inicialización y carga de datos
                     inicializarFiltros();
                     actualizarFechaHeader();
 
-                    // Esperamos a que los datos remotos se descarguen (esto ejecutará actualizarHome() y dibujará el gráfico sin romper nada)
+                    // Esperamos a que los datos remotos se descarguen de la nube
                     await cargarDatosRemotos();
 
                     // Finalmente ocultamos tu overlay de carga
@@ -510,6 +507,44 @@
                 document.getElementById('login-container').classList.remove('hidden');
             }
         };
+
+        // ========================================================
+        // FUNCIONES INDEPENDIENTES PARA RENDERIZADO DE GRÁFICOS
+        // ========================================================
+
+        function renderizarGraficoHome(ingM, gasM) {
+            const canvas = document.getElementById('chartHome');
+            // Solo dibuja si el canvas existe y es visible físicamente en el DOM
+            if (canvas && canvas.offsetParent !== null) {
+                const ctx = canvas.getContext('2d');
+                if (typeof chartH !== 'undefined' && chartH) chartH.destroy();
+                chartH = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ingresos', 'Gastos'],
+                        datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#45423E'] }]
+                    },
+                    options: { cutout: '75%' }
+                });
+            }
+        }
+
+        function renderizarGraficoResumen(ing, gas) {
+            const canvas = document.getElementById('chartResumen');
+            // Solo dibuja si el canvas existe y es visible físicamente en el DOM
+            if (canvas && canvas.offsetParent !== null) {
+                const ctx = canvas.getContext('2d');
+                if (typeof chartR !== 'undefined' && chartR) chartR.destroy();
+                chartR = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ingresos', 'Gastos'],
+                        datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 8 }]
+                    },
+                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
 
 
         // --- VARIABLES GLOBALES DE DATOS ---
