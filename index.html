@@ -1,206 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Financiero Pro</title>
-
+    
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="logo192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-arena: #F8F6F2;
-            --text-main: #45423E;
-            --brand-sand: #D6C7B3;
-        }
-
-        body {
-            background-color: var(--bg-arena);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .soft-shadow {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        }
-
-        .rounded-xl-custom {
-            border-radius: 1.25rem;
-        }
-
-        .hidden-section {
-            display: none;
-        }
-
-        .balance-highlight {
-            background: linear-gradient(135deg, #FDFCFB 0%, #F2EFE9 100%);
-        }
-
-        .input-mxn {
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: #5C5852;
-        }
-
-        .list-container {
-            max-height: 400px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #E5DDD3 transparent;
-        }
-
-        .nav-btn {
-            @apply flex-1 flex flex-col items-center justify-center p-2 md:p-4 transition-all duration-300;
-            padding: 15px;
-        }
-
-        .btn-content {
-            @apply w-full py-3 md:py-4 bg-white rounded-2xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest opacity-40 transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            gap: 12px;
-        }
-
-        .nav-active {
-            background-color: #ffffff !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-            border-radius: 54px;
-            opacity: 1 !important;
-            color: #1c1917 !important;
-            transform: translateY(-2px);
-        }
-
-        .btn-export {
-            @apply text-[10px] bg-white border border-stone-100 px-4 py-2 rounded-full uppercase tracking-tighter hover:bg-stone-50 transition shadow-sm flex items-center gap-2 font-bold;
-        }
-
-        .toolbar-group {
-            @apply flex items-center gap-2;
-        }
+        :root { --bg-arena: #F8F6F2; --text-main: #45423E; --brand-sand: #D6C7B3; }
+        body { background-color: var(--bg-arena); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; }
+        .soft-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .rounded-xl-custom { border-radius: 1.25rem; }
+        .hidden-section { display: none; }
+        .balance-highlight { background: linear-gradient(135deg, #FDFCFB 0%, #F2EFE9 100%); }
+        .input-mxn { font-family: 'Courier New', monospace; font-weight: 600; color: #5C5852; }
+        .list-container { max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #E5DDD3 transparent; }
+        
+        .nav-btn { @apply flex-1 flex flex-col items-center justify-center p-2 md:p-4 transition-all duration-300; padding: 15px; }
+        .btn-content { @apply w-full py-3 md:py-4 bg-white rounded-2xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest opacity-40 transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3; display: flex; text-align: center; gap: 12px; }
+        .nav-active { background-color: #ffffff !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; border-radius: 54px; opacity: 1 !important; color: #1c1917 !important; transform: translateY(-2px); }
+        .btn-export { @apply text-[10px] bg-white border border-stone-100 px-4 py-2 rounded-full uppercase tracking-tighter hover:bg-stone-50 transition shadow-sm flex items-center gap-2 font-bold; }
+        .toolbar-group { @apply flex items-center gap-2; }
+        
+        #loading-overlay { background: rgba(248, 246, 242, 0.85); backdrop-filter: blur(4px); display: none; }
     </style>
 </head>
-
 <body class="min-h-screen pb-24 md:pb-10">
 
-    <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F8F6F2]">
+    <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-700 mb-4"></div>
-        <p class="text-xs font-bold uppercase tracking-widest text-stone-500">Preparando el Sistema...</p>
+        <p class="text-xs font-bold uppercase tracking-widest text-stone-500">Procesando con la nube...</p>
     </div>
 
-    <div id="login-container" class="fixed inset-0 z-[90] bg-stone-100 flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-stone-200 text-center">
-            <div class="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                    <path d="M2 17L12 22L22 17" />
-                    <path d="M2 12L12 17L22 12" />
-                </svg>
+    <div id="login-container" class="fixed inset-0 z-50 flex items-center justify-center bg-[#F8F6F2] px-6">
+        <div class="w-full max-w-md bg-white p-8 rounded-xl-custom soft-shadow border border-stone-200">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center shadow-md mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L17"/></svg>
+                </div>
+                <h2 class="text-2xl font-light italic text-stone-800">Control <span class="font-bold not-italic">Financiero</span></h2>
+                <p class="text-xs text-stone-400 mt-1 uppercase tracking-wider font-bold">Acceso al Sistema</p>
             </div>
-            <h2 class="text-2xl font-light tracking-tight text-stone-800 italic">Control <span
-                    class="font-bold not-italic">Financiero</span></h2>
-            <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400 mt-1 mb-8">Acceso al Sistema</p>
-
-            <div class="space-y-4 text-left">
+            <div class="space-y-4">
                 <div>
-                    <label
-                        class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Usuario</label>
-                    <input type="text" id="login-user" placeholder="Ej. admin"
-                        class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Usuario</label>
+                    <input type="text" id="login-user" placeholder="Ej. admin" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
                 <div>
-                    <label
-                        class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
-                    <div class="relative">
-                        <input type="password" id="login-pass" placeholder="••••••••"
-                            class="w-full p-4 pr-12 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
-                        <button type="button" onclick="AuthModule.togglePasswordVisibility()"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none">
-                            <!-- Icono del Ojo (SVG) -->
-                            <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
-                <p id="login-error" class="text-xs text-rose-500 font-medium text-center hidden">Usuario o contraseña
-                    incorrectos.</p>
-                <button onclick="AuthModule.ejecutarLogin()" id="btn-login-submit"
-                    class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-all">Ingresar</button>
+                <p id="login-error" class="text-rose-500 text-xs font-semibold hidden text-center"></p>
+                <button onclick="ejecutarLogin()" class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors">Ingresar</button>
             </div>
         </div>
     </div>
 
-    <div id="app-wrapper" class="hidden">
-        <nav
-            class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-50">
+    <div id="app-content" class="hidden">
+        <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-40">
             <div class="max-w-5xl mx-auto flex justify-around p-2 md:p-4" id="main-nav">
-                <button id="nav-home" onclick="showSection('home')"
-                    class="nav-btn nav-active flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-home" onclick="showSection('home')" class="nav-btn nav-active flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <span>Inicio</span>
                     </div>
                 </button>
-                <button id="nav-ingresos" onclick="showSection('ingresos')"
-                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-ingresos" onclick="showSection('ingresos')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>Ingresos</span>
                     </div>
                 </button>
-                <button id="nav-gastos" onclick="showSection('gastos')"
-                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-gastos" onclick="showSection('gastos')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>Gastos</span>
                     </div>
                 </button>
-                <button id="nav-resumen" onclick="showSection('resumen')"
-                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-resumen" onclick="showSection('resumen')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10"></line>
-                            <line x1="12" y1="20" x2="12" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                         <span>Análisis</span>
                     </div>
                 </button>
-                <button id="nav-config" onclick="showSection('config')"
-                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-config" onclick="showSection('config')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                            </path>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         <span>Ajustes</span>
                     </div>
                 </button>
@@ -211,26 +103,16 @@
             <header class="flex justify-between items-center mb-10">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 bg-stone-800 rounded-lg flex items-center justify-center shadow-md">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                            <path d="M2 17L12 22L22 17" />
-                            <path d="M2 12L12 17L22 12" />
-                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-light tracking-tight text-stone-800 italic">Control <span
-                                class="font-bold not-italic">Financiero</span> <span id="subtitulo-seccion"
-                                class="text-stone-400 font-light italic text-xl"> / Inicio</span></h1>
-                        <p id="user-greeting"
-                            class="text-[10px] uppercase font-bold tracking-widest text-[#8C7E6A] mt-0.5"></p>
+                        <h1 class="text-3xl font-light tracking-tight text-stone-800 italic">Control <span class="font-bold not-italic">Financiero</span> <span id="subtitulo-seccion" class="text-stone-400 font-light italic text-xl"></span></h1>
+                        <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider mt-0.5">Hola, <span id="user-display" class="text-stone-600 font-extrabold">...</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <p id="fecha-sistema"
-                        class="hidden md:block text-[11px] font-bold uppercase tracking-widest text-stone-400 italic">
-                    </p>
-                    <button onclick="AuthModule.cerrarSesion()"
-                        class="text-[10px] font-bold uppercase tracking-wider text-rose-400 hover:text-rose-600 border border-rose-100 bg-white px-3 py-1.5 rounded-full transition shadow-sm">Salir</button>
+                    <p id="fecha-sistema" class="hidden md:block text-[11px] font-bold uppercase tracking-widest text-stone-400 italic"></p>
+                    <button onclick="cerrarSesion()" class="text-[10px] border border-stone-300 px-3 py-1 rounded-md uppercase font-bold text-stone-500 hover:bg-stone-100 transition">Salir</button>
                 </div>
             </header>
 
@@ -240,64 +122,38 @@
                         <span class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Patrimonio Total</span>
                         <h2 id="balance-general" class="text-2xl font-bold mt-1 text-[#8C7E6A]">$0.00</h2>
                     </div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
-                            class="text-[10px] uppercase tracking-wider opacity-60 font-bold italic">Hoy</span>
-                        <h2 id="balance-dia" class="text-2xl font-bold mt-1 text-stone-600">$0.00</h2>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
-                            class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Ingresos Mes</span>
-                        <h2 id="home-ingresos" class="text-2xl font-bold mt-1 text-stone-500">$0.00</h2>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
-                            class="text-[10px] uppercase tracking-wider opacity-60 text-rose-300 font-bold">Gastos
-                            Mes</span>
-                        <h2 id="home-gastos" class="text-2xl font-bold mt-1">$0.00</h2>
-                    </div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 font-bold italic">Hoy</span><h2 id="balance-dia" class="text-2xl font-bold mt-1 text-stone-600">$0.00</h2></div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Ingresos Mes</span><h2 id="home-ingresos" class="text-2xl font-bold mt-1 text-stone-500">$0.00</h2></div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 text-rose-300 font-bold">Gastos Mes</span><h2 id="home-gastos" class="text-2xl font-bold mt-1">$0.00</h2></div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-xl-custom soft-shadow text-center">
-                        <h3 class="text-lg font-semibold mb-6 italic">Distribución Mensual</h3>
-                        <div class="max-w-[250px] mx-auto"><canvas id="chartHome"></canvas></div>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl-custom soft-shadow">
-                        <h3 class="text-lg font-semibold mb-6 italic">Últimos 10 Movimientos</h3>
-                        <div id="lista-recientes" class="space-y-3 list-container"></div>
-                    </div>
+                    <div class="bg-white p-8 rounded-xl-custom soft-shadow text-center"><h3 class="text-lg font-semibold mb-6 italic">Distribución Mensual</h3><div class="max-w-[250px] mx-auto"><canvas id="chartHome"></canvas></div></div>
+                    <div class="bg-white p-8 rounded-xl-custom soft-shadow"><h3 class="text-lg font-semibold mb-6 italic">Últimos 10 Movimientos</h3><div id="lista-recientes" class="space-y-3 list-container"></div></div>
                 </div>
             </section>
 
             <section id="sec-ingresos" class="hidden-section">
                 <div class="flex justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="in-mes" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="in-año" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="in-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="in-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="exportarFiltradoXLSX('ingreso')" class="btn-export">📊 Exportar Ingresos</button>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow h-fit">
-                        <h2 class="text-xl font-semibold mb-6 italic" id="title-in-form">Capturar Ingreso</h2>
+                        <h2 class="text-xl font-semibold mb-6 italic">Capturar Ingreso</h2>
                         <div class="space-y-4">
-                            <input type="date" id="in-fecha"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm">
-                            <select id="in-categoria"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm"></select>
-                            <input type="text" id="in-desc" placeholder="Concepto"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase">
-                            <input type="text" id="in-monto-mask" oninput="formatCurrency(this, 'in-monto-hidden')"
-                                placeholder="$ 0.00 MXN"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn">
+                            <input type="date" id="in-fecha" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
+                            <select id="in-categoria" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
+                            <input type="text" id="in-desc" placeholder="Concepto" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
+                            <input type="text" id="in-monto-mask" oninput="formatCurrency(this, 'in-monto-hidden')" placeholder="$ 0.00 MXN" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
                             <input type="hidden" id="in-monto-hidden" value="0">
-                            <button id="btn-in-submit" onclick="guardarRegistro('ingreso')"
-                                class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar
-                                Registro</button>
+                            <button onclick="guardarRegistro('ingreso')" class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar Registro</button>
                         </div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
-                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span
-                                id="count-in">0 items</span></h2>
+                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span id="count-in">0 items</span></h2>
                         <div id="lista-ingresos" class="list-container space-y-3"></div>
                     </div>
                 </div>
@@ -306,35 +162,25 @@
             <section id="sec-gastos" class="hidden-section">
                 <div class="flex justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="ex-mes" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="ex-año" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="ex-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="ex-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="exportarFiltradoXLSX('gasto')" class="btn-export">📊 Exportar Gastos</button>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow h-fit">
-                        <h2 class="text-xl font-semibold mb-6 italic" id="title-ex-form">Capturar Gasto</h2>
+                        <h2 class="text-xl font-semibold mb-6 italic">Capturar Gasto</h2>
                         <div class="space-y-4">
-                            <input type="date" id="ex-fecha"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm">
-                            <select id="ex-categoria"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm"></select>
-                            <input type="text" id="ex-desc" placeholder="Concepto"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase">
-                            <input type="text" id="ex-monto-mask" oninput="formatCurrency(this, 'ex-monto-hidden')"
-                                placeholder="$ 0.00 MXN"
-                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn">
+                            <input type="date" id="ex-fecha" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
+                            <select id="ex-categoria" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
+                            <input type="text" id="ex-desc" placeholder="Concepto" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
+                            <input type="text" id="ex-monto-mask" oninput="formatCurrency(this, 'ex-monto-hidden')" placeholder="$ 0.00 MXN" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
                             <input type="hidden" id="ex-monto-hidden" value="0">
-                            <button id="btn-ex-submit" onclick="guardarRegistro('gasto')"
-                                class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Registrar
-                                Egreso</button>
+                            <button onclick="guardarRegistro('gasto')" class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Registrar Egreso</button>
                         </div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
-                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span
-                                id="count-ex">0 items</span></h2>
+                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span id="count-ex">0 items</span></h2>
                         <div id="lista-gastos" class="list-container space-y-3"></div>
                     </div>
                 </div>
@@ -343,10 +189,8 @@
             <section id="sec-resumen" class="hidden-section">
                 <div class="flex flex-wrap justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="res-mes" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="res-año" onchange="refrescarVistaActual()"
-                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="res-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="res-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="generarLibroContable()" class="btn-export">📊 Generar Reporte Financiero</button>
                 </div>
@@ -354,8 +198,7 @@
                     <div class="lg:col-span-2 bg-white p-8 rounded-xl-custom soft-shadow text-center">
                         <h2 class="text-xl font-semibold italic mb-6">Utilidad del Periodo</h2>
                         <h2 class="text-5xl font-light mb-8" id="resumen-balance-total">$0.00</h2>
-                        <div class="h-[300px] flex items-center justify-center"><canvas id="chartResumen"></canvas>
-                        </div>
+                        <div class="h-[300px] flex items-center justify-center"><canvas id="chartResumen"></canvas></div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
                         <h3 class="text-lg font-semibold mb-6 italic">Cronología del Periodo</h3>
@@ -369,29 +212,22 @@
                     <div class="bg-white p-6 md:p-8 rounded-xl-custom soft-shadow">
                         <h2 class="text-xl font-semibold mb-6 italic text-stone-800">Categorías</h2>
                         <div class="flex flex-col md:flex-row gap-2 mb-8">
-                            <input type="text" id="nueva-cat-nombre" placeholder="Nombre"
-                                class="flex-1 p-3 rounded-lg bg-gray-50 outline-none text-sm border">
+                            <input type="text" id="nueva-cat-nombre" placeholder="Nombre" class="flex-1 p-3 rounded-lg bg-gray-50 outline-none text-sm border">
                             <div class="flex gap-2">
-                                <select id="nueva-cat-tipo"
-                                    class="flex-1 bg-gray-50 p-3 rounded-lg text-xs font-bold border">
+                                <select id="nueva-cat-tipo" class="flex-1 bg-gray-50 p-3 rounded-lg text-xs font-bold border">
                                     <option value="ingreso">Ingreso</option>
                                     <option value="gasto">Gasto</option>
                                 </select>
-                                <button onclick="agregarCategoria()"
-                                    class="bg-stone-800 text-white px-6 py-3 rounded-lg text-xs font-bold uppercase">+</button>
+                                <button onclick="agregarCategoria()" class="bg-stone-800 text-white px-6 py-3 rounded-lg text-xs font-bold uppercase">+</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <h3
-                                    class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">
-                                    Ingresos</h3>
+                                <h3 class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">Ingresos</h3>
                                 <div id="lista-cats-ingreso" class="space-y-2"></div>
                             </div>
                             <div>
-                                <h3
-                                    class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">
-                                    Gastos</h3>
+                                <h3 class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">Gastos</h3>
                                 <div id="lista-cats-gasto" class="space-y-2"></div>
                             </div>
                         </div>
@@ -402,164 +238,82 @@
     </div>
 
     <script>
-        const AppState = {
-            API_URL: "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec"
-        };
+        // --- URL DE GOOGLE APPS SCRIPT ---
+        const API_URL = "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec";
 
-        // Al cargar la página de forma inmediata
-        window.addEventListener('DOMContentLoaded', () => {
-            // Aseguramos que el cargador inicie oculto para que vean el login
-            document.getElementById('loading-overlay').classList.add('hidden');
-            document.getElementById('login-container').classList.remove('hidden');
-        });
-
-        const ApiService = {
-            async fetch(action, payload = {}) {
-                try {
-                    const response = await fetch(AppState.API_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ action, ...payload })
-                    });
-                    if (!response.ok) throw new Error("Error en red.");
-                    return await response.json();
-                } catch (error) {
-                    console.error("Fallo en API:", error);
-                    alert("Error en Servidor: " + error.message);
-                    return { success: false, message: error.message };
-                }
-            }
-        };
-
-        const AuthModule = {
-            togglePasswordVisibility() {
-                const passInput = document.getElementById('login-pass');
-                const eyeIcon = document.getElementById('eye-icon');
-
-                if (passInput.type === 'password') {
-                    passInput.type = 'text';
-                    eyeIcon.innerHTML = `
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-            `;
-                } else {
-                    passInput.type = 'password';
-                    eyeIcon.innerHTML = `
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-            `;
-                }
-            },
-
-            async ejecutarLogin() {
-                const user = document.getElementById('login-user').value.trim();
-                const pass = document.getElementById('login-pass').value;
-                const errorLabel = document.getElementById('login-error');
-                const btnSubmit = document.getElementById('btn-login-submit');
-
-                if (!user || !pass) {
-                    alert("Por favor rellena todos los campos.");
-                    return;
-                }
-
-                // 1. Activar el overlay de carga al dar clic
-                const loadingOverlay = document.getElementById('loading-overlay');
-                loadingOverlay.classList.remove('hidden');
-
-                errorLabel.classList.add('hidden');
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = "VERIFICANDO...";
-
-                const res = await ApiService.fetch("login", { usuario: user, password: pass });
-
-                if (res.success) {
-                    document.getElementById('user-greeting').innerText = `Hola, ${res.userName}`;
-
-                    // Primero mostramos la app y ocultamos el login
-                    document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('app-wrapper').classList.remove('hidden');
-
-                    // Ahora sí ejecutamos de forma segura la inicialización y carga de datos
-                    inicializarFiltros();
-                    actualizarFechaHeader();
-
-                    // Esperamos a que los datos remotos se descarguen de la nube
-                    await cargarDatosRemotos();
-
-                    // Finalmente ocultamos tu overlay de carga
-                    loadingOverlay.classList.add('hidden');
-                } else {
-                    // Si el login falla, quitamos el overlay para mostrar el error
-                    loadingOverlay.classList.add('hidden');
-                    errorLabel.classList.remove('hidden');
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = "INGRESAR";
-                }
-            },
-
-            cerrarSesion() {
-                document.getElementById('login-user').value = "";
-                document.getElementById('login-pass').value = "";
-                document.getElementById('login-error').classList.add('hidden');
-                document.getElementById('app-wrapper').classList.add('hidden');
-                document.getElementById('login-container').classList.remove('hidden');
-            }
-        };
-
-        // ========================================================
-        // FUNCIONES INDEPENDIENTES PARA RENDERIZADO DE GRÁFICOS
-        // ========================================================
-
-        function renderizarGraficoHome(ingM, gasM) {
-            const canvas = document.getElementById('chartHome');
-            // Solo dibuja si el canvas existe y es visible físicamente en el DOM
-            if (canvas && canvas.offsetParent !== null) {
-                const ctx = canvas.getContext('2d');
-                if (typeof chartH !== 'undefined' && chartH) chartH.destroy();
-                chartH = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Ingresos', 'Gastos'],
-                        datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#45423E'] }]
-                    },
-                    options: { cutout: '75%' }
-                });
-            }
-        }
-
-        function renderizarGraficoResumen(ing, gas) {
-            const canvas = document.getElementById('chartResumen');
-            // Solo dibuja si el canvas existe y es visible físicamente en el DOM
-            if (canvas && canvas.offsetParent !== null) {
-                const ctx = canvas.getContext('2d');
-                if (typeof chartR !== 'undefined' && chartR) chartR.destroy();
-                chartR = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Ingresos', 'Gastos'],
-                        datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 8 }]
-                    },
-                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-                });
-            }
-        }
-
-
-        // --- VARIABLES GLOBALES DE DATOS ---
         let editandoId = null;
         let movimientos = [];
         let categorias = [];
         let chartH, chartR, seccionActual = 'home';
         const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        
+        function toggleLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
 
-        async function cargarDatosRemotos() {
-            const res = await ApiService.fetch("obtenerDatos");
-            if (res.success) {
-                movimientos = res.movimientos || [];
-                categorias = res.categorias || [];
-                actualizarSelectsCategorias();
+        // --- ENVIAR DATOS A APPS SCRIPT ---
+        async function FetchAPI(action, extraData = {}) {
+            toggleLoading(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action, ...extraData })
+                });
+                const data = await response.json();
+                if(!data.success) alert("Error en Servidor: " + (data.message || data.error));
+                return data;
+            } catch (error) {
+                console.error(error);
+                alert("Error de conexión con Google Sheets.");
+                return { success: false };
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // --- AUTENTICACIÓN ---
+        async function ejecutarLogin() {
+            const usuario = document.getElementById('login-user').value;
+            const password = document.getElementById('login-pass').value;
+            const errorLabel = document.getElementById('login-error');
+            
+            if(!usuario || !password) {
+                errorLabel.innerText = "Por favor llena todos los campos.";
+                errorLabel.classList.remove('hidden');
+                return;
+            }
+
+            const res = await FetchAPI("login", { usuario, password });
+            if(res.success) {
+                localStorage.setItem('session_user', res.usuario);
+                localStorage.setItem('session_userName', res.userName);
+                errorLabel.classList.add('hidden');
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('user-display').innerText = res.userName;
+                await inicializarSincronizacion();
+            } else {
+                errorLabel.innerText = res.message;
+                errorLabel.classList.remove('hidden');
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('session_user');
+            localStorage.removeItem('session_userName');
+            document.getElementById('login-container').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('login-user').value = "";
+            document.getElementById('login-pass').value = "";
+        }
+
+        async function inicializarSincronizacion() {
+            const res = await FetchAPI("obtenerDatos");
+            if(res.success) {
+                movimientos = res.movimientos;
+                categorias = res.categorias;
+                inicializarFiltros();
                 refrescarVistaActual();
             }
         }
@@ -583,75 +337,116 @@
         }
 
         function refrescarVistaActual() {
-            if (seccionActual === 'home') actualizarHome();
-            if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-            if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-            if (seccionActual === 'resumen') actualizarResumen();
-            if (seccionActual === 'config') renderCategoriasConfig();
+            actualizarSelectsCategorias();
+            if(seccionActual === 'home') actualizarHome();
+            if(seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+            if(seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+            if(seccionActual === 'resumen') actualizarResumen();
+            if(seccionActual === 'config') renderCategoriasConfig();
         }
 
+        // --- ACCIONES CON SHEETS ---
         async function guardarRegistro(tipo) {
             const pref = tipo === 'ingreso' ? 'in' : 'ex';
             const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
-
-            if (!monto || monto <= 0) {
+            
+            if(!monto || monto <= 0) {
                 alert("Por favor ingresa un monto válido.");
                 return;
             }
-
+            
             const descInput = document.getElementById(`${pref}-desc`).value.trim().toUpperCase();
-            const idRegistro = editandoId ? editandoId : Date.now();
-            const fechaInput = document.getElementById(`${pref}-fecha`).value;
-            const catInput = document.getElementById(`${pref}-categoria`).value;
-
-            const itemData = {
-                id: idRegistro,
-                tipo: tipo,
-                fecha: fechaInput,
-                cat: catInput,
-                desc: descInput || 'SIN NOMBRE',
-                monto: monto
+            const idMovi = editandoId ? editandoId : Date.now();
+            const nuevaData = { 
+                id: idMovi,
+                tipo,
+                fecha: document.getElementById(`${pref}-fecha`).value, 
+                cat: document.getElementById(`${pref}-categoria`).value, 
+                desc: descInput || 'SIN NOMBRE', 
+                monto 
             };
 
-            const btnSubmit = document.getElementById(`btn-${pref}-submit`);
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = "GUARDANDO...";
-
-            const res = await ApiService.fetch("guardarMovimiento", { data: itemData });
-
+            const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
             if (res.success) {
-                if (editandoId) {
-                    const index = movimientos.findIndex(m => m.id === editandoId);
-                    if (index !== -1) movimientos[index] = itemData;
+                if(editandoId) {
+                    const idx = movimientos.findIndex(m => m.id === editandoId);
+                    movimientos[idx] = nuevaData;
                     editandoId = null;
+                    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+                    btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+                    btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
                 } else {
-                    movimientos.push(itemData);
+                    movimientos.push(nuevaData);
                 }
-
+                
                 document.getElementById(`${pref}-monto-mask`).value = "";
                 document.getElementById(`${pref}-monto-hidden`).value = 0;
                 document.getElementById(`${pref}-desc`).value = "";
-
-                const originalTitle = tipo === 'ingreso' ? "Capturar Ingreso" : "Capturar Gasto";
-                const originalBtnText = tipo === 'ingreso' ? "Guardar Registro" : "Registrar Egreso";
-
-                document.getElementById(`title-${pref}-form`).innerText = originalTitle;
-                btnSubmit.innerText = originalBtnText;
-                btnSubmit.className = tipo === 'ingreso' ?
-                    "w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all" :
-                    "w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest";
-
                 refrescarVistaActual();
             }
-            btnSubmit.disabled = false;
         }
 
+        async function eliminarMovimiento(id) {
+            if(confirm("¿Deseas eliminar este registro en la nube de forma permanente?")) {
+                const res = await FetchAPI("eliminarMovimiento", { id });
+                if(res.success) {
+                    movimientos = movimientos.filter(m => m.id !== id);
+                    refrescarVistaActual();
+                }
+            }
+        }
+
+        async function agregarCategoria() {
+            const nom = document.getElementById('nueva-cat-nombre').value.trim().toUpperCase();
+            const tipo = document.getElementById('nueva-cat-tipo').value;
+            if(!nom) return;
+            
+            const nuevaCat = { id: Date.now(), nombre: nom, tipo };
+            const res = await FetchAPI("guardarCategoria", { data: nuevaCat });
+            if(res.success) {
+                categorias.push(nuevaCat);
+                document.getElementById('nueva-cat-nombre').value = '';
+                refrescarVistaActual();
+            }
+        }
+
+        async function eliminarCategoria(id) {
+            if(confirm("¿Deseas borrar esta categoría?")) {
+                const res = await FetchAPI("eliminarCategoria", { id });
+                if(res.success) {
+                    categorias = categorias.filter(c => c.id !== id);
+                    refrescarVistaActual();
+                }
+            }
+        }
+
+        function prepararEdicion(id, tipo) {
+            const mov = movimientos.find(m => m.id === id);
+            if(!mov) return;
+            editandoId = id;
+            const pref = tipo === 'ingreso' ? 'in' : 'ex';
+            
+            document.getElementById(`${pref}-fecha`).value = mov.fecha;
+            document.getElementById(`${pref}-categoria`).value = mov.cat;
+            document.getElementById(`${pref}-desc`).value = mov.desc;
+            
+            const mask = document.getElementById(`${pref}-monto-mask`);
+            document.getElementById(`${pref}-monto-hidden`).value = mov.monto;
+            mask.value = mov.monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+
+            const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+            btn.innerText = "ACTUALIZAR REGISTRO";
+            btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- RENDERIZADOS LOCALES ---
         function actualizarListadoIndividual(tipo, contId, countId) {
             const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo).reverse();
             document.getElementById(countId).innerText = `${filtrados.length} items`;
             const cont = document.getElementById(contId);
             cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-
+            
             filtrados.forEach(m => {
                 cont.innerHTML += `
                     <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
@@ -665,7 +460,7 @@
                                     ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
                                 </p>
                             </div>
-                            <div class="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex gap-1">
                                 <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
@@ -678,41 +473,6 @@
             });
         }
 
-        async function eliminarMovimiento(id) {
-            if (confirm("¿Deseas eliminar este registro de forma permanente en la nube?")) {
-                const res = await ApiService.fetch("eliminarMovimiento", { id: id });
-                if (res.success) {
-                    movimientos = movimientos.filter(m => m.id !== id);
-                    refrescarVistaActual();
-                }
-            }
-        }
-
-        function prepararEdicion(id, tipo) {
-            const mov = movimientos.find(m => m.id === id);
-            if (!mov) return;
-
-            editandoId = id;
-            const pref = tipo === 'ingreso' ? 'in' : 'ex';
-
-            document.getElementById(`${pref}-fecha`).value = mov.fecha;
-            document.getElementById(`${pref}-categoria`).value = mov.cat;
-            document.getElementById(`${pref}-desc`).value = mov.desc;
-
-            const mask = document.getElementById(`${pref}-monto-mask`);
-            const hidden = document.getElementById(`${pref}-monto-hidden`);
-            hidden.value = mov.monto;
-            mask.value = mov.monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
-
-            document.getElementById(`title-${pref}-form`).innerText = "Editar Registro";
-            const btn = document.getElementById(`btn-${pref}-submit`);
-            btn.innerText = "ACTUALIZAR REGISTRO INMEDIATO";
-            btn.className = "w-full bg-amber-600 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest ring-4 ring-amber-100 transition-all";
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // --- EXPORTACIÓN EXCEL ---
         async function generarLibroContable() {
             const { mes, año } = obtenerPeriodoActual();
             const filtrados = obtenerMovimientosFiltrados();
@@ -720,13 +480,13 @@
             const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
             const ahora = new Date();
 
-            if (!filtrados.length) return alert("No hay datos en este periodo.");
-
+            if (!filtrados.length) return alert("No hay datos en este período.");
             const sheetER = workbook.addWorksheet('Estado de Resultados');
             let filaER = 1;
+
             filaER = Encabezado(sheetER, "ESTADO DE RESULTADOS", filaER);
             filaER = Encabezado(sheetER, "PERIODO DE " + meses[mes] + " " + año, filaER);
-            filaER = Encabezado(sheetER, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaER);
+            filaER = Encabezado(sheetER, "GENERADO EL " + ahora.toLocaleDateString('es-MX'), filaER);
             filaER++;
 
             let totalIngresos = 0;
@@ -736,8 +496,8 @@
                 totalIngresos += m.monto;
             });
             filaER = TitRepCont(sheetER, "(+) TOTAL INGRESOS", totalIngresos, filaER);
-            filaER = TitRepCont(sheetER, "", null, filaER);
-
+            filaER++;
+            
             let totalGastos = 0;
             filaER = TitRepCont(sheetER, "GASTOS", null, filaER);
             filtrados.filter(m => m.tipo === 'gasto').forEach(m => {
@@ -745,156 +505,19 @@
                 totalGastos += m.monto;
             });
             filaER = TitRepCont(sheetER, "(-) TOTAL GASTOS", totalGastos, filaER);
-            filaER = TitRepCont(sheetER, "", null, filaER);
-
+            filaER++;
+            
             const utilidad = totalIngresos - totalGastos;
             filaER = UtiNeta(sheetER, "UTILIDAD NETA DEL PERIODO", totalGastos, utilidad, filaER);
 
-            const sheetBG = workbook.addWorksheet('Balance General');
-            let filaBG = 1;
-            filaBG = Encabezado(sheetBG, "BALANCE GENERAL", filaBG);
-            filaBG = Encabezado(sheetBG, "FECHA DE CORTE: " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaBG);
-            filaBG++;
-
-            let ingHist = 0, gasHist = 0;
-            movimientos.forEach(m => {
-                if (m.tipo === 'ingreso') ingHist += m.monto; else gasHist += m.monto;
-            });
-
-            filaBG = TitRepCont(sheetBG, "ACTIVOS", null, filaBG);
-            filaBG = DatoRepCont(sheetBG, "Efectivo y Equivalentes", ingHist - gasHist, filaBG);
-            filaBG = TitRepCont(sheetBG, "TOTAL ACTIVOS", ingHist - gasHist, filaBG);
-            filaBG = TitRepCont(sheetBG, "", null, filaBG);
-
-            filaBG = TitRepCont(sheetBG, "PATRIMONIO", null, filaBG);
-            filaBG = DatoRepCont(sheetBG, "Utilidades Acumuladas", ingHist, filaBG);
-            filaBG = DatoRepCont(sheetBG, "Gastos Acumulados", -1 * gasHist, filaBG);
-            filaBG = UtiNeta(sheetBG, "TOTAL PATRIMONIO", ingHist - gasHist, ingHist - gasHist, filaBG);
-
-            const wsIng = workbook.addWorksheet('Ingresos');
-            Encabezado(wsIng, "DETALLE DE INGRESOS", 1);
-            llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'), 4);
-
-            const wsGas = workbook.addWorksheet('Gastos');
-            Encabezado(wsGas, "DETALLE DE GASTOS", 1);
-            llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), 4);
-
-            descargarArchivo(workbook, "RepCont_" + meses[mes] + "_" + año);
+            descargarArchivo(workbook, "Reporte_Sincronizado_" + meses[mes]);
         }
 
-        async function exportarFiltradoXLSX(tipo) {
-            const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo);
-            if (!filtrados.length) return alert("Sin movimientos.");
-            const { mes, año } = obtenerPeriodoActual();
-            const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            const workbook = new ExcelJS.Workbook();
-            const ws = workbook.addWorksheet('Detalle');
-
-            Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), 1);
-            llenarTablaDetalle(ws, filtrados, 4);
-            descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + "_" + año);
-        }
-
-        function llenarTablaDetalle(ws, datos, filaLle) {
-            const head = ws.getRow(filaLle);
-            head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
-            head.eachCell(c => {
-                c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-                c.alignment = { horizontal: 'center' };
-            });
-            head.commit();
-            filaLle++;
-
-            datos.forEach((d, i) => {
-                const r = ws.getRow(filaLle);
-                r.values = [d.fecha, d.cat, d.desc, d.monto];
-                const colorFila = (i % 2 === 0) ? 'FFF2ECE5' : 'FFB9AB97';
-
-                r.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFila } };
-                    cell.font = { size: 12, color: { argb: 'FF45423E' } };
-                    cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
-                    if (colNumber === 4) {
-                        cell.numFmt = '"$"#,##0.00';
-                        cell.alignment = { horizontal: 'right' };
-                    }
-                });
-                r.commit();
-                filaLle++;
-            });
-            ws.columns.forEach(c => c.width = 22);
-        }
-
-        async function descargarArchivo(workbook, nombre) {
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${nombre}.xlsx`;
-            link.click();
-        }
-
-        function Encabezado(ws, texto, fila) {
-            ws.mergeCells(`A${fila}:D${fila}`);
-            const cell = ws.getCell(`A${fila}`);
-            cell.value = texto.toUpperCase();
-            cell.font = { size: 12, bold: true, color: { argb: 'FF45423E' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
-            cell.alignment = { horizontal: 'center' };
-            ws.views = [{ showGridLines: false }];
-            return fila + 1;
-        }
-
-        function TitRepCont(ws, tit, monto, fila) {
-            const cell = ws.getCell(`A${fila}`);
-            cell.value = tit.toUpperCase();
-            cell.font = { size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'left' };
-
-            const cell1 = ws.getCell(`B${fila}`);
-            if (monto !== null) {
-                cell1.value = monto;
-                cell1.numFmt = '"$"#,##0.00';
-            }
-            cell1.font = { size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-            cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-            cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-            return fila + 1;
-        }
-
-        function DatoRepCont(ws, cat, monto, fila) {
-            const cell = ws.getCell(`A${fila}`);
-            cell.value = cat.toUpperCase();
-            cell.font = { size: 12, color: { argb: 'FF45423E' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (fila % 2 !== 0) ? 'FFB9AB97' : 'FFF2ECE5' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'left' };
-
-            const cell1 = ws.getCell(`B${fila}`);
-            cell1.value = monto;
-            cell1.font = { size: 12, color: { argb: 'FF45423E' } };
-            cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (fila % 2 !== 0) ? 'FFB9AB97' : 'FFF2ECE5' } };
-            cell1.numFmt = '"$"#,##0.00';
-            cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-            return fila + 1;
-        }
-
-        function UtiNeta(ws, tit, monto, utilidad, fila) {
-            const cell = ws.getCell(`A${fila}`);
-            cell.value = tit.toUpperCase();
-            cell.font = { size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-            cell.alignment = { vertical: 'middle', horizontal: 'left' };
-
-            const cell1 = ws.getCell(`B${fila}`);
-            cell1.value = utilidad;
-            cell1.font = { size: 12, bold: true, color: { argb: utilidad >= 0 ? 'FFFFFFFF' : 'FFFF0000' } };
-            cell1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-            cell1.numFmt = '"$"#,##0.00';
-            cell1.alignment = { vertical: 'middle', horizontal: 'right' };
-            return fila + 1;
-        }
+        function Encabezado(ws, texto, fila) { ws.mergeCells(`A${fila}:D${fila}`); const cell = ws.getCell(`A${fila}`); cell.value = texto.toUpperCase(); cell.font = { size: 12, bold: true, color: { argb: 'FF45423E' } }; cell.alignment = { horizontal: 'center' }; return fila + 1; }
+        function TitRepCont(ws, tit, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } }; const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
+        function DatoRepCont(ws, cat, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = cat.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
+        function UtiNeta(ws, tit, monto, utilidad, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = utilidad; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
+        async function descargarArchivo(workbook, nombre) { const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${nombre}.xlsx`; link.click(); }
 
         function inicializarFiltros() {
             const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -902,33 +525,26 @@
             const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
             const añoActual = new Date().getFullYear();
             const mesActual = new Date().getMonth();
-
             [idsMes, idsAnio].forEach((list, idx) => {
                 list.forEach(id => {
                     const sel = document.getElementById(id);
-                    if (sel) {
+                    if(sel) {
                         sel.innerHTML = '';
-                        if (idx === 0) {
+                        if(idx === 0) {
                             meses.forEach((m, i) => {
                                 let opt = document.createElement('option');
-                                opt.value = i; opt.innerHTML = m;
-                                sel.appendChild(opt);
+                                opt.value = i; opt.innerHTML = m; sel.appendChild(opt);
                             });
                             sel.value = mesActual;
                         } else {
                             for (let i = añoActual; i >= añoActual - 4; i--) {
                                 let opt = document.createElement('option');
-                                opt.value = i; opt.innerHTML = i;
-                                sel.appendChild(opt);
+                                opt.value = i; opt.innerHTML = i; sel.appendChild(opt);
                             }
                         }
                     }
                 });
             });
-
-            const hoy = new Date().toISOString().split('T')[0];
-            if (document.getElementById('in-fecha')) document.getElementById('in-fecha').value = hoy;
-            if (document.getElementById('ex-fecha')) document.getElementById('ex-fecha').value = hoy;
         }
 
         function obtenerPeriodoActual() {
@@ -949,11 +565,11 @@
         function actualizarSelectsCategorias() {
             const inSel = document.getElementById('in-categoria');
             const exSel = document.getElementById('ex-categoria');
-            if (inSel) {
+            if(inSel) {
                 inSel.innerHTML = '';
                 categorias.filter(c => c.tipo === 'ingreso').forEach(c => { inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
             }
-            if (exSel) {
+            if(exSel) {
                 exSel.innerHTML = '';
                 categorias.filter(c => c.tipo === 'gasto').forEach(c => { exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
             }
@@ -962,99 +578,38 @@
         function renderCategoriasConfig() {
             const contIng = document.getElementById('lista-cats-ingreso');
             const contGas = document.getElementById('lista-cats-gasto');
-            contIng.innerHTML = '';
-            contGas.innerHTML = '';
+            contIng.innerHTML = ''; contGas.innerHTML = '';
             categorias.forEach(c => {
-                const itemHtml = `
-                    <div class="group bg-gray-50 rounded-lg border border-white p-3">
-                        <div id="view-${c.id}" class="flex justify-between items-center">
-                            <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
-                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                                <button onclick="editMode(${c.id}, true)" class="text-[9px] font-bold text-stone-400 hover:text-stone-800">EDITAR</button>
-                                <button onclick="eliminarCategoria(${c.id})" class="text-[9px] font-bold text-rose-300 hover:text-rose-500">X</button>
-                            </div>
-                        </div>
-                        <div id="edit-${c.id}" class="hidden flex gap-2">
-                            <input type="text" id="input-${c.id}" value="${c.nombre}" class="flex-1 text-xs p-1 rounded border border-stone-200 outline-none uppercase">
-                            <button onclick="saveEdit(${c.id})" class="bg-stone-800 text-white px-2 py-1 rounded text-[9px] font-bold uppercase">OK</button>
-                        </div>
-                    </div>`;
-                if (c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
+                const itemHtml = `<div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span><button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button></div>`;
+                if(c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
                 else contGas.innerHTML += itemHtml;
             });
-        }
-
-        function editMode(id, active) {
-            document.getElementById(`view-${id}`).classList.toggle('hidden', active);
-            document.getElementById(`edit-${id}`).classList.toggle('hidden', !active);
-            if (active) document.getElementById(`input-${id}`).focus();
-        }
-
-        async function saveEdit(id) {
-            const nuevoNombre = document.getElementById(`input-${id}`).value.trim().toUpperCase();
-            if (nuevoNombre) {
-                const index = AppState && categorias.findIndex(c => c.id === id);
-                if (index !== -1) {
-                    categorias[index].nombre = nuevoNombre;
-                    refrescarVistaActual();
-                }
-            }
-        }
-
-        async function agregarCategoria() {
-            const nom = document.getElementById('nueva-cat-nombre').value.trim().toUpperCase();
-            const tipo = document.getElementById('nueva-cat-tipo').value;
-            if (!nom) return;
-
-            const itemCat = { id: Date.now(), nombre: nom, tipo };
-            const res = await ApiService.fetch("guardarCategoria", { data: itemCat });
-
-            if (res.success) {
-                categorias.push(itemCat);
-                document.getElementById('nueva-cat-nombre').value = '';
-                actualizarSelectsCategorias();
-                refrescarVistaActual();
-            }
-        }
-
-        async function eliminarCategoria(id) {
-            if (confirm("¿Eliminar esta categoría permanentemente?")) {
-                const res = await ApiService.fetch("eliminarCategoria", { id: id });
-                if (res.success) {
-                    categorias = categorias.filter(c => c.id !== id);
-                    actualizarSelectsCategorias();
-                    refrescarVistaActual();
-                }
-            }
         }
 
         function actualizarHome() {
             const hoyStr = new Date().toISOString().split('T')[0];
             const ahora = new Date();
             let balG = 0, balD = 0, ingM = 0, gasM = 0;
-
+            
             movimientos.forEach(m => {
                 const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
                 balG += val;
-                if (m.fecha === hoyStr) balD += val;
+                if(m.fecha === hoyStr) balD += val;
                 const mF = new Date(m.fecha + 'T00:00:00');
-                if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-                    if (m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
+                if(mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
+                    if(m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
                 }
             });
-
+            
             document.getElementById('balance-general').innerText = fMXN(balG);
             document.getElementById('balance-dia').innerText = fMXN(balD);
             document.getElementById('home-ingresos').innerText = fMXN(ingM);
             document.getElementById('home-gastos').innerText = fMXN(gasM);
-
-            const canvas = document.getElementById('chartHome');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (chartH) chartH.destroy();
-                chartH = new Chart(ctx, { type: 'doughnut', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#45423E'] }] }, options: { cutout: '75%' } });
-            }
-
+            
+            const ctx = document.getElementById('chartHome').getContext('2d');
+            if(chartH) chartH.destroy();
+            chartH = new Chart(ctx, { type: 'doughnut', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] }, options: { cutout: '75%', plugins: { legend: { display: false } } } });
+            
             const listaH = document.getElementById('lista-recientes');
             listaH.innerHTML = '';
             [...movimientos].reverse().slice(0, 10).forEach(m => {
@@ -1067,27 +622,19 @@
             let ing = 0, gas = 0;
             const contLista = document.getElementById('lista-resumen-periodo');
             contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
-
+            
             filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-                if (m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+                if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-                div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
-                    <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+                div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div><span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
                 contLista.appendChild(div);
             });
-
+            
             document.getElementById('resumen-balance-total').innerText = fMXN(ing - gas);
-            const canvas = document.getElementById('chartResumen');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (chartR) chartR.destroy();
-                chartR = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 8 }] },
-                    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-                });
-            }
+            const ctx = document.getElementById('chartResumen').getContext('2d');
+            if(chartR) chartR.destroy();
+            chartR = new Chart(ctx, { type: 'bar', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
         }
 
         function actualizarFechaHeader() {
@@ -1095,7 +642,19 @@
             const fecha = new Date().toLocaleDateString('es-MX', opciones);
             document.getElementById('fecha-sistema').innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
         }
+
+        // --- VERIFICACIÓN DE SESIÓN AL CARGAR ---
+        window.onload = function() {
+            actualizarFechaHeader();
+            const usuarioActivo = localStorage.getItem('session_user');
+            const userNameActivo = localStorage.getItem('session_userName');
+            if(usuarioActivo && userNameActivo) {
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('user-display').innerText = userNameActivo;
+                inicializarSincronizacion();
+            }
+        }
     </script>
 </body>
-
 </html>
