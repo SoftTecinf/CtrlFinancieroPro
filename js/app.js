@@ -367,14 +367,23 @@ function actualizarFechaHeader() {
     document.getElementById('fecha-sistema').innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
 }
 
-// --- VERIFICACIÓN DE SESIÓN AL CARGAR ---
-window.onload = function () {
+// --- CONTROL DE SESIÓN ---
+function cerrarSesion() {
+    localStorage.removeItem('session_user');
+    localStorage.removeItem('session_userName');
+    // Al limpiar los datos, expulsamos al usuario a la pantalla de login externa
+    window.location.href = "./login.html"; 
+}
+
+// --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL ---
+window.onload = function() {
     actualizarFechaHeader();
     const usuarioActivo = localStorage.getItem('session_user');
     const userNameActivo = localStorage.getItem('session_userName');
-    if (usuarioActivo && userNameActivo) {
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
+    
+    if(!usuarioActivo || !userNameActivo) {
+        window.location.href = "./login.html";
+    } else {
         document.getElementById('user-display').innerText = userNameActivo;
         inicializarSincronizacion();
     }
