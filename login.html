@@ -22,7 +22,7 @@
 
     <div class="w-full max-w-md bg-white p-8 rounded-xl-custom soft-shadow border border-stone-200">
 
-        <form id="login-form">
+        <form id="login-form" onsubmit="event.preventDefault(); AuthModule.ejecutarLogin();">
             <div class="text-center mb-8">
                 <div class="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center shadow-md mx-auto mb-4">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
@@ -53,7 +53,7 @@
                             class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200"
                             style="padding-right: 45px;">
 
-                        <button type="button" id="btn-toggle-pass"
+                        <button type="button" id="btn-toggle-pass" onclick="AuthModule.togglePasswordVisibility();"
                             style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; display: flex; align-items: center;">
                             <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
