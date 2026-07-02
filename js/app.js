@@ -32,6 +32,7 @@ async function FetchAPI(action, extraData = {}) {
     }
 }
 
+
 async function inicializarSincronizacion() {
     const res = await FetchAPI("obtenerDatos");
     if (res.success) {
