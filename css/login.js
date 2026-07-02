@@ -86,7 +86,7 @@ const AuthModule = {
 // Escuchador global en el documento (Evita problemas si los elementos tardan en renderizar)
 document.addEventListener('click', function(e) {
     // Si el usuario le dio clic al botón del ojo o al icono SVG interno
-    if (e.target.closest('#btn-toggle-pass')) {
+    if (e.target.closest('btn-toggle-pass')) {
         e.preventDefault();
         AuthModule.togglePasswordVisibility();
     }
