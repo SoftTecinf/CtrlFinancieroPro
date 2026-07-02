@@ -363,9 +363,12 @@ function actualizarResumen() {
 }
 
 function actualizarFechaHeader() {
+    const el = document.getElementById('fecha-sistema');
+    if (!el) return; // Candado de seguridad por si no está en la pantalla actual
+
     const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     const fecha = new Date().toLocaleDateString('es-MX', opciones);
-    document.getElementById('fecha-sistema').innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+    el.innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
 }
 
 // --- CONTROL DE SESIÓN ---
@@ -376,16 +379,32 @@ function cerrarSesion() {
     window.location.href = "./login.html"; 
 }
 
-// --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL ---
+// --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
 window.onload = function() {
-    actualizarFechaHeader();
+    const userDisplayEl = document.getElementById('user-display');
+    const fechaSistemaEl = document.getElementById('fecha-sistema');
+
+    // Si NO existe el contenedor de usuario, asumimos que estamos en login.html
+    if (!userDisplayEl) {
+        console.log("Modo Login detectado: Saltando verificaciones del panel principal.");
+        return; // Detiene la ejecución aquí de forma segura
+    }
+
+    // Si SÍ existe, ejecutamos la lógica normal del panel principal (index.html):
+    if (typeof actualizarFechaHeader === "function" && fechaSistemaEl) {
+        actualizarFechaHeader();
+    }
+
     const usuarioActivo = localStorage.getItem('session_user');
     const userNameActivo = localStorage.getItem('session_userName');
     
-    if(!usuarioActivo || !userNameActivo) {
+    if (!usuarioActivo || !userNameActivo) {
         window.location.href = "./login.html";
     } else {
-        document.getElementById('user-display').innerText = userNameActivo;
-        inicializarSincronizacion();
+        userDisplayEl.innerText = userNameActivo;
+        
+        if (typeof inicializarSincronizacion === "function") {
+            inicializarSincronizacion();
+        }
     }
 }
