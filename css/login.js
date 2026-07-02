@@ -65,7 +65,6 @@ const AuthModule = {
     }
 };
 
-
 // --- ESCUCHADORES DE EVENTOS (Manejo de clicks y envíos) ---
 
 // Escucha cuando el usuario presiona el botón de "Ingresar" o da Enter
