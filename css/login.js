@@ -68,7 +68,6 @@ const AuthModule = {
         }
     }
 };
-
-// Dejar disponible el módulo globalmente en la ventana del navegador
+// Asegura que el HTML pueda ver el módulo al dar clic
 window.AuthModule = AuthModule;
-console.log("Módulo AuthModule cargado y listo en el entorno global.");
+console.log("AuthModule registrado globalmente en la ventana.");
