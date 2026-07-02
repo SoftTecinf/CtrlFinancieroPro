@@ -78,7 +78,6 @@ const AuthModule = {
 };
 
 // --- ESCUCHADORES DE EVENTOS ---
-
 // Escucha cuando el usuario presiona el botón de "Ingresar" o da Enter
 document.getElementById('login-form')?.addEventListener('submit', function(e) {
     e.preventDefault();
