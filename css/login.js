@@ -80,24 +80,31 @@ const AuthModule = {
 };
 
 // ========================================================
-// ESCUCHADORES DE EVENTOS UNIFICADOS
+// ESCUCHADORES DE EVENTOS ULTRA SEGUROS Y CON LOGS
 // ========================================================
 
-// Escuchador global en el documento (Evita problemas si los elementos tardan en renderizar)
+// Escuchador global para atrapar cualquier clic en la pantalla
 document.addEventListener('click', function(e) {
-    // Si el usuario le dio clic al botón del ojo o al icono SVG interno
-    if (e.target.closest('btn-toggle-pass')) {
+    // Buscamos si el clic viene del botón o de algo adentro de él
+    const botonOjo = e.target.id === 'btn-toggle-pass' || e.target.closest('#btn-toggle-pass');
+    
+    if (botonOjo) {
         e.preventDefault();
+        e.stopPropagation();
+        
+        console.log("¡Clic detectado en el botón del ojo! Ejecutando togglePasswordVisibility...");
         AuthModule.togglePasswordVisibility();
     }
 });
 
+// Escuchador global para el envío del formulario
 document.addEventListener('submit', function(e) {
-    // Si se dispara el envío desde el formulario de login
-    if (e.target.id === 'login-form') {
+    if (e.target && e.target.id === 'login-form') {
         e.preventDefault();
+        
+        console.log("¡Intento de envío de formulario detectado! Ejecutando ejecutarLogin...");
         AuthModule.ejecutarLogin();
     }
 });
 
-console.log("Sistema de eventos de Login activo, unificado y listo.");
+console.log("Sistema de eventos de Login activo con logs de diagnóstico.");
