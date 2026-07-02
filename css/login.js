@@ -77,12 +77,28 @@ const AuthModule = {
     }
 };
 
-// --- ESCUCHADORES DE EVENTOS ---
-// Escucha cuando el usuario presiona el botón de "Ingresar" o da Enter
-document.getElementById('login-form')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    AuthModule.ejecutarLogin();
+// ========================================================
+// ESCUCHADORES DE EVENTOS ULTRA DIRECTOS
+// ========================================================
+
+// Escuchador directo para el ojito de la contraseña
+document.addEventListener('click', function(e) {
+    // Si el usuario le dio clic al botón del ojo o al icono SVG que está adentro
+    if (e.target.closest('#btn-toggle-pass')) {
+        e.preventDefault();
+        AuthModule.togglePasswordVisibility();
+    }
 });
+
+// Escuchador directo para el formulario de ingreso
+document.addEventListener('submit', function(e) {
+    if (e.target.id === 'login-form') {
+        e.preventDefault();
+        AuthModule.ejecutarLogin();
+    }
+});
+
+console.log("Sistema de eventos de Login activo y listo.");
 
 // ========================================================
 // ESCUCHADORES DE EVENTOS (Asegúrate de que queden exactamente así)
