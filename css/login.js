@@ -84,7 +84,39 @@ document.getElementById('login-form')?.addEventListener('submit', function(e) {
     AuthModule.ejecutarLogin();
 });
 
-// Escucha cuando el usuario le da clic al botón del ojito de la contraseña
-document.getElementById('btn-toggle-pass')?.addEventListener('click', function() {
-    AuthModule.togglePasswordVisibility();
-});
+// ========================================================
+// ESCUCHADORES DE EVENTOS (Asegúrate de que queden exactamente así)
+// ========================================================
+
+// Función que amarra los eventos en cuanto la página esté lista
+function inicializarEventosLogin() {
+    const btnOjo = document.getElementById('btn-toggle-pass');
+    const formulario = document.getElementById('login-form');
+
+    // Si encuentra el botón del ojo, le asigna la función de ocultar/ver
+    if (btnOjo) {
+        btnOjo.addEventListener('click', function(e) {
+            e.preventDefault(); // Evita cualquier comportamiento raro
+            e.stopPropagation();
+            AuthModule.togglePasswordVisibility();
+        });
+        console.log("Botón del ojo vinculado correctamente.");
+    } else {
+        console.warn("No se encontró ningún elemento con el id 'btn-toggle-pass' en el HTML.");
+    }
+
+    // Si encuentra el formulario, le asigna el evento de ingresar
+    if (formulario) {
+        formulario.addEventListener('submit', function(e) {
+            e.preventDefault();
+            AuthModule.ejecutarLogin();
+        });
+    }
+}
+
+// Ejecutamos la vinculación inmediatamente y también cuando el DOM cargue por completo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarEventosLogin);
+} else {
+    inicializarEventosLogin();
+}
