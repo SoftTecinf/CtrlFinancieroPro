@@ -22,6 +22,7 @@ const AuthModule = {
             `;
         }
     },
+    
 
     // Función principal para procesar el inicio de sesión
     async ejecutarLogin() {
