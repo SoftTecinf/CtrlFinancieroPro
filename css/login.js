@@ -4,7 +4,7 @@
 var AuthModule = {
     // Función para ver/ocultar la contraseña
     togglePasswordVisibility: function() {
-        var passInput = document.getElementById('login-pass');
+        var passInput = document.getElementById('btn-toggle-pass');
         var eyeIcon = document.getElementById('eye-icon');
         
         if (!passInput || !eyeIcon) return; 
