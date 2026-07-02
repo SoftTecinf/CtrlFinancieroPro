@@ -63,24 +63,7 @@
         </form>
     </div>
 
-    <script>
-        // Declaramos temporalmente la función simplificada de carga y la URL de la API 
-        // para que login.js funcione de forma independiente.
-        const API_URL = "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec";
-        function toggleLoading(show) {
-            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-        }
-        async function FetchAPI(action, extraData = {}) {
-            toggleLoading(true);
-            try {
-                const response = await fetch(API_URL, { method: 'POST', mode: 'cors', body: JSON.stringify({ action, ...extraData }) });
-                return await response.json();
-            } catch (error) {
-                alert("Error de conexión.");
-                return { success: false };
-            } finally { toggleLoading(false); }
-        }
-    </script>
+    <script src="./app.js"></script>
     <script src="./js/login.js"></script>
 </body>
 </html>
