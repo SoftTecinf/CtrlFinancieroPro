@@ -1,4 +1,6 @@
-// --- MÓDULO DE AUTENTICACIÓN ---
+// ========================================================
+// MÓDULO DE AUTENTICACIÓN
+// ========================================================
 const AuthModule = {
     // Función para ver/ocultar la contraseña con el icono del ojo
     togglePasswordVisibility() {
@@ -78,61 +80,24 @@ const AuthModule = {
 };
 
 // ========================================================
-// ESCUCHADORES DE EVENTOS ULTRA DIRECTOS
+// ESCUCHADORES DE EVENTOS UNIFICADOS
 // ========================================================
 
-// Escuchador directo para el ojito de la contraseña
+// Escuchador global en el documento (Evita problemas si los elementos tardan en renderizar)
 document.addEventListener('click', function(e) {
-    // Si el usuario le dio clic al botón del ojo o al icono SVG que está adentro
+    // Si el usuario le dio clic al botón del ojo o al icono SVG interno
     if (e.target.closest('#btn-toggle-pass')) {
         e.preventDefault();
         AuthModule.togglePasswordVisibility();
     }
 });
 
-// Escuchador directo para el formulario de ingreso
 document.addEventListener('submit', function(e) {
+    // Si se dispara el envío desde el formulario de login
     if (e.target.id === 'login-form') {
         e.preventDefault();
         AuthModule.ejecutarLogin();
     }
 });
 
-console.log("Sistema de eventos de Login activo y listo.");
-
-// ========================================================
-// ESCUCHADORES DE EVENTOS (Asegúrate de que queden exactamente así)
-// ========================================================
-
-// Función que amarra los eventos en cuanto la página esté lista
-function inicializarEventosLogin() {
-    const btnOjo = document.getElementById('btn-toggle-pass');
-    const formulario = document.getElementById('login-form');
-
-    // Si encuentra el botón del ojo, le asigna la función de ocultar/ver
-    if (btnOjo) {
-        btnOjo.addEventListener('click', function(e) {
-            e.preventDefault(); // Evita cualquier comportamiento raro
-            e.stopPropagation();
-            AuthModule.togglePasswordVisibility();
-        });
-        console.log("Botón del ojo vinculado correctamente.");
-    } else {
-        console.warn("No se encontró ningún elemento con el id 'btn-toggle-pass' en el HTML.");
-    }
-
-    // Si encuentra el formulario, le asigna el evento de ingresar
-    if (formulario) {
-        formulario.addEventListener('submit', function(e) {
-            e.preventDefault();
-            AuthModule.ejecutarLogin();
-        });
-    }
-}
-
-// Ejecutamos la vinculación inmediatamente y también cuando el DOM cargue por completo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarEventosLogin);
-} else {
-    inicializarEventosLogin();
-}
+console.log("Sistema de eventos de Login activo, unificado y listo.");
