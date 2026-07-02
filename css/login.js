@@ -23,7 +23,6 @@ const AuthModule = {
         }
     },
     
-
     // Función principal para procesar el inicio de sesión
     async ejecutarLogin() {
         const usuarioInput = document.getElementById('login-user');
