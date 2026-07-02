@@ -5,11 +5,10 @@ const AuthModule = {
         const passInput = document.getElementById('login-pass');
         const eyeIcon = document.getElementById('eye-icon');
         
-        if (!passInput || !eyeIcon) return; // Validación por seguridad
+        if (!passInput || !eyeIcon) return; 
 
         if (passInput.type === 'password') {
             passInput.type = 'text';
-            // Cambia el icono a "ojo cerrado" (añade la línea diagonal)
             eyeIcon.innerHTML = `
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -17,7 +16,6 @@ const AuthModule = {
             `;
         } else {
             passInput.type = 'password';
-            // Regresa al icono de "ojo abierto"
             eyeIcon.innerHTML = `
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
@@ -27,45 +25,59 @@ const AuthModule = {
 
     // Función principal para procesar el inicio de sesión
     async ejecutarLogin() {
-        const usuario = document.getElementById('login-user').value;
-        const password = document.getElementById('login-pass').value;
+        const usuarioInput = document.getElementById('login-user');
+        const passwordInput = document.getElementById('login-pass');
         const errorLabel = document.getElementById('login-error'); 
+
+        // Verificamos que los inputs existan en el HTML para evitar caídas
+        const usuario = usuarioInput ? usuarioInput.value : '';
+        const password = passwordInput ? passwordInput.value : '';
         
         // Validación de campos vacíos
         if(!usuario || !password) {
             if (errorLabel) {
                 errorLabel.innerText = "Por favor llena todos los campos.";
                 errorLabel.classList.remove('hidden');
+            } else {
+                alert("Por favor llena todos los campos.");
             }
             return;
         }
 
-        // Envía los datos a tu Google Apps Script de forma segura
-        const res = await FetchAPI("login", { usuario, password });
-        
-        if(res.success) {
-            // Guarda los datos de sesión devueltos por el excel en el navegador
-            localStorage.setItem('session_user', res.usuario);
-            localStorage.setItem('session_userName', res.userName);
+        try {
+            // Envía los datos a tu Google Apps Script de forma segura
+            const res = await FetchAPI("login", { usuario, password });
             
-            if (errorLabel) errorLabel.classList.add('hidden');
-            
-            // Redirección exitosa al panel principal
-            window.location.href = "./index.html"; 
-        } else {
-            // Si las credenciales fallan o el servidor avisa un error
-            if (errorLabel) {
-                errorLabel.innerText = res.message;
-                errorLabel.classList.remove('hidden');
+            if(res && res.success) {
+                // Guarda los datos de sesión devueltos por el excel en el navegador
+                localStorage.setItem('session_user', res.usuario);
+                localStorage.setItem('session_userName', res.userName);
+                
+                // Si existe la etiqueta de error, la ocultamos de forma segura
+                if (errorLabel) {
+                    errorLabel.classList.add('hidden');
+                }
+                
+                // Redirección exitosa al panel principal
+                window.location.href = "./index.html"; 
             } else {
-                // Respaldo de alerta si no encuentra el ID del HTML
-                alert(res.message); 
+                // Si las credenciales fallan o el servidor avisa un error
+                const msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
+                if (errorLabel) {
+                    errorLabel.innerText = msg;
+                    errorLabel.classList.remove('hidden');
+                } else {
+                    alert(msg); 
+                }
             }
+        } catch (err) {
+            console.error("Error en la petición de login:", err);
+            alert("Hubo un problema al conectar con el servidor.");
         }
     }
 };
 
-// --- ESCUCHADORES DE EVENTOS (Manejo de clicks y envíos) ---
+// --- ESCUCHADORES DE EVENTOS ---
 
 // Escucha cuando el usuario presiona el botón de "Ingresar" o da Enter
 document.getElementById('login-form')?.addEventListener('submit', function(e) {
