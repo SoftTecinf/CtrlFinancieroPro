@@ -1,10 +1,11 @@
 // ========================================================
-// MÓDULO DE AUTENTICACIÓN (Limpio y Global)
+// MÓDULO DE AUTENTICACIÓN
 // ========================================================
-const AuthModule = {
-    togglePasswordVisibility() {
-        const passInput = document.getElementById('login-pass');
-        const eyeIcon = document.getElementById('eye-icon');
+var AuthModule = {
+    // Función para ver/ocultar la contraseña
+    togglePasswordVisibility: function() {
+        var passInput = document.getElementById('login-pass');
+        var eyeIcon = document.getElementById('eye-icon');
         
         if (!passInput || !eyeIcon) return; 
 
@@ -24,15 +25,16 @@ const AuthModule = {
         }
     },
     
-    async ejecutarLogin() {
-        const usuarioInput = document.getElementById('login-user');
-        const passwordInput = document.getElementById('login-pass');
-        const errorLabel = document.getElementById('login-error'); 
+    // Función para procesar el inicio de sesión
+    ejecutarLogin: async function() {
+        var usuarioInput = document.getElementById('login-user');
+        var passwordInput = document.getElementById('login-pass');
+        var errorLabel = document.getElementById('login-error'); 
 
-        const usuario = usuarioInput ? usuarioInput.value : '';
-        const password = passwordInput ? passwordInput.value : '';
+        var usuario = usuarioInput ? usuarioInput.value : '';
+        var password = passwordInput ? passwordInput.value : '';
         
-        if(!usuario || !password) {
+        if (!usuario || !password) {
             if (errorLabel) {
                 errorLabel.innerText = "Por favor llena todos los campos.";
                 errorLabel.classList.remove('hidden');
@@ -43,9 +45,10 @@ const AuthModule = {
         }
 
         try {
-            const res = await FetchAPI("login", { usuario, password });
+            // Llama a la API global de app.js
+            var res = await FetchAPI("login", { usuario: usuario, password: password });
             
-            if(res && res.success) {
+            if (res && res.success) {
                 localStorage.setItem('session_user', res.usuario);
                 localStorage.setItem('session_userName', res.userName);
                 
@@ -54,7 +57,7 @@ const AuthModule = {
                 }
                 window.location.href = "./index.html"; 
             } else {
-                const msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
+                var msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
                 if (errorLabel) {
                     errorLabel.innerText = msg;
                     errorLabel.classList.remove('hidden');
@@ -68,6 +71,7 @@ const AuthModule = {
         }
     }
 };
-// Asegura que el HTML pueda ver el módulo al dar clic
+
+// Lo registramos de forma ultra-directa en la ventana global
 window.AuthModule = AuthModule;
-console.log("AuthModule registrado globalmente en la ventana.");
+console.log("--> login.js cargado y AuthModule listo para usarse.");
