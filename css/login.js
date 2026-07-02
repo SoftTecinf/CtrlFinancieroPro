@@ -22,8 +22,8 @@ var AuthModule = {
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
         <circle cx="12" cy="12" r="3"></circle>
     `;
-        console.error("puntos", eyeIcon);
-    }
+            console.error("puntos", eyeIcon);
+        }
     },
 
     // Función para procesar el inicio de sesión
