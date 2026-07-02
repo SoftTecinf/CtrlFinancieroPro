@@ -21,7 +21,8 @@
     </div>
 
     <div class="w-full max-w-md bg-white p-8 rounded-xl-custom soft-shadow border border-stone-200">
-        <form id="login-form" onsubmit="event.preventDefault();">
+
+        <form id="login-form">
             <div class="text-center mb-8">
                 <div class="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center shadow-md mx-auto mb-4">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
@@ -35,6 +36,7 @@
                         class="font-bold not-italic">Financiero</span></h2>
                 <p class="text-xs text-stone-400 mt-1 uppercase tracking-wider font-bold">Acceso al Sistema</p>
             </div>
+
             <div class="space-y-4">
                 <div>
                     <label
@@ -42,23 +44,30 @@
                     <input type="text" id="login-user" autocomplete="username" placeholder="Usuario"
                         class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
                 </div>
-                <div class="password-container" style="position: relative; width: 100%;">
+
+                <div>
                     <label
                         class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">Contraseña</label>
-                    <input type="password" id="login-pass" placeholder="Contraseña"  
-                    class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200">
-                    <button type="button" id="btn-toggle-pass"
-                        style="position: absolute; right: 10px; top: 65%; transform: translateY(-65%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; display: flex; align-items: center;">
-                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </button>
+                    <div class="password-container" style="position: relative; width: 100%;">
+                        <input type="password" id="login-pass" placeholder="Contraseña"
+                            class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200"
+                            style="padding-right: 45px;">
+
+                        <button type="button" id="btn-toggle-pass"
+                            style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; display: flex; align-items: center;">
+                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+
                 <p id="login-error" class="text-rose-500 text-xs font-semibold hidden text-center"></p>
-                <button type="submit" onclick="ejecutarLogin()"
+
+                <button type="submit"
                     class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors">Ingresar</button>
             </div>
         </form>
@@ -67,6 +76,7 @@
     <script src="js/app.js"></script>
     <!-- Le sumamos un ?v=2 para burlar la memoria del navegador -->
     <script src="js/login.js"></script>
-    
+
 </body>
+
 </html>
