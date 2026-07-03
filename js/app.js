@@ -1,12 +1,4 @@
-// Agrega esto al inicio de tu app.js o un archivo JS que cargue en index.html
-document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
-    // Si no hay sesión y no estamos en la página de login, redirigir
-    if (!isLoggedIn && window.location.pathname !== '/login.html') {
-        window.location.href = "./login.html";
-    }
-});
+
 
 // --- URL DE GOOGLE APPS SCRIPT ---
 const API_URL = "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec";
@@ -16,6 +8,17 @@ let movimientos = [];
 let categorias = [];
 let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+
+// 2. Validación de Sesión (Lo primero que se ejecuta)
+document.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    // Ajusta la ruta si es necesario (ej: /CtrlFinancieroPro/login.html)
+    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
+        window.location.href = "./login.html";
+        return; // Detenemos la ejecución aquí
+    }
+});
 
 function toggleLoading(show) {
     const loader = document.getElementById('loading-overlay');
