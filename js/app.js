@@ -49,7 +49,6 @@ async function FetchAPI(action, extraData = {}) {
     }
 }
 
-
 async function inicializarSincronizacion() {
     console.log("Iniciando sincronización...");
     
