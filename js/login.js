@@ -2,13 +2,13 @@
 // MÓDULO DE AUTENTICACIÓN
 // ========================================================
 var AuthModule = {
-    
+
     // Función para ver/ocultar la contraseña
     togglePasswordVisibility: function () {
         var passInput = document.getElementById('login-pass');
         var eyeOpen = document.getElementById('eye-open');
         var eyeClosed = document.getElementById('eye-closed');
-        
+
         if (!passInput) return;
 
         if (passInput.type === 'password') {
@@ -30,7 +30,7 @@ var AuthModule = {
 
         var usuario = usuarioInput ? usuarioInput.value : '';
         var password = passwordInput ? passwordInput.value : '';
-console.log("Enviando al servidor:", { user: usuario, pass: password }); // Mira esto en la consola F12
+        console.log("Enviando al servidor:", { user: usuario, pass: password }); // Mira esto en la consola F12
         if (!usuario || !password) {
             if (errorLabel) {
                 errorLabel.innerText = "Por favor llena todos los campos.";
@@ -73,7 +73,7 @@ console.log("Enviando al servidor:", { user: usuario, pass: password }); // Mira
 window.AuthModule = AuthModule;
 
 // 2. Y al final colocas el escuchador
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('btn-toggle-pass');
     if (btn) {
         btn.addEventListener('click', AuthModule.togglePasswordVisibility);
