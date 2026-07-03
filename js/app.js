@@ -30,18 +30,22 @@ function toggleLoading(show) {
 
 // --- ENVIAR DATOS A APPS SCRIPT ---
 async function FetchAPI(action, data) {
-    toggleLoading(true); // Activa el spinner
+    toggleLoading(true);
+    console.log("Iniciando petición:", action); // 1. Ver en consola
     try {
         const response = await fetch(API_URL, {
             method: "POST",
+            mode: "no-cors", // <--- Prueba cambiar a esto SOLO PARA TESTEAR
             body: JSON.stringify({ action, ...data })
         });
+        console.log("Petición enviada"); // 2. Ver si llega aquí
         return await response.json();
     } catch (err) {
-        console.error("Error:", err);
-        return { success: false, message: "Error de red" };
+        console.error("Error en Fetch:", err);
+        return { success: false, message: "Error crítico: " + err };
     } finally {
-        toggleLoading(false); // ESTO ES CLAVE: Se apaga aunque haya error
+        toggleLoading(false);
+        console.log("Spinner apagado"); // 3. Ver si llega aquí
     }
 }
 
