@@ -44,7 +44,7 @@ var AuthModule = {
             if (res && res.success) {
                 localStorage.setItem('session_user', res.usuario);
                 localStorage.setItem('session_userName', res.userName);
-
+                localStorege.setItem('session_password', res.password)
                 if (errorLabel) {
                     errorLabel.classList.add('hidden');
                 }
