@@ -31,6 +31,7 @@ var AuthModule = {
         var usuario = usuarioInput ? usuarioInput.value : '';
         var password = passwordInput ? passwordInput.value : '';
         console.log("Enviando al servidor:", { user: usuario, pass: password }); // Mira esto en la consola F12
+        
         if (!usuario || !password) {
             if (errorLabel) {
                 errorLabel.innerText = "Por favor llena todos los campos.";
