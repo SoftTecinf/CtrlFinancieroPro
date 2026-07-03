@@ -42,9 +42,8 @@ var AuthModule = {
             var res = await FetchAPI("login", { user: usuario, pass: password });
 
             if (res && res.success) {
-                localStorage.setItem('session_user', res.usuario);
-                localStorage.setItem('session_userName', res.userName);
-                localStorage.setItem('isLoggedIn', 'true'); // Indicador de sesión
+                localStorage.setItem('session_user', res.usuario); // Nombre de usuario
+                localStorage.setItem('isLoggedIn', 'true');       // MARCADOR DE SESIÓN
                 window.location.href = "./index.html";
 
                 if (errorLabel) {
