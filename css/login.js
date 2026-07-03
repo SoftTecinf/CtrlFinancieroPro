@@ -386,7 +386,7 @@ window.onload = function() {
 
     // Si NO existe el contenedor de usuario, asumimos que estamos en login.html
     if (!userDisplayEl) {
-        //console.log("Modo Login detectado: Saltando verificaciones del panel principal.");
+        console.log("Modo Login detectado: Saltando verificaciones del panel principal.");
         return; // Detiene la ejecución aquí de forma segura
     }
 
