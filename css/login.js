@@ -6,7 +6,7 @@ var AuthModule = {
     togglePasswordVisibility: function () {
         var passInput = document.getElementById('login-pass');
         var btnToggle = document.getElementById('btn-toggle-pass'); // Apuntamos al botón
-
+        console.error("entra")
         if (!passInput || !btnToggle) return;
         
         if (passInput.type === 'password') {
@@ -33,7 +33,7 @@ var AuthModule = {
             `;
         }
     },
-    
+
     // Función para procesar el inicio de sesión
     ejecutarLogin: async function () {
         var usuarioInput = document.getElementById('login-user');
