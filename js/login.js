@@ -24,13 +24,15 @@ var AuthModule = {
 
     // Función para procesar el inicio de sesión
     ejecutarLogin: async function () {
-        var usuarioInput = document.getElementById('login-user');
-        var passwordInput = document.getElementById('login-pass');
-        var errorLabel = document.getElementById('login-error');
+        event.preventDefault(); // Si es un formulario
 
-       console.log("Intentando ejecutar login..."); // Si esto no aparece, el problema es tu botón
-    var res = await FetchAPI("login", { user: usuario, pass: password });
-    console.log("Respuesta del servidor:", res); // Si esto no aparece, el problema es el Fetch
+        // AQUÍ ESTÁ EL ERROR: Debes definir las variables
+        var usuario = document.getElementById('login-user').value;
+        var password = document.getElementById('login-pass').value;
+
+        // Ahora ya puedes usar 'usuario' y 'password'
+        var res = await FetchAPI("login", { user: usuario, pass: password });
+        console.log("Respuesta del servidor:", res); // Si esto no aparece, el problema es el Fetch
 
         if (!usuario || !password) {
             alert("Por favor llena todos los campos.");
