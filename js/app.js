@@ -8,7 +8,11 @@ let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 function toggleLoading(show) {
-    document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    var overlay = document.getElementById('loading-overlay');
+    // Solo si el elemento existe en el HTML actual, cambiamos su estilo
+    if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+    }
 }
 
 // --- ENVIAR DATOS A APPS SCRIPT ---
