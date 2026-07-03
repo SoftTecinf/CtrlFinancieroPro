@@ -30,7 +30,7 @@ function toggleLoading(show) {
 
 // --- ENVIAR DATOS A APPS SCRIPT ---
 async function FetchAPI(action, data) {
-    toggleLoading(true);
+    //toggleLoading(true);
     console.log("Iniciando petición:", action); // 1. Ver en consola
     try {
         const response = await fetch(API_URL, {
