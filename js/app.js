@@ -8,10 +8,10 @@ let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 function toggleLoading(show) {
-    var overlay = document.getElementById('loading-overlay');
-    // Solo si el elemento existe en el HTML actual, cambiamos su estilo
-    if (overlay) {
-        overlay.style.display = show ? 'flex' : 'none';
+    const loader = document.getElementById('loading-overlay');
+    // Solo intenta cambiar el estilo si el elemento existe en el HTML actual
+    if (loader) {
+        loader.style.display = show ? 'flex' : 'none';
     }
 }
 
