@@ -8,7 +8,7 @@ var AuthModule = {
         var eyeIcon = document.getElementById('eye-icon');
 
         if (!passInput || !eyeIcon) return;
-
+        console.error("por entrar", eyeIcon);
         if (passInput.type === 'password') {
             passInput.type = 'text';
             eyeIcon.innerHTML = `
