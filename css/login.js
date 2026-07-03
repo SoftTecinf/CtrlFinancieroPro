@@ -1,3 +1,4 @@
+console.warn("--> ATENCIÓN: El archivo externo login.js SÍ se está leyendo.");
 // ========================================================
 // MÓDULO DE AUTENTICACIÓN
 // ========================================================
