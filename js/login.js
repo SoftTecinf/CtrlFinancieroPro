@@ -43,7 +43,7 @@ var AuthModule = {
 
         try {
             // Llama a la API global de app.js
-            var res = await FetchAPI("login", { usuario: usuario, password: password });
+            var res = await FetchAPI("login", { user: usuario, pass: password });
 
             if (res && res.success) {
                 localStorage.setItem('session_user', res.usuario);
