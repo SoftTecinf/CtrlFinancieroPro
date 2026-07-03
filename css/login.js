@@ -2,7 +2,7 @@
 // MÓDULO DE AUTENTICACIÓN
 // ========================================================
 var AuthModule = {
-    // Función para ver/ocultar la contraseña
+    
     // Función para ver/ocultar la contraseña
     togglePasswordVisibility: function () {
         var passInput = document.getElementById('login-pass');
@@ -69,6 +69,6 @@ var AuthModule = {
     }
 };
 
-// Lo registramos de forma ultra-directa en la ventana global
+// Lo registramos en la ventana global
 window.AuthModule = AuthModule;
 console.log("--> login.js cargado y AuthModule listo para usarse.");
