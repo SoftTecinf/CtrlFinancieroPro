@@ -71,13 +71,11 @@ var AuthModule = {
 
 // Lo registramos en la ventana global
 window.AuthModule = AuthModule;
-console.log("--> login.js cargado y AuthModule listo para usarse.");
 
 // 2. Y al final colocas el escuchador
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('btn-toggle-pass');
     if (btn) {
         btn.addEventListener('click', AuthModule.togglePasswordVisibility);
-        console.log("--> Evento asignado correctamente a btn-toggle-pass");
     }
 });
