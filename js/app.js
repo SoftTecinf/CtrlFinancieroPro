@@ -29,23 +29,19 @@ function toggleLoading(show) {
 }
 
 // --- ENVIAR DATOS A APPS SCRIPT ---
-async function FetchAPI(action, extraData = {}) {
-    toggleLoading(true);
+async function FetchAPI(action, data) {
+    toggleLoading(true); // Activa el spinner
     try {
         const response = await fetch(API_URL, {
-            method: 'POST',
-            mode: 'cors',
-            body: JSON.stringify({ action, ...extraData })
+            method: "POST",
+            body: JSON.stringify({ action, ...data })
         });
-        const data = await response.json();
-        if (!data.success) alert("Error en Servidor: " + (data.message || data.error));
-        return data;
-    } catch (error) {
-        console.error(error);
-        alert("Error de conexión con Google Sheets.");
-        return { success: false };
+        return await response.json();
+    } catch (err) {
+        console.error("Error:", err);
+        return { success: false, message: "Error de red" };
     } finally {
-        toggleLoading(false);
+        toggleLoading(false); // ESTO ES CLAVE: Se apaga aunque haya error
     }
 }
 
