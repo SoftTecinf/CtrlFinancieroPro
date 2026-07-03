@@ -399,10 +399,10 @@ window.onload = function() {
         actualizarFechaHeader();
     }
 
-    const usuarioActivo = localStorage.getItem('session_user');
+    const usuarioActivo  = localStorage.getItem('session_user');
     const userNameActivo = localStorage.getItem('session_userName');
     
-    if (!usuarioActivo || !userNameActivo) {
+    if (!usuarioActivo || !userNameActivo || ) {
         window.location.href = "./login.html";
     } else {
         userDisplayEl.innerText = userNameActivo;
