@@ -51,12 +51,28 @@ async function FetchAPI(action, extraData = {}) {
 
 
 async function inicializarSincronizacion() {
-    const res = await FetchAPI("obtenerDatos");
+    console.log("Iniciando sincronización...");
+    
+    // Cambiamos FetchAPI para asegurarnos de capturar el error
+    const res = await FetchAPI("obtenerDatos", {});
+    
+    // Si res es null o undefined, el problema está en la conexión o el backend
+    if (!res) {
+        alert("Error crítico: El servidor no respondió nada.");
+        return;
+    }
+
     if (res.success) {
+        console.log("Datos recibidos correctamente:", res);
         movimientos = res.movimientos;
         categorias = res.categorias;
+        
         inicializarFiltros();
         refrescarVistaActual();
+    } else {
+        // AQUÍ CAPTURAMOS EL ERROR DEL SERVIDOR
+        console.error("Error en sincronización:", res.message);
+        alert("No se pudieron cargar los datos: " + res.message);
     }
 }
 
