@@ -11,12 +11,12 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
 document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
-    // Ajusta la ruta si es necesario (ej: /CtrlFinancieroPro/login.html)
-    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
+    // Si no existe el marcador de sesión, expulsar al login
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
         window.location.href = "./login.html";
-        return; // Detenemos la ejecución aquí
+    } else {
+        // Si hay sesión, cargar los datos normalmente
+        inicializarSistema();
     }
 });
 
