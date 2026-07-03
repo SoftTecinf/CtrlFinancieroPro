@@ -11,12 +11,12 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
 document.addEventListener('DOMContentLoaded', () => {
-    // Si no existe el marcador de sesión, expulsar al login
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    // Ajusta la ruta si es necesario (ej: /CtrlFinancieroPro/login.html)
+    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
         window.location.href = "./login.html";
-    } else {
-        // Si hay sesión, cargar los datos normalmente
-        inicializarSistema();
+        return; // Detenemos la ejecución aquí
     }
 });
 
@@ -29,23 +29,23 @@ function toggleLoading(show) {
 }
 
 // --- ENVIAR DATOS A APPS SCRIPT ---
-async function FetchAPI(action, data) {
-    //toggleLoading(true);
-    console.log("Iniciando petición:", action); // 1. Ver en consola
+async function FetchAPI(action, extraData = {}) {
+    toggleLoading(true);
     try {
         const response = await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors", // <--- Prueba cambiar a esto SOLO PARA TESTEAR
-            body: JSON.stringify({ action, ...data })
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify({ action, ...extraData })
         });
-        console.log("Petición enviada"); // 2. Ver si llega aquí
-        return await response.json();
-    } catch (err) {
-        console.error("Error en Fetch:", err);
-        return { success: false, message: "Error crítico: " + err };
+        const data = await response.json();
+        if (!data.success) alert("Error en Servidor: " + (data.message || data.error));
+        return data;
+    } catch (error) {
+        console.error(error);
+        alert("Error de conexión con Google Sheets.");
+        return { success: false };
     } finally {
         toggleLoading(false);
-        console.log("Spinner apagado"); // 3. Ver si llega aquí
     }
 }
 
