@@ -44,7 +44,9 @@ var AuthModule = {
             if (res && res.success) {
                 localStorage.setItem('session_user', res.usuario);
                 localStorage.setItem('session_userName', res.userName);
-                localStorege.setItem('session_password', res.password);
+                localStorage.setItem('isLoggedIn', 'true'); // Indicador de sesión
+                window.location.href = "./index.html";
+
                 if (errorLabel) {
                     errorLabel.classList.add('hidden');
                 }
