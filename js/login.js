@@ -28,9 +28,9 @@ var AuthModule = {
         var passwordInput = document.getElementById('login-pass');
         var errorLabel = document.getElementById('login-error');
 
-        var usuario = usuarioInput ? usuarioInput.value : '';
-        var password = passwordInput ? passwordInput.value : '';
-        console.log("Valores capturados:", { user: usuario, pass: password });
+       console.log("Intentando ejecutar login..."); // Si esto no aparece, el problema es tu botón
+    var res = await FetchAPI("login", { user: usuario, pass: password });
+    console.log("Respuesta del servidor:", res); // Si esto no aparece, el problema es el Fetch
 
         if (!usuario || !password) {
             alert("Por favor llena todos los campos.");
