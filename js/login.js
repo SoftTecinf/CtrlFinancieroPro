@@ -24,48 +24,48 @@ var AuthModule = {
 
     // Función para procesar el inicio de sesión
     ejecutarLogin: async function (event) {
-    if (event) event.preventDefault(); // Aseguramos que el evento exista
+        if (event) event.preventDefault(); // Aseguramos que el evento exista
 
-    // 1. Obtener valores
-    var usuario = document.getElementById('login-user').value;
-    var password = document.getElementById('login-pass').value;
+        // 1. Obtener valores
+        var usuario = document.getElementById('login-user').value;
+        var password = document.getElementById('login-pass').value;
 
-    // 2. Validación básica de campos vacíos
-    if (!usuario || !password) {
-        alert("Por favor llena todos los campos.");
-        return;
-    }
-
-    try {
-        // 3. Petición única al servidor
-        var res = await FetchAPI("login", { user: usuario, pass: password });
-
-        // 4. Procesar respuesta
-        if (res && res.success) {
-            // Guardamos correctamente en localStorage
-            localStorage.setItem('session_user', res.usuario);
-            localStorage.setItem('isLoggedIn', 'true');
-            
-            // Redirección
-            window.location.href = "./index.html";
-        } else {
-            // Manejo de error de credenciales
-            var msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
-            var errorLabel = document.getElementById('error-label'); // Asegúrate de tener este ID
-            
-            if (errorLabel) {
-                errorLabel.innerText = msg;
-                errorLabel.classList.remove('hidden');
-            } else {
-                alert(msg);
-            }
+        // 2. Validación básica de campos vacíos
+        if (!usuario || !password) {
+            alert("Por favor llena todos los campos.");
+            return;
         }
-    } catch (err) {
-        // 5. Manejo de error de conexión
-        console.error("Error en la petición de login:", err);
-        alert("Hubo un problema al conectar con el servidor.");
+
+        try {
+            // 3. Petición única al servidor
+            var res = await FetchAPI("login", { user: usuario, pass: password });
+
+            // 4. Procesar respuesta
+            if (res && res.success) {
+                // Guardamos correctamente en localStorage
+                localStorage.setItem('session_user', res.usuario);
+                localStorage.setItem('isLoggedIn', 'true');
+
+                // Redirección
+                window.location.href = "./index.html";
+            } else {
+                // Manejo de error de credenciales
+                var msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
+                var errorLabel = document.getElementById('error-label'); // Asegúrate de tener este ID
+
+                if (errorLabel) {
+                    errorLabel.innerText = msg;
+                    errorLabel.classList.remove('hidden');
+                } else {
+                    alert(msg);
+                }
+            }
+        } catch (err) {
+            // 5. Manejo de error de conexión
+            console.error("Error en la petición de login:", err);
+            alert("Hubo un problema al conectar con el servidor.");
+        }
     }
-}
 };
 
 // Lo registramos en la ventana global
