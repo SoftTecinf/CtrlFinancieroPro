@@ -2,7 +2,6 @@
 
 // --- URL DE GOOGLE APPS SCRIPT ---
 const API_URL = "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec";
-
 let editandoId = null;
 let movimientos = [];
 let categorias = [];
