@@ -40,7 +40,7 @@ async function FetchAPI(action, extraData = {}) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors', // <--- IMPORTANTE: Usar 'cors' para poder leer la respuesta
+            mode: 'cors', // <--- IMPORTANTE: Usar 'cors' para poder leer la respuesta
             headers: {
                 'Content-Type': 'application/json'
             },
