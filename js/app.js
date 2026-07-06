@@ -11,7 +11,7 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 // 2. Validación de Sesión (Lo primero que se ejecuta)
 document.addEventListener('DOMContentLoaded', () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
+
     // Ajusta la ruta si es necesario (ej: /CtrlFinancieroPro/login.html)
     if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
         window.location.href = "./login.html";
@@ -33,8 +33,11 @@ async function FetchAPI(action, extraData = {}) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'cors',
-            body: JSON.stringify({ action, ...extraData })
+            mode: 'no-cors', // <--- PRUEBA CAMBIAR A 'no-cors' TEMPORALMENTE
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datos)
         });
         const data = await response.json();
         if (!data.success) alert("Error en Servidor: " + (data.message || data.error));
@@ -50,10 +53,10 @@ async function FetchAPI(action, extraData = {}) {
 
 async function inicializarSincronizacion() {
     console.log("Iniciando sincronización...");
-    
+
     // Cambiamos FetchAPI para asegurarnos de capturar el error
     const res = await FetchAPI("obtenerDatos", {});
-    
+
     // Si res es null o undefined, el problema está en la conexión o el backend
     if (!res) {
         alert("Error crítico: El servidor no respondió nada.");
@@ -64,7 +67,7 @@ async function inicializarSincronizacion() {
         console.log("Datos recibidos correctamente:", res);
         movimientos = res.movimientos;
         categorias = res.categorias;
-        
+
         inicializarFiltros();
         refrescarVistaActual();
     } else {
@@ -411,7 +414,7 @@ function cerrarSesion() {
 }
 
 // --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
-window.onload = function() {
+window.onload = function () {
     const userDisplayEl = document.getElementById('user-display');
     const fechaSistemaEl = document.getElementById('fecha-sistema');
 
@@ -428,12 +431,12 @@ window.onload = function() {
 
     const usuarioActivo = localStorage.getItem('session_user');
     const userNameActivo = localStorage.getItem('session_userName');
-    
+
     if (!usuarioActivo || !userNameActivo) {
         window.location.href = "./login.html";
     } else {
         userDisplayEl.innerText = userNameActivo;
-        
+
         if (typeof inicializarSincronizacion === "function") {
             inicializarSincronizacion();
         }
