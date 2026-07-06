@@ -30,20 +30,33 @@ function toggleLoading(show) {
 // --- ENVIAR DATOS A APPS SCRIPT ---
 async function FetchAPI(action, extraData = {}) {
     toggleLoading(true);
+    
+    // 1. Preparamos el objeto con la acción y los datos extra
+    const payload = {
+        action: action,
+        ...extraData
+    };
+
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors', // <--- PRUEBA CAMBIAR A 'no-cors' TEMPORALMENTE
+            mode: 'cors', // <--- IMPORTANTE: Usar 'cors' para poder leer la respuesta
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(datos)
+            body: JSON.stringify(payload) // <--- Corregido: usamos el objeto definido arriba
         });
+
+        // 2. Intentamos parsear la respuesta
         const data = await response.json();
-        if (!data.success) alert("Error en Servidor: " + (data.message || data.error));
+        
+        if (!data.success) {
+            alert("Error: " + (data.message || "Sin mensaje de error"));
+        }
         return data;
+
     } catch (error) {
-        console.error(error);
+        console.error("Error en la petición:", error);
         alert("Error de conexión con Google Sheets.");
         return { success: false };
     } finally {
