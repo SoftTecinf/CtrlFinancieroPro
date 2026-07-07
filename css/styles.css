@@ -71,9 +71,3 @@ body {
     padding: 12px 20px;       
     transition: all 0.3s ease;
 }
-
-/* Efecto hover */
-#nav-salir:hover .btn-content {
-    opacity: 1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
