@@ -492,8 +492,5 @@ window.addEventListener('load', () => {
 
     // 2. Lógica para el botón de salir (si necesitas aplicarle estilos específicos)
     const btnSalir = document.getElementById('nav-salir');
-    if (btnSalir) {
-        console.log("Botón de salir configurado correctamente.");
-    }
 });
 
