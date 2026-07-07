@@ -133,6 +133,7 @@ async function guardarRegistro(tipo) {
 
     if (!monto || monto <= 0) {
         alert("Por favor ingresa un monto válido.");
+        btn.disabled = false; // Importante: volver a habilitar si hay error
         return;
     }
 
@@ -147,7 +148,9 @@ async function guardarRegistro(tipo) {
         monto
     };
 
+    // Declaramos 'res' y hacemos la petición UNA sola vez
     const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
+    
     if (res.success) {
         if (editandoId) {
             const idx = movimientos.findIndex(m => m.id === editandoId);
@@ -166,8 +169,8 @@ async function guardarRegistro(tipo) {
         refrescarVistaActual();
     }
 
-    const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-    btn.disabled = false; // Habilita de nuevo al terminar
+    // Ya NO volvemos a declarar 'res' aquí. Solo habilitamos el botón.
+    btn.disabled = false; 
 }
 
 async function eliminarMovimiento(id) {
