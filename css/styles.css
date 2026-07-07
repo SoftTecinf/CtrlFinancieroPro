@@ -62,3 +62,18 @@ body {
     backdrop-filter: blur(4px); 
     display: none; 
 }
+
+/* Usamos .btn-content porque es la clase que tienes en tu HTML */
+#nav-salir .btn-content {
+    background-color: #ffffff; 
+    border-radius: 54px;      
+    opacity: 0.6;             
+    padding: 12px 20px;       
+    transition: all 0.3s ease;
+}
+
+/* Efecto hover */
+#nav-salir:hover .btn-content {
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
