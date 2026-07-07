@@ -24,54 +24,30 @@ var AuthModule = {
 
     // Función para procesar el inicio de sesión
     ejecutarLogin: async function (event) {
-        if (event) event.preventDefault(); // Aseguramos que el evento exista
+        if (event) event.preventDefault();
 
-        // 1. Obtener valores
         var usuario = document.getElementById('login-user').value;
         var password = document.getElementById('login-pass').value;
 
-        // 2. Validación básica de campos vacíos
         if (!usuario || !password) {
             alert("Por favor llena todos los campos.");
             return;
         }
 
-        // ==========================================
-        // 🧪 CÓDIGO DE TESTING: ANTES DE ENVIAR
-        // ==========================================
-        console.log("🚀 Iniciando prueba de conexión...");
-        console.log("Enviando credenciales -> Usuario:", usuario, " | Pass:", password);
-
         try {
-            // 3. Petición única al servidor
             var res = await FetchAPI("login", { user: usuario, pass: password });
 
-            // ==========================================
-            // 🧪 CÓDIGO DE TESTING: RESPUESTA RECIBIDA
-            // ==========================================
-            console.log("📦 Respuesta CRUDA de Google Sheets:", res);
-
-            // 4. Procesar respuesta
             if (res && res.success) {
-                // 🧪 Aviso visible de éxito
-                alert("¡Conexión exitosa! El backend respondió bien. Revisa la consola.");
-
-                // Guardamos correctamente en localStorage
-                localStorage.setItem('session_user', res.usuario);
+                // Guardamos la sesión
+                localStorage.setItem('session_user', res.usuario || res.user);
+                localStorage.setItem('session_userName', res.userName || "Usuario");
                 localStorage.setItem('isLoggedIn', 'true');
 
-                // 🧪 COMENTAMOS TEMPORALMENTE LA REDIRECCIÓN
-                // Para que la página no cambie y puedas leer la consola tranquilamente
-                // window.location.href = "./index.html"; 
-                console.log("🟢 Login correcto. Redirección pausada por testing.");
+                // ¡DESBLOQUEAMOS LA REDIRECCIÓN!
+                window.location.href = "./index.html";
             } else {
-                // Manejo de error de credenciales
                 var msg = res && res.message ? res.message : "Usuario o contraseña incorrectos.";
-
-                // 🧪 Imprimimos el error exacto en consola
-                console.error("🔴 El servidor rechazó el login. Razón:", msg);
-
-                var errorLabel = document.getElementById('error-label'); // Asegúrate de tener este ID
+                var errorLabel = document.getElementById('error-label');
 
                 if (errorLabel) {
                     errorLabel.innerText = msg;
@@ -81,8 +57,7 @@ var AuthModule = {
                 }
             }
         } catch (err) {
-            // 5. Manejo de error de conexión
-            console.error("❌ Error CRÍTICO en la petición de login (Probable CORS):", err);
+            console.error("Error en la petición de login:", err);
             alert("Hubo un problema al conectar con el servidor.");
         }
     }
