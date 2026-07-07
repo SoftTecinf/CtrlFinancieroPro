@@ -69,6 +69,6 @@ body {
 /* Efecto hover */
 #nav-salir:hover {
     opacity: 1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; 
     border-radius: 54px; 
 }
