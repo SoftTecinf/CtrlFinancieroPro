@@ -30,7 +30,7 @@ function toggleLoading(show) {
 // --- ENVIAR DATOS A APPS SCRIPT ---
 async function FetchAPI(action, extraData = {}) {
     toggleLoading(true);
-    
+
     // 1. Preparamos el objeto con la acción y los datos extra
     const payload = {
         action: action,
@@ -42,7 +42,7 @@ async function FetchAPI(action, extraData = {}) {
             method: 'POST',
             headers: {
                 // Forzamos explícitamente texto plano para evadir el preflight
-                'Content-Type': 'text/plain;charset=utf-8' 
+                'Content-Type': 'text/plain;charset=utf-8'
             },
             body: JSON.stringify(payload),
             redirect: 'follow' // Crucial para Google Apps Script
@@ -50,7 +50,7 @@ async function FetchAPI(action, extraData = {}) {
 
         // 2. Intentamos parsear la respuesta
         const data = await response.json();
-        
+
         if (!data.success) {
             alert("Error: " + (data.message || "Sin mensaje de error"));
         }
@@ -99,7 +99,7 @@ function formatCurrency(input, hiddenId) {
     input.value = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
 }
 
-function showSection(id) {
+/*function showSection(id) {
     seccionActual = id;
     document.querySelectorAll('section').forEach(s => s.classList.add('hidden-section'));
     document.getElementById(`sec-${id}`).classList.remove('hidden-section');
@@ -108,20 +108,54 @@ function showSection(id) {
     document.querySelectorAll('#main-nav button').forEach(btn => btn.classList.remove('nav-active'));
     document.getElementById(`nav-${id}`).classList.add('nav-active');
     refrescarVistaActual();
-}
+}*/
 
 function refrescarVistaActual() {
-    // Si los datos no han cargado, no intentes renderizar nada
-    if (movimientos.length === 0 && categorias.length === 0) {
-        console.warn("Esperando a que los datos sincronicen...");
-        return; 
+    // 1. Siempre renderizamos lo que ya tenemos disponible (Selects de categorías)
+    if (categorias.length > 0) {
+        actualizarSelectsCategorias();
     }
-    actualizarSelectsCategorias();
-    if (seccionActual === 'home') actualizarHome();
-    if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    if (seccionActual === 'resumen') actualizarResumen();
-    if (seccionActual === 'config') renderCategoriasConfig();
+
+    // 2. Renderizado condicional según la vista
+    // NOTA: Usamos un switch para que sea más fácil de leer y escalar
+    switch (seccionActual) {
+        case 'home':
+            if (movimientos.length > 0) actualizarHome();
+            break;
+
+        case 'ingresos':
+            actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+            break;
+
+        case 'gastos':
+            actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+            break;
+
+        case 'resumen':
+            if (movimientos.length > 0) actualizarResumen();
+            break;
+
+        case 'config':
+            // Aquí no necesitamos esperar a los movimientos, solo a las categorías
+            renderCategoriasConfig();
+            break;
+
+        default:
+            console.log("Vista no reconocida:", seccionActual);
+    }
+}
+
+function showSection(id) {
+    // 1. Ocultar todas las secciones
+    document.querySelectorAll('.seccion-app').forEach(seccion => {
+        seccion.classList.add('hidden');
+    });
+
+    // 2. Mostrar la sección seleccionada
+    const seccionActiva = document.getElementById(idSeccion);
+    if (seccionActiva) {
+        seccionActiva.classList.remove('hidden');
+    }
 }
 
 // --- ACCIONES CON SHEETS ---
@@ -150,7 +184,7 @@ async function guardarRegistro(tipo) {
 
     // Declaramos 'res' y hacemos la petición UNA sola vez
     const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-    
+
     if (res.success) {
         if (editandoId) {
             const idx = movimientos.findIndex(m => m.id === editandoId);
@@ -170,7 +204,7 @@ async function guardarRegistro(tipo) {
     }
 
     // Ya NO volvemos a declarar 'res' aquí. Solo habilitamos el botón.
-    btn.disabled = false; 
+    btn.disabled = false;
 }
 
 async function eliminarMovimiento(id) {
@@ -475,7 +509,7 @@ window.onload = function () {
 
 // Código para iluminar el botón de navegación activo
 window.addEventListener('load', () => {
-    
+
     // 2. Lógica para el botón de salir (si necesitas aplicarle estilos específicos)
     const btnSalir = document.getElementById('nav-salir');
     if (btnSalir) {
