@@ -472,19 +472,14 @@ window.onload = function () {
 }
 
 // Agrega esto en tu script para que el botón se ilumine si estás en la página correcta
+
 // Código para iluminar el botón de navegación activo
 window.addEventListener('load', () => {
-    // 1. Fijar el botón de Ingresos como activo permanentemente
-    const btnIngresos = document.getElementById('nav-ingresos');
-    if (btnIngresos) {
-        btnIngresos.classList.add('nav-active');
-        // Esto elimina la opacidad y fuerza el estilo
-        btnIngresos.style.opacity = '1'; 
-    }
-
+    
     // 2. Lógica para el botón de salir (si necesitas aplicarle estilos específicos)
     const btnSalir = document.getElementById('nav-salir');
     if (btnSalir) {
         console.log("Botón de salir configurado correctamente.");
     }
 });
+
