@@ -1,55 +1,92 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Financiero Pro</title>
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">    
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="./css/styles.css">
 </head>
+
 <body class="min-h-screen pb-24 md:pb-10">
 
     <div id="app-content">
-        <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-40">
+        <nav
+            class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-40">
             <div class="max-w-5xl mx-auto flex justify-around p-2 md:p-4" id="main-nav">
-                <button id="nav-home" onclick="showSection('home')" class="nav-btn nav-active flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-home" onclick="showSection('home')"
+                    class="nav-btn nav-active flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
                         <span>Inicio</span>
                     </div>
                 </button>
-                <button id="nav-ingresos" onclick="showSection('ingresos')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-ingresos" onclick="showSection('ingresos')"
+                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                         <span>Ingresos</span>
                     </div>
                 </button>
-                <button id="nav-gastos" onclick="showSection('gastos')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-gastos" onclick="showSection('gastos')"
+                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                         <span>Gastos</span>
                     </div>
                 </button>
-                <button id="nav-resumen" onclick="showSection('resumen')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-resumen" onclick="showSection('resumen')"
+                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
                         <span>Análisis</span>
                     </div>
                 </button>
-                <button id="nav-config" onclick="showSection('config')" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <button id="nav-config" onclick="showSection('config')"
+                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
                     <div class="btn-content">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                         <span>Ajustes</span>
                     </div>
                 </button>
-                <button id="nav-config" onclick="cerrarSesion()" class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                    <div class="btn-content">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    <span>Salir</span>
+                <button onclick="cerrarSesion()"
+                    class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold uppercase tracking-tighter border-t-2 border-stone-800 transition-all hover:bg-stone-100">
+                    <div class="btn-content flex flex-col items-center gap-1">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Salir</span>
                     </div>
                 </button>
             </div>
@@ -59,14 +96,21 @@
             <header class="flex justify-between items-center mb-10">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 bg-stone-800 rounded-lg flex items-center justify-center shadow-md">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                            <path d="M2 17L12 22L22 17" />
+                            <path d="M2 12L12 17L22 12" />
+                        </svg>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-light tracking-tight text-stone-800 italic">Control <span class="font-bold not-italic">Financiero</span> <span id="subtitulo-seccion" class="text-stone-400 font-light italic text-xl"></span></h1>
-                        <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider mt-0.5">Hola, <span id="user-display" class="text-stone-600 font-extrabold">...</span></p>
+                        <h1 class="text-3xl font-light tracking-tight text-stone-800 italic">Control <span
+                                class="font-bold not-italic">Financiero</span> <span id="subtitulo-seccion"
+                                class="text-stone-400 font-light italic text-xl"></span></h1>
+                        <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider mt-0.5">Hola, <span
+                                id="user-display" class="text-stone-600 font-extrabold">...</span></p>
                     </div>
                 </div>
-                
+
             </header>
 
             <section id="sec-home">
@@ -75,21 +119,39 @@
                         <span class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Patrimonio Total</span>
                         <h2 id="balance-general" class="text-2xl font-bold mt-1 text-[#8C7E6A]">$0.00</h2>
                     </div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 font-bold italic">Hoy</span><h2 id="balance-dia" class="text-2xl font-bold mt-1 text-stone-600">$0.00</h2></div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Ingresos Mes</span><h2 id="home-ingresos" class="text-2xl font-bold mt-1 text-stone-500">$0.00</h2></div>
-                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span class="text-[10px] uppercase tracking-wider opacity-60 text-rose-300 font-bold">Gastos Mes</span><h2 id="home-gastos" class="text-2xl font-bold mt-1">$0.00</h2></div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
+                            class="text-[10px] uppercase tracking-wider opacity-60 font-bold italic">Hoy</span>
+                        <h2 id="balance-dia" class="text-2xl font-bold mt-1 text-stone-600">$0.00</h2>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
+                            class="text-[10px] uppercase tracking-wider opacity-60 font-bold">Ingresos Mes</span>
+                        <h2 id="home-ingresos" class="text-2xl font-bold mt-1 text-stone-500">$0.00</h2>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl-custom soft-shadow"><span
+                            class="text-[10px] uppercase tracking-wider opacity-60 text-rose-300 font-bold">Gastos
+                            Mes</span>
+                        <h2 id="home-gastos" class="text-2xl font-bold mt-1">$0.00</h2>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-xl-custom soft-shadow text-center"><h3 class="text-lg font-semibold mb-6 italic">Distribución Mensual</h3><div class="max-w-[250px] mx-auto"><canvas id="chartHome"></canvas></div></div>
-                    <div class="bg-white p-8 rounded-xl-custom soft-shadow"><h3 class="text-lg font-semibold mb-6 italic">Últimos 10 Movimientos</h3><div id="lista-recientes" class="space-y-3 list-container"></div></div>
+                    <div class="bg-white p-8 rounded-xl-custom soft-shadow text-center">
+                        <h3 class="text-lg font-semibold mb-6 italic">Distribución Mensual</h3>
+                        <div class="max-w-[250px] mx-auto"><canvas id="chartHome"></canvas></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl-custom soft-shadow">
+                        <h3 class="text-lg font-semibold mb-6 italic">Últimos 10 Movimientos</h3>
+                        <div id="lista-recientes" class="space-y-3 list-container"></div>
+                    </div>
                 </div>
             </section>
 
             <section id="sec-ingresos" class="hidden-section">
                 <div class="flex justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="in-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="in-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="in-mes" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="in-año" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="exportarFiltradoXLSX('ingreso')" class="btn-export">📊 Exportar Ingresos</button>
                 </div>
@@ -97,16 +159,24 @@
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow h-fit">
                         <h2 class="text-xl font-semibold mb-6 italic">Capturar Ingreso</h2>
                         <div class="space-y-4">
-                            <input type="date" id="in-fecha" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
-                            <select id="in-categoria" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
-                            <input type="text" id="in-desc" placeholder="Concepto" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
-                            <input type="text" id="in-monto-mask" oninput="formatCurrency(this, 'in-monto-hidden')" placeholder="$ 0.00 MXN" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
+                            <input type="date" id="in-fecha"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
+                            <select id="in-categoria"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
+                            <input type="text" id="in-desc" placeholder="Concepto"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
+                            <input type="text" id="in-monto-mask" oninput="formatCurrency(this, 'in-monto-hidden')"
+                                placeholder="$ 0.00 MXN"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
                             <input type="hidden" id="in-monto-hidden" value="0">
-                            <button onclick="guardarRegistro('ingreso')" class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar Registro</button>
+                            <button onclick="guardarRegistro('ingreso')"
+                                class="w-full bg-[#D6C7B3] text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar
+                                Registro</button>
                         </div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
-                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span id="count-in">0 items</span></h2>
+                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span
+                                id="count-in">0 items</span></h2>
                         <div id="lista-ingresos" class="list-container space-y-3"></div>
                     </div>
                 </div>
@@ -115,8 +185,10 @@
             <section id="sec-gastos" class="hidden-section">
                 <div class="flex justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="ex-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="ex-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="ex-mes" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="ex-año" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="exportarFiltradoXLSX('gasto')" class="btn-export">📊 Exportar Gastos</button>
                 </div>
@@ -124,16 +196,24 @@
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow h-fit">
                         <h2 class="text-xl font-semibold mb-6 italic">Capturar Gasto</h2>
                         <div class="space-y-4">
-                            <input type="date" id="ex-fecha" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
-                            <select id="ex-categoria" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
-                            <input type="text" id="ex-desc" placeholder="Concepto" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
-                            <input type="text" id="ex-monto-mask" oninput="formatCurrency(this, 'ex-monto-hidden')" placeholder="$ 0.00 MXN" class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
+                            <input type="date" id="ex-fecha"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border">
+                            <select id="ex-categoria"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border"></select>
+                            <input type="text" id="ex-desc" placeholder="Concepto"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm uppercase border">
+                            <input type="text" id="ex-monto-mask" oninput="formatCurrency(this, 'ex-monto-hidden')"
+                                placeholder="$ 0.00 MXN"
+                                class="w-full p-4 rounded-xl bg-gray-50 outline-none text-lg input-mxn border">
                             <input type="hidden" id="ex-monto-hidden" value="0">
-                            <button onclick="guardarRegistro('gasto')" class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Registrar Egreso</button>
+                            <button onclick="guardarRegistro('gasto')"
+                                class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Registrar
+                                Egreso</button>
                         </div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
-                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span id="count-ex">0 items</span></h2>
+                        <h2 class="text-sm font-bold uppercase opacity-30 mb-6 flex justify-between">Historial <span
+                                id="count-ex">0 items</span></h2>
                         <div id="lista-gastos" class="list-container space-y-3"></div>
                     </div>
                 </div>
@@ -142,8 +222,10 @@
             <section id="sec-resumen" class="hidden-section">
                 <div class="flex flex-wrap justify-end items-center mb-6 gap-2">
                     <div class="toolbar-group">
-                        <select id="res-mes" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-                        <select id="res-año" onchange="refrescarVistaActual()" class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="res-mes" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+                        <select id="res-año" onchange="refrescarVistaActual()"
+                            class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
                     </div>
                     <button onclick="generarLibroContable()" class="btn-export">📊 Generar Reporte Financiero</button>
                 </div>
@@ -151,7 +233,8 @@
                     <div class="lg:col-span-2 bg-white p-8 rounded-xl-custom soft-shadow text-center">
                         <h2 class="text-xl font-semibold italic mb-6">Utilidad del Periodo</h2>
                         <h2 class="text-5xl font-light mb-8" id="resumen-balance-total">$0.00</h2>
-                        <div class="h-[300px] flex items-center justify-center"><canvas id="chartResumen"></canvas></div>
+                        <div class="h-[300px] flex items-center justify-center"><canvas id="chartResumen"></canvas>
+                        </div>
                     </div>
                     <div class="bg-white p-8 rounded-xl-custom soft-shadow">
                         <h3 class="text-lg font-semibold mb-6 italic">Cronología del Periodo</h3>
@@ -165,22 +248,29 @@
                     <div class="bg-white p-6 md:p-8 rounded-xl-custom soft-shadow">
                         <h2 class="text-xl font-semibold mb-6 italic text-stone-800">Categorías</h2>
                         <div class="flex flex-col md:flex-row gap-2 mb-8">
-                            <input type="text" id="nueva-cat-nombre" placeholder="Nombre" class="flex-1 p-3 rounded-lg bg-gray-50 outline-none text-sm border">
+                            <input type="text" id="nueva-cat-nombre" placeholder="Nombre"
+                                class="flex-1 p-3 rounded-lg bg-gray-50 outline-none text-sm border">
                             <div class="flex gap-2">
-                                <select id="nueva-cat-tipo" class="flex-1 bg-gray-50 p-3 rounded-lg text-xs font-bold border">
+                                <select id="nueva-cat-tipo"
+                                    class="flex-1 bg-gray-50 p-3 rounded-lg text-xs font-bold border">
                                     <option value="ingreso">Ingreso</option>
                                     <option value="gasto">Gasto</option>
                                 </select>
-                                <button onclick="agregarCategoria()" class="bg-stone-800 text-white px-6 py-3 rounded-lg text-xs font-bold uppercase">+</button>
+                                <button onclick="agregarCategoria()"
+                                    class="bg-stone-800 text-white px-6 py-3 rounded-lg text-xs font-bold uppercase">+</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <h3 class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">Ingresos</h3>
+                                <h3
+                                    class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">
+                                    Ingresos</h3>
                                 <div id="lista-cats-ingreso" class="space-y-2"></div>
                             </div>
                             <div>
-                                <h3 class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">Gastos</h3>
+                                <h3
+                                    class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-4 border-b pb-2">
+                                    Gastos</h3>
                                 <div id="lista-cats-gasto" class="space-y-2"></div>
                             </div>
                         </div>
@@ -192,4 +282,5 @@
 
     <script src="./js/app.js"></script>
 </body>
+
 </html>
