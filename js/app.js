@@ -40,11 +40,12 @@ async function FetchAPI(action, extraData = {}) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'cors', // <--- IMPORTANTE: Usar 'cors' para poder leer la respuesta
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload) // <--- Corregido: usamos el objeto definido arriba
+            // mode: 'cors', // Puedes quitarlo, 'cors' es el valor por defecto
+            
+            // BORRAMOS el bloque de 'headers' por completo.
+            // Al no haber headers, se envía como texto plano (text/plain)
+            
+            body: JSON.stringify(payload)
         });
 
         // 2. Intentamos parsear la respuesta
@@ -57,6 +58,7 @@ async function FetchAPI(action, extraData = {}) {
 
     } catch (error) {
         console.error("Error en la petición:", error);
+        // Este alert es justo el que estabas viendo en tu pantalla
         alert("Error de conexión con Google Sheets.");
         return { success: false };
     } finally {
@@ -109,6 +111,11 @@ function showSection(id) {
 }
 
 function refrescarVistaActual() {
+    // Si los datos no han cargado, no intentes renderizar nada
+    if (movimientos.length === 0 && categorias.length === 0) {
+        console.warn("Esperando a que los datos sincronicen...");
+        return; 
+    }
     actualizarSelectsCategorias();
     if (seccionActual === 'home') actualizarHome();
     if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
@@ -119,6 +126,8 @@ function refrescarVistaActual() {
 
 // --- ACCIONES CON SHEETS ---
 async function guardarRegistro(tipo) {
+    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    btn.disabled = true; // Deshabilita el botón
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
 
@@ -156,6 +165,9 @@ async function guardarRegistro(tipo) {
         document.getElementById(`${pref}-desc`).value = "";
         refrescarVistaActual();
     }
+
+    const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
+    btn.disabled = false; // Habilita de nuevo al terminar
 }
 
 async function eliminarMovimiento(id) {
@@ -329,7 +341,7 @@ function obtenerPeriodoActual() {
 function obtenerMovimientosFiltrados() {
     const { mes, año } = obtenerPeriodoActual();
     return movimientos.filter(m => {
-        const mF = new Date(m.fecha + 'T00:00:00');
+        const mF = new Date(m.fecha + 'T00:00:00Z'); // La 'Z' fuerza UTC
         return mF.getMonth() === mes && mF.getFullYear() === año;
     });
 }
