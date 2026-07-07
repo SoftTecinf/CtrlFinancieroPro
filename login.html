@@ -51,7 +51,7 @@
                             class="w-full p-4 rounded-xl bg-gray-50 outline-none text-sm border border-transparent focus:border-stone-200"
                             style="padding-right: 45px;">
 
-                        <button type="button" id="btn-toggle-pass" 
+                        <button type="button" id="btn-toggle-pass"
                             style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 0; display: flex; align-items: center; z-index: 10;">
 
                             <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
@@ -75,8 +75,10 @@
                 </div>
                 <p id="login-error" class="text-rose-500 text-xs font-semibold hidden text-center"></p>
 
-                <button type="submit"
-                    class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors">Ingresar</button>
+                <button type="submit" onclick="ejecutarLogin(event)"
+                    class="w-full bg-stone-800 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors">
+                    Ingresar
+                </button>
             </div>
         </form>
     </div>
@@ -84,4 +86,5 @@
     <script src="js/app.js" defer></script>
     <script src="js/login.js" defer></script>
 </body>
+
 </html>
