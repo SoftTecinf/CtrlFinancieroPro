@@ -99,63 +99,43 @@ function formatCurrency(input, hiddenId) {
     input.value = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
 }
 
-/*function showSection(id) {
+// --- 1. SECCIÓN DE NAVEGACIÓN ---
+function showSection(id) {
     seccionActual = id;
+    
+    // Ocultar y mostrar secciones
     document.querySelectorAll('section').forEach(s => s.classList.add('hidden-section'));
     document.getElementById(`sec-${id}`).classList.remove('hidden-section');
+    
+    // Cambiar subtítulo
     const nombres = { 'home': 'Inicio', 'ingresos': 'Ingresos', 'gastos': 'Gastos', 'resumen': 'Análisis', 'config': 'Configuración' };
     document.getElementById('subtitulo-seccion').innerText = " / " + nombres[id];
+    
+    // Cambiar estado de botones
     document.querySelectorAll('#main-nav button').forEach(btn => btn.classList.remove('nav-active'));
     document.getElementById(`nav-${id}`).classList.add('nav-active');
+    
+    // ¡EL PUENTE! Aquí llamas a la otra función para que sepa qué hacer
     refrescarVistaActual();
-}*/
-
-function refrescarVistaActual() {
-    // 1. Siempre renderizamos lo que ya tenemos disponible (Selects de categorías)
-    if (categorias.length > 0) {
-        actualizarSelectsCategorias();
-    }
-
-    // 2. Renderizado condicional según la vista
-    // NOTA: Usamos un switch para que sea más fácil de leer y escalar
-    switch (seccionActual) {
-        case 'home':
-            if (movimientos.length > 0) actualizarHome();
-            break;
-
-        case 'ingresos':
-            actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-            break;
-
-        case 'gastos':
-            actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-            break;
-
-        case 'resumen':
-            if (movimientos.length > 0) actualizarResumen();
-            break;
-
-        case 'config':
-            // Aquí no necesitamos esperar a los movimientos, solo a las categorías
-            renderCategoriasConfig();
-            break;
-
-        default:
-            console.log("Vista no reconocida:", seccionActual);
-    }
 }
 
-function showSection(id) {
-    // 1. Ocultar todas las secciones
-    document.querySelectorAll('.seccion-app').forEach(seccion => {
-        seccion.classList.add('hidden');
-    });
-
-    // 2. Mostrar la sección seleccionada
-    const seccionActiva = document.getElementById(idSeccion);
-    if (seccionActiva) {
-        seccionActiva.classList.remove('hidden');
+// --- 2. SECCIÓN DE LÓGICA DE DATOS ---
+function refrescarVistaActual() {
+    // Si no hay datos, salimos para no romper nada
+    if (movimientos.length === 0 && categorias.length === 0) {
+        console.warn("Esperando datos...");
+        return; 
     }
+    
+    // Pintamos lo que siempre necesitamos
+    actualizarSelectsCategorias();
+    
+    // Según la variable 'seccionActual' que definió el Director (showSection), actuamos
+    if (seccionActual === 'home') actualizarHome();
+    if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+    if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+    if (seccionActual === 'resumen') actualizarResumen();
+    if (seccionActual === 'config') renderCategoriasConfig();
 }
 
 // --- ACCIONES CON SHEETS ---
