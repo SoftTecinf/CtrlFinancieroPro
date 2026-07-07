@@ -40,12 +40,12 @@ async function FetchAPI(action, extraData = {}) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            // mode: 'cors', // Puedes quitarlo, 'cors' es el valor por defecto
-            
-            // BORRAMOS el bloque de 'headers' por completo.
-            // Al no haber headers, se envía como texto plano (text/plain)
-            
-            body: JSON.stringify(payload)
+            headers: {
+                // Forzamos explícitamente texto plano para evadir el preflight
+                'Content-Type': 'text/plain;charset=utf-8' 
+            },
+            body: JSON.stringify(payload),
+            redirect: 'follow' // Crucial para Google Apps Script
         });
 
         // 2. Intentamos parsear la respuesta
