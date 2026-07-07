@@ -471,3 +471,15 @@ window.onload = function () {
     }
 }
 
+// Agrega esto en tu script para que el botón se ilumine si estás en la página correcta
+// Código para iluminar el botón de navegación activo
+window.addEventListener('load', () => {
+    if (window.location.pathname.includes("ajustes.html")) {
+        const btn = document.getElementById('nav-config');
+        if (btn) {
+            btn.classList.remove('opacity-40');
+            btn.classList.add('text-stone-900', 'border-t-2', 'border-stone-900');
+        }
+    }
+});
+
