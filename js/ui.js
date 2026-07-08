@@ -2,6 +2,7 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo).reverse();
     document.getElementById(countId).innerText = `${filtrados.length} items`;
+   
     const cont = document.getElementById(contId);
     cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
 
@@ -149,4 +150,11 @@ function inicializarFiltros() {
             }
         });
     });
+}
+
+function formatCurrency(input, hiddenId) {
+    let value = input.value.replace(/\D/g, "");
+    let numericValue = value ? parseFloat(value) / 100 : 0;
+    document.getElementById(hiddenId).value = numericValue;
+    input.value = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
 }
