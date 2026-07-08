@@ -75,3 +75,7 @@ body {
     color: #1c1917 !important; 
     transform: translateY(-2px); 
 }
+
+.hidden-section {
+    display: none !important;
+}
