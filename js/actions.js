@@ -122,10 +122,19 @@ function obtenerPeriodoActual() {
 }
 
 function obtenerMovimientosFiltrados() {
+    // 1. Obtener periodo actual (asegúrate de que esto devuelva el mes y año correctos)
     const { mes, año } = obtenerPeriodoActual();
+    
     return movimientos.filter(m => {
-        const mF = new Date(m.fecha + 'T00:00:00Z'); // La 'Z' fuerza UTC
-        return mF.getMonth() === mes && mF.getFullYear() === año;
+        // 2. Convertir la fecha del movimiento a objeto Date de forma segura
+        // Si m.fecha es "2026-07-08", esto creará una fecha en UTC
+        const mF = new Date(m.fecha + 'T00:00:00'); 
+        
+        // 3. Comparar mes y año
+        const coincideMes = mF.getMonth() === mes;
+        const coincideAño = mF.getFullYear() === año;
+        
+        return coincideMes && coincideAño;
     });
 }
 
