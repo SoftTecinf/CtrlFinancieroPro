@@ -26,30 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
-function showSection(sectionId) {
-    console.log("Intentando mostrar la sección:", sectionId);
+function showSection(id) {
+    seccionActual = id;
     
-    const container = document.getElementById('app-container');
+    // Ocultar y mostrar secciones
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden-section'));
+    document.getElementById(`sec-${id}`).classList.remove('hidden-section');
     
-    // Verificamos si el contenedor existe
-    if (!container) {
-        console.error("ERROR: No se encontró el elemento 'app-container' en tu index.html");
-        return;
-    }
-
-    // PRUEBA DE CONEXIÓN:
-    // En lugar de cargar un archivo externo aún, inyectemos algo directo:
-    container.innerHTML = `
-        <div style="padding: 20px; background: #f0f0f0; border: 2px solid #333;">
-            <h1>¡Conexión Exitosa!</h1>
-            <p>La sección <strong>${sectionId}</strong> se ha cargado correctamente.</p>
-        </div>
-    `;
-
-    // Si quieres llamar a tus funciones después de cargar:
-    if (sectionId === 'home') {
-        actualizarHome();
-    }
+    // Cambiar subtítulo
+    const nombres = { 'home': 'Inicio', 'ingresos': 'Ingresos', 'gastos': 'Gastos', 'resumen': 'Análisis', 'config': 'Configuración' };
+    document.getElementById('subtitulo-seccion').innerText = " / " + nombres[id];
+    
+    // Cambiar estado de botones
+    document.querySelectorAll('#main-nav button').forEach(btn => btn.classList.remove('nav-active'));
+    document.getElementById(`nav-${id}`).classList.add('nav-active');
+    
+    // ¡EL PUENTE! Aquí llamas a la otra función para que sepa qué hacer
+    refrescarVistaActual();
 }
 
 // --- 2. SECCIÓN DE LÓGICA DE DATOS ---
