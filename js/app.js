@@ -47,21 +47,19 @@ function showSection(id) {
 
 // --- 2. SECCIÓN DE LÓGICA DE DATOS ---
 function refrescarVistaActual() {
-    / Si no hay datos, salimos para no romper nada
-    if (movimientos.length === 0 && categorias.length === 0) {
-        console.warn("Esperando datos...");
-        return; 
+    // 1. Pintamos lo que siempre necesitamos
+    if (typeof actualizarSelectsCategorias === "function") {
+        actualizarSelectsCategorias();
     }
     
-    // Pintamos lo que siempre necesitamos
-    actualizarSelectsCategorias();
-    
-    // Según la variable 'seccionActual' que definió el Director (showSection), actuamos
+    // 2. Según la sección, llamamos a la función de dibujo
     if (seccionActual === 'home') actualizarHome();
     if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     if (seccionActual === 'resumen') actualizarResumen();
     if (seccionActual === 'config') renderCategoriasConfig();
+    
+    console.log("Vista refrescada, total movimientos:", movimientos.length);
 }
 
 // --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
