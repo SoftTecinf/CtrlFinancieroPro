@@ -210,11 +210,16 @@ async function agregarCategoria() {
     if (!nom) return;
 
     const nuevaCat = { id: Date.now(), nombre: nom, tipo };
-    const res = await FetchAPI("guardarCategoria", { data: nuevaCat });
+    
+    // Cambiamos el nombre de la acción aquí para que coincida con el servidor
+    const res = await FetchAPI("agregarCategoria", nuevaCat); 
+    
     if (res.success) {
         categorias.push(nuevaCat);
         document.getElementById('nueva-cat-nombre').value = '';
         refrescarVistaActual();
+    } else {
+        alert("Error al guardar: " + res.message);
     }
 }
 
