@@ -12,11 +12,18 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 document.addEventListener('DOMContentLoaded', () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-    // Ajusta la ruta si es necesario (ej: /CtrlFinancieroPro/login.html)
+    // 1. PRIMERO: Control de acceso
     if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
         window.location.href = "./login.html";
-        return; // Detenemos la ejecución aquí
+        return;
     }
+
+    // 2. SEGUNDO: Inicializar la vista por defecto
+    // Esto asegura que la página tenga algo que mostrar apenas carga
+    showSection('home');
+    
+    // 3. TERCERO: Iniciar la carga de datos (Google Sheets)
+    iniciarSincronizacion(); 
 });
 
 function toggleLoading(show) {
