@@ -57,6 +57,7 @@ function renderCategoriasConfig() {
 }
 
 function actualizarHome() {
+    // 1. Cálculos (esto siempre se ejecuta)
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
@@ -71,20 +72,51 @@ function actualizarHome() {
         }
     });
 
-    document.getElementById('balance-general').innerText = fMXN(balG);
-    document.getElementById('balance-dia').innerText = fMXN(balD);
-    document.getElementById('home-ingresos').innerText = fMXN(ingM);
-    document.getElementById('home-gastos').innerText = fMXN(gasM);
+    // 2. Actualización de texto con verificación de existencia
+    const updates = [
+        { id: 'balance-general', val: fMXN(balG) },
+        { id: 'balance-dia', val: fMXN(balD) },
+        { id: 'home-ingresos', val: fMXN(ingM) },
+        { id: 'home-gastos', val: fMXN(gasM) }
+    ];
 
-    const ctx = document.getElementById('chartHome').getContext('2d');
-    if (chartH) chartH.destroy();
-    chartH = new Chart(ctx, { type: 'doughnut', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] }, options: { cutout: '75%', plugins: { legend: { display: false } } } });
-
-    const listaH = document.getElementById('lista-recientes');
-    listaH.innerHTML = '';
-    [...movimientos].reverse().slice(0, 10).forEach(m => {
-        listaH.innerHTML += `<div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white"><div><p class="text-xs font-semibold uppercase">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.fecha}</p></div><span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span></div>`;
+    updates.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) el.innerText = item.val;
     });
+
+    // 3. Gráfico con verificación de existencia
+    const canvas = document.getElementById('chartHome');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (chartH) chartH.destroy();
+        chartH = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Ingresos', 'Gastos'], 
+                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] 
+            }, 
+            options: { cutout: '75%', plugins: { legend: { display: false } } } 
+        });
+    }
+
+    // 4. Lista reciente con verificación de existencia
+    const listaH = document.getElementById('lista-recientes');
+    if (listaH) {
+        listaH.innerHTML = '';
+        [...movimientos].reverse().slice(0, 10).forEach(m => {
+            listaH.innerHTML += `
+                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
+                    <div>
+                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                        <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
+                    </div>
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </span>
+                </div>`;
+        });
+    }
 }
 
 function actualizarResumen() {
