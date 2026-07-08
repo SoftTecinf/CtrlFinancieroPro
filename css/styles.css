@@ -32,7 +32,7 @@ body {
     scrollbar-color: #E5DDD3 transparent; 
 }
 
-.nav-btn { 
+.nav-btn:hover { 
     @apply flex-1 flex flex-col items-center justify-center p-2 md:p-4 transition-all duration-300; 
     padding: 15px; 
 }
@@ -42,7 +42,7 @@ body {
     text-align: center; 
     gap: 12px; 
 }
-.nav-active:hover { 
+.nav-active { 
     background-color: #ffffff !important; 
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; 
     border-radius: 54px; 
