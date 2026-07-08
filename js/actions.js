@@ -122,13 +122,11 @@ function obtenerPeriodoActual() {
 }
 
 function obtenerMovimientosFiltrados() {
-    /*const { mes, año } = obtenerPeriodoActual();
+    const { mes, año } = obtenerPeriodoActual();
     return movimientos.filter(m => {
         const mF = new Date(m.fecha + 'T00:00:00Z'); // La 'Z' fuerza UTC
         return mF.getMonth() === mes && mF.getFullYear() === año;
-    });*/
-    // RETORNA TODO PARA VER SI APARECE:
-    return movimientos;
+    });
 }
 
 async function generarLibroContable() {
