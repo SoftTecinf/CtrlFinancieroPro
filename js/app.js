@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showSection('home');
     
     // 3. TERCERO: Iniciar la carga de datos (Google Sheets)
-    iniciarSincronizacion(); 
+    inicializarSincronizacion(); 
 });
 
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
@@ -48,7 +48,7 @@ function showSection(id) {
 
 // --- 2. SECCIÓN DE LÓGICA DE DATOS ---
 function refrescarVistaActual() {
-    // Si no hay datos, salimos para no romper nada
+    /*/ Si no hay datos, salimos para no romper nada
     if (movimientos.length === 0 && categorias.length === 0) {
         console.warn("Esperando datos...");
         return; 
@@ -62,7 +62,8 @@ function refrescarVistaActual() {
     if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     if (seccionActual === 'resumen') actualizarResumen();
-    if (seccionActual === 'config') renderCategoriasConfig();
+    if (seccionActual === 'config') renderCategoriasConfig();*/
+    console.log("Intentando actualizar vista, movimientos actuales:", movimientos.length);
 }
 
 // --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
