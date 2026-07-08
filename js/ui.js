@@ -4,8 +4,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     document.getElementById(countId).innerText = `${filtrados.length} items`;
    
     const cont = document.getElementById(contId);
-    //cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-    const filtrados = movimientos.filter(m => m.tipo === tipo).reverse();
+    cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
 
     filtrados.forEach(m => {
         cont.innerHTML += `
@@ -118,13 +117,11 @@ function actualizarFechaHeader() {
 }
 
 function toggleLoading(show) {
-   /* const loader = document.getElementById('loading-overlay');
+    const loader = document.getElementById('loading-overlay');
     // Solo intenta cambiar el estilo si el elemento existe en el HTML actual
     if (loader) {
         loader.style.display = show ? 'flex' : 'none';
-    }*/
-
-        console.log("Cargando:", estado);
+    }
 }
 
 function inicializarFiltros() {
