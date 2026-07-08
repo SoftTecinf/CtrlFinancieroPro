@@ -27,29 +27,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
 function showSection(sectionId) {
-    console.log("Intentando mostrar la sección:", sectionId);
-    
     const container = document.getElementById('app-container');
     
-    // Verificamos si el contenedor existe
-    if (!container) {
-        console.error("ERROR: No se encontró el elemento 'app-container' en tu index.html");
-        return;
-    }
-
-    // PRUEBA DE CONEXIÓN:
-    // En lugar de cargar un archivo externo aún, inyectemos algo directo:
-    container.innerHTML = `
-        <div style="padding: 20px; background: #f0f0f0; border: 2px solid #333;">
-            <h1>¡Conexión Exitosa!</h1>
-            <p>La sección <strong>${sectionId}</strong> se ha cargado correctamente.</p>
-        </div>
-    `;
-
-    // Si quieres llamar a tus funciones después de cargar:
-    if (sectionId === 'home') {
-        actualizarHome();
-    }
+    // Ruta al archivo, asegúrate de que esté en la misma carpeta
+    fetch(`${sectionId}.html`) 
+        .then(response => {
+            if (!response.ok) throw new Error('No se pudo cargar la página');
+            return response.text();
+        })
+        .then(html => {
+            container.innerHTML = html;
+            console.log(`Contenido de ${sectionId}.html cargado.`);
+            
+            // UNA VEZ CARGADO EL HTML, LLAMAMOS A SUS FUNCIONES
+            if (sectionId === 'home') {
+                actualizarHome();
+                actualizarFechaHeader();
+            }
+            // Puedes agregar aquí otras funciones según la sección
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            container.innerHTML = `<p>Error al cargar la sección ${sectionId}</p>`;
+        });
 }
 
 // --- 2. SECCIÓN DE LÓGICA DE DATOS ---
