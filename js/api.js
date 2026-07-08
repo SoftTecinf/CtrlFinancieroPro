@@ -63,9 +63,3 @@ async function inicializarSincronizacion() {
     }
 }
 
-function formatCurrency(input, hiddenId) {
-    let value = input.value.replace(/\D/g, "");
-    let numericValue = value ? parseFloat(value) / 100 : 0;
-    document.getElementById(hiddenId).value = numericValue;
-    input.value = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
-}
