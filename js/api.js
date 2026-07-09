@@ -36,14 +36,22 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
+    // Si la petición tarda más de 1 segundo, mostramos un pequeño aviso
+    const timer = setTimeout(() => {
+        const msg = document.getElementById('status-msg');
+        if (msg) msg.innerText = "Sincronizando con la nube...";
+    }, 1000);
+
     try {
         const res = await FetchAPI("obtenerDatos", {});
         if (res && res.success) {
             AppState.datosCache = res.movimientos;
-            // Guardamos para la próxima vez que el usuario abra la app
             localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
+            refrescarVistaActual();
         }
-    } catch (err) {
-        console.error("Error en segundo plano:", err);
+    } finally {
+        clearTimeout(timer);
+        const msg = document.getElementById('status-msg');
+        if (msg) msg.innerText = ""; // Limpiamos el aviso
     }
 }
