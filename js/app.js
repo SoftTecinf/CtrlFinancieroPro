@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     inicializarSincronizacion(); 
 });
 
-
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
 function showSection(sectionId) {
     const container = document.getElementById('app-container');
@@ -125,4 +124,5 @@ window.onload = function () {
         }
     }
 }
+
 
