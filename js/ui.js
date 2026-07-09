@@ -94,22 +94,26 @@ function renderCategoriasConfig() {
 }
 
 function actualizarHome() {
-    // 1. Cálculos (esto siempre se ejecuta)
+    // 1. LEEMOS DE LA CACHÉ (AppState)
+    const datos = AppState.datosCache || [];
+    
+    // 2. Cálculos
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    movimientos.forEach(m => {
+    datos.forEach(m => {
         const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
         balG += val;
         if (m.fecha === hoyStr) balD += val;
+        
         const mF = new Date(m.fecha + 'T00:00:00');
         if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
             if (m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
         }
     });
 
-    // 2. Actualización de texto con verificación de existencia
+    // 3. Actualización de texto
     const updates = [
         { id: 'balance-general', val: fMXN(balG) },
         { id: 'balance-dia', val: fMXN(balD) },
@@ -122,7 +126,7 @@ function actualizarHome() {
         if (el) el.innerText = item.val;
     });
 
-    // 3. Gráfico con verificación de existencia
+    // 4. Gráfico
     const canvas = document.getElementById('chartHome');
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -137,11 +141,12 @@ function actualizarHome() {
         });
     }
 
-    // 4. Lista reciente con verificación de existencia
+    // 5. Lista reciente (usamos 'datos' en lugar de 'movimientos')
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
         listaH.innerHTML = '';
-        [...movimientos].reverse().slice(0, 10).forEach(m => {
+        // Usamos .slice() para no modificar el array original y mostramos los últimos 10
+        [...datos].reverse().slice(0, 10).forEach(m => {
             listaH.innerHTML += `
                 <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
                     <div>
