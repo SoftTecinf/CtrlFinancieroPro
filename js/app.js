@@ -8,25 +8,19 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (tu código de control de acceso)
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-    // Delegación de eventos: Escuchamos todo lo que pase dentro de #app-container
-    const container = document.getElementById('app-container');
-    
-    container.addEventListener('click', (event) => {
-        // Buscamos si el elemento clicado (o su padre) es un botón
-        const button = event.target.closest('button');
-        if (!button) return;
+    // 1. PRIMERO: Control de acceso
+    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
+        window.location.href = "./login.html";
+        return;
+    }
 
-        // Comprobamos el texto o alguna clase para saber qué hacer
-        if (button.innerText.includes('GUARDAR REGISTRO')) {
-            guardarRegistro();
-        }
-        // Puedes agregar más aquí:
-        // if (button.classList.contains('btn-editar')) { ... }
-    });
-
+    // 2. SEGUNDO: Inicializar la vista por defecto
+    // Esto asegura que la página tenga algo que mostrar apenas carga
     showSection('home');
+    
+    // 3. TERCERO: Iniciar la carga de datos (Google Sheets)
     inicializarSincronizacion(); 
 });
 
@@ -35,27 +29,54 @@ document.addEventListener('DOMContentLoaded', () => {
 function showSection(sectionId) {
     const container = document.getElementById('app-container');
     
-    // Ruta al archivo, asegúrate de que esté en la misma carpeta
+    // 1. Actualizar estado visual de los botones (Menú activo)
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
+    const activeBtn = document.getElementById(`nav-${sectionId}`);
+    if (activeBtn) activeBtn.classList.add('nav-active');
+
+    // 2. Cargar el HTML
     fetch(`${sectionId}.html`) 
         .then(response => {
-            if (!response.ok) throw new Error('No se pudo cargar la página');
+            if (!response.ok) throw new Error(`No se pudo cargar: ${sectionId}.html`);
             return response.text();
         })
         .then(html => {
             container.innerHTML = html;
-            console.log(`Contenido de ${sectionId}.html cargado.`);
             
-            // UNA VEZ CARGADO EL HTML, LLAMAMOS A SUS FUNCIONES
-            if (sectionId === 'home') {
-                actualizarHome();
-                actualizarFechaHeader();
-            }
-            // Puedes agregar aquí otras funciones según la sección
+            // 3. Inicialización dinámica según la sección
+            // Esto evita modificar esta función cada vez que crees una sección nueva
+            inicializarFuncionesPorSeccion(sectionId);
+            
+            console.log(`Sección ${sectionId} cargada y funciones inicializadas.`);
         })
         .catch(error => {
             console.error("Error:", error);
-            container.innerHTML = `<p>Error al cargar la sección ${sectionId}</p>`;
+            container.innerHTML = `<p style="padding: 20px; color: red;">Error al cargar la sección. Verifica que el archivo exista.</p>`;
         });
+}
+
+// Función auxiliar para mantener el código limpio
+function inicializarFuncionesPorSeccion(sectionId) {
+    switch(sectionId) {
+        case 'home':
+            actualizarHome();
+            actualizarFechaHeader();
+            break;
+        case 'ingresos':
+            actualizarSelectsCategorias();
+            actualizarListadoIndividual('ingreso', 'lista-ingresos', 'cont-ingresos');
+            break;
+        case 'gastos':
+            actualizarSelectsCategorias();
+            actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
+            break;
+        case 'analisis':
+            actualizarResumen();
+            break;
+        case 'ajustes':
+            renderCategoriasConfig();
+            break;
+    }
 }
 
 // --- 2. SECCIÓN DE LÓGICA DE DATOS ---
