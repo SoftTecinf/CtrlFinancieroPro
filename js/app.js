@@ -36,14 +36,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         refrescarVistaActual(); 
     });
 
-    // AQUÍ AGREGAS EL ESCUCHADOR
-    const buscador = document.getElementById('input-busqueda');
-    if (buscador) {
-        buscador.addEventListener('input', (e) => {
-            AppState.filtrosActuales.busqueda = e.target.value;
-            refrescarVistaActual();
-        });
+    // 1. Configurar selectores de fecha con la fecha actual
+    const ahora = new Date();
+    const mes = ahora.getMonth(); // 0-11
+    const año = ahora.getFullYear();
+
+    const mesSelect = document.getElementById('in-mes');
+    const añoSelect = document.getElementById('in-año');
+
+    if (mesSelect) {
+        mesSelect.value = mes; // Asumiendo que tus options tienen valores 0-11
     }
+    if (añoSelect) {
+        añoSelect.value = año;
+    }
+
+    // 2. Guardar en AppState y refrescar
+    AppState.filtrosActuales.mes = mes;
+    AppState.filtrosActuales.año = año;
+    
+    refrescarVistaActual();
 });
 
 
