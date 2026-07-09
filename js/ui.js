@@ -49,17 +49,27 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     // 3. Inyectamos una sola vez
     cont.innerHTML = htmlAcumulado;
 }
-
 function actualizarSelectsCategorias() {
+    // 1. Usamos la variable que definiste arriba
+    const listaCategorias = AppState.categorias || [];
+    
     const inSel = document.getElementById('in-categoria');
     const exSel = document.getElementById('ex-categoria');
+
     if (inSel) {
-        inSel.innerHTML = '';
-        categorias.filter(c => c.tipo === 'ingreso').forEach(c => { inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
+        inSel.innerHTML = '<option value="">Selecciona una categoría</option>';
+        // 2. Usamos 'listaCategorias' en lugar de la variable global 'categorias'
+        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => { 
+            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; 
+        });
     }
+
     if (exSel) {
-        exSel.innerHTML = '';
-        categorias.filter(c => c.tipo === 'gasto').forEach(c => { exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
+        exSel.innerHTML = '<option value="">Selecciona una categoría</option>';
+        // 2. Usamos 'listaCategorias' aquí también
+        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => { 
+            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; 
+        });
     }
 }
 
