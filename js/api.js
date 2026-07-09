@@ -36,25 +36,33 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    // Cambiamos FetchAPI para asegurarnos de capturar el error
-    const res = await FetchAPI("obtenerDatos", {});
+    // 1. Mostrar carga si es necesario
+    if (typeof toggleLoading === 'function') toggleLoading(true);
 
-    // Si res es null o undefined, el problema está en la conexión o el backend
-    if (!res) {
-        alert("Error crítico: El servidor no respondió nada.");
-        return;
-    }
+    try {
+        const res = await FetchAPI("obtenerDatos", {});
 
-    if (res.success) {
-        movimientos = res.movimientos;
-        categorias = res.categorias;
+        if (!res) throw new Error("El servidor no respondió nada.");
 
-        inicializarFiltros();
-        refrescarVistaActual();
-    } else {
-        // AQUÍ CAPTURAMOS EL ERROR DEL SERVIDOR
-        console.error("Error en sincronización:", res.message);
-        alert("No se pudieron cargar los datos: " + res.message);
+        if (res.success) {
+            // 2. ACTUALIZAMOS EL ESTADO GLOBAL (AppState)
+            // Esto es lo que permite que los datos sobrevivan al cambio de vista
+            AppState.datosCache = res.movimientos;
+            
+            // También mantenemos tus variables globales por compatibilidad
+            movimientos = res.movimientos;
+            categorias = res.categorias;
+
+            inicializarFiltros();
+            refrescarVistaActual();
+        } else {
+            console.error("Error en sincronización:", res.message);
+            alert("No se pudieron cargar los datos: " + res.message);
+        }
+    } catch (err) {
+        console.error("Error crítico:", err);
+        // Evitar dejar la app bloqueada si falla el fetch
+    } finally {
+        if (typeof toggleLoading === 'function') toggleLoading(false);
     }
 }
-
