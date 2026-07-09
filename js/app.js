@@ -27,40 +27,38 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
 function showSection(sectionId) {
     const container = document.getElementById('app-container');
-    
-    // 1. Asegurar visibilidad del header (por si acaso)
-    const header = document.querySelector('header');
-    if (header) header.style.display = 'flex'; // O 'block', según tu diseño
+    if (!container) {
+        console.error("ERROR: No se encontró el elemento 'app-container'");
+        return;
+    }
 
-    // 2. Actualizar estado visual de los botones
+    // 1. UI: Botones activos
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
 
-    // 3. Cargar el HTML
+    // 2. Cargar HTML
+    console.log(`Intentando mostrar la sección: ${sectionId}`);
+    
     fetch(`${sectionId}.html`) 
-    .then(res => res.text())
         .then(response => {
             if (!response.ok) throw new Error(`No se pudo cargar: ${sectionId}.html`);
             return response.text();
         })
         .then(html => {
-            // INYECCIÓN SEGURA:
+            // 3. Inyectar contenido en el contenedor específico
             container.innerHTML = html;
             
-            // 4. Inicialización
-            inicializarFuncionesPorSeccion(sectionId);
+            // 4. Inicializar lógica de la nueva vista
+            if (typeof inicializarFuncionesPorSeccion === 'function') {
+                inicializarFuncionesPorSeccion(sectionId);
+            }
             
-            console.log(`Sección ${sectionId} cargada.`);
-        })
-        .then(res => res.text())
-        .then(html => {
-            container.innerHTML = html; // Solo inyecta dentro del main
-            inicializarFuncionesPorSeccion(sectionId);
+            console.log(`Sección ${sectionId} cargada correctamente.`);
         })
         .catch(error => {
-            console.error("Error:", error);
-            container.innerHTML = `<p style="padding: 20px; color: red;">Error al cargar la sección.</p>`;
+            console.error("Error al cargar la sección:", error);
+            container.innerHTML = `<p style="padding: 20px; color: red;">Error al cargar la sección ${sectionId}. Verifica el nombre del archivo.</p>`;
         });
 }
 
