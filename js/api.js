@@ -36,33 +36,18 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    // 1. Mostrar carga si es necesario
-    if (typeof toggleLoading === 'function') toggleLoading(true);
+    // 1. Intentar cargar datos de caché local para mostrar ALGO instantáneamente
+    const datosGuardados = localStorage.getItem('financiero_cache');
+    if (datosGuardados) {
+        AppState.datosCache = JSON.parse(datosGuardados);
+        refrescarVistaActual(); // Esto pintará la pantalla en 0ms
+    }
 
-    try {
-        const res = await FetchAPI("obtenerDatos", {});
-
-        if (!res) throw new Error("El servidor no respondió nada.");
-
-        if (res.success) {
-            // 2. ACTUALIZAMOS EL ESTADO GLOBAL (AppState)
-            // Esto es lo que permite que los datos sobrevivan al cambio de vista
-            AppState.datosCache = res.movimientos;
-            
-            // También mantenemos tus variables globales por compatibilidad
-            movimientos = res.movimientos;
-            categorias = res.categorias;
-
-            inicializarFiltros();
-            refrescarVistaActual();
-        } else {
-            console.error("Error en sincronización:", res.message);
-            alert("No se pudieron cargar los datos: " + res.message);
-        }
-    } catch (err) {
-        console.error("Error crítico:", err);
-        // Evitar dejar la app bloqueada si falla el fetch
-    } finally {
-        if (typeof toggleLoading === 'function') toggleLoading(false);
+    // 2. Traer datos frescos en segundo plano
+    const res = await FetchAPI("obtenerDatos", {});
+    if (res && res.success) {
+        AppState.datosCache = res.movimientos;
+        localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
+        refrescarVistaActual(); // Actualizamos si hubo cambios
     }
 }
