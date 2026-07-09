@@ -40,42 +40,33 @@ async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
-    // 1. Mostrar estado de carga (Feedback inmediato)
     if (typeof toggleLoading === 'function') toggleLoading(true);
 
-    // 2. UI: Cambio de botones (Esto debe ser instantáneo)
+    // UI botones
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
 
     try {
-        // 3. Fetch con timeout (opcional pero recomendado)
         const response = await fetch(`${sectionId}.html`);
-        if (!response.ok) throw new Error("Archivo no encontrado");
+        if (!response.ok) throw new Error("Error de carga");
         
-        const html = await response.text();
-
-        // 4. Inyección controlada
-        // En lugar de borrar todo de golpe, inyectamos el HTML
-        container.innerHTML = html;
+        container.innerHTML = await response.text();
         
-        // 5. Inicialización optimizada
-        // Aseguramos que las funciones corran después de que el navegador haya renderizado el HTML
+        // --- MEJORA: Solo ejecutamos la lógica de la sección actual ---
+        // Eliminamos refrescarVistaActual() global aquí, 
+        // ya que inicializarFuncionesPorSeccion ya se encarga de pintar lo necesario.
+        
         requestAnimationFrame(() => {
             inicializarFuncionesPorSeccion(sectionId);
-            refrescarVistaActual();
-            
-            // Ocultar carga solo cuando todo esté listo
             if (typeof toggleLoading === 'function') toggleLoading(false);
         });
 
     } catch (error) {
-        console.error("Error al cargar la sección:", error);
-        container.innerHTML = `<p class="p-5 text-red-500">Error al cargar la sección. Intenta nuevamente.</p>`;
+        console.error(error);
         if (typeof toggleLoading === 'function') toggleLoading(false);
     }
 }
-
 // --- 3. LÓGICA DE VISTAS ---
 function inicializarFuncionesPorSeccion(sectionId) {
     if (sectionId === 'home') { actualizarHome(); actualizarFechaHeader(); }
