@@ -53,11 +53,30 @@ function actualizarSelectsCategorias() {
 function renderCategoriasConfig() {
     const contIng = document.getElementById('lista-cats-ingreso');
     const contGas = document.getElementById('lista-cats-gasto');
-    contIng.innerHTML = ''; contGas.innerHTML = '';
+
+    // Escudo: Si alguno no existe, salimos de la función sin hacer nada
+    if (!contIng || !contGas) {
+        console.warn("Contenedores de categorías no encontrados. Renderizado omitido.");
+        return;
+    }
+
+    // Limpieza segura
+    contIng.innerHTML = ''; 
+    contGas.innerHTML = '';
+
+    // Renderizado seguro
     categorias.forEach(c => {
-        const itemHtml = `<div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span><button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button></div>`;
-        if (c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
-        else contGas.innerHTML += itemHtml;
+        const itemHtml = `
+            <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
+                <button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button>
+            </div>`;
+            
+        if (c.tipo === 'ingreso') {
+            contIng.innerHTML += itemHtml;
+        } else {
+            contGas.innerHTML += itemHtml;
+        }
     });
 }
 
