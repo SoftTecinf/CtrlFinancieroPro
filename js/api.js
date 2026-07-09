@@ -36,18 +36,14 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    // 1. Intentar cargar datos de caché local para mostrar ALGO instantáneamente
-    const datosGuardados = localStorage.getItem('financiero_cache');
-    if (datosGuardados) {
-        AppState.datosCache = JSON.parse(datosGuardados);
-        refrescarVistaActual(); // Esto pintará la pantalla en 0ms
-    }
-
-    // 2. Traer datos frescos en segundo plano
-    const res = await FetchAPI("obtenerDatos", {});
-    if (res && res.success) {
-        AppState.datosCache = res.movimientos;
-        localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
-        refrescarVistaActual(); // Actualizamos si hubo cambios
+    try {
+        const res = await FetchAPI("obtenerDatos", {});
+        if (res && res.success) {
+            AppState.datosCache = res.movimientos;
+            // Guardamos para la próxima vez que el usuario abra la app
+            localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
+        }
+    } catch (err) {
+        console.error("Error en segundo plano:", err);
     }
 }
