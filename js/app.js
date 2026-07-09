@@ -36,38 +36,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Variable global fuera de la función
+let currentLoadId = 0;
+
 let currentLoadId = 0; 
 
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
-    // Aumentamos el ID cada vez que el usuario hace clic
-    const loadId = ++currentLoadId; 
-
-    if (typeof toggleLoading === 'function') toggleLoading(true);
-
+    const loadId = ++currentLoadId;
+    
+    // 1. UI: Botones y Spinner (Feedback inmediato)
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
 
+    if (typeof toggleLoading === 'function') toggleLoading(true);
+
     try {
+        // 2. Fetch del HTML
         const response = await fetch(`${sectionId}.html`);
         if (!response.ok) throw new Error("Error de carga");
         const html = await response.text();
 
-        // Si el usuario hizo clic en otra cosa mientras esta sección cargaba, ignoramos este resultado
-        if (loadId !== currentLoadId) return; 
+        // 3. Control de concurrencia: si cambió el loadId, paramos aquí
+        if (loadId !== currentLoadId) return;
 
+        // 4. Inyectamos el esqueleto (HTML)
         container.innerHTML = html;
-        
+
+        // 5. Renderizado final: ahora que el HTML existe, inyectamos los datos
         requestAnimationFrame(() => {
+            // Si tenemos datos en caché, se verán casi instantáneamente
             inicializarFuncionesPorSeccion(sectionId);
+            
             if (typeof toggleLoading === 'function') toggleLoading(false);
         });
 
     } catch (error) {
-        if (loadId === currentLoadId) { // Solo mostrar error si es la última petición
+        if (loadId === currentLoadId) {
             console.error(error);
             if (typeof toggleLoading === 'function') toggleLoading(false);
         }
