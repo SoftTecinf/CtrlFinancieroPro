@@ -35,14 +35,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// --- 2. NAVEGACIÓN ---
+// Variable global fuera de la función
+let currentLoadId = 0; 
+
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
+    // Aumentamos el ID cada vez que el usuario hace clic
+    const loadId = ++currentLoadId; 
+
     if (typeof toggleLoading === 'function') toggleLoading(true);
 
-    // UI botones
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
@@ -50,12 +54,12 @@ async function showSection(sectionId) {
     try {
         const response = await fetch(`${sectionId}.html`);
         if (!response.ok) throw new Error("Error de carga");
-        
-        container.innerHTML = await response.text();
-        
-        // --- MEJORA: Solo ejecutamos la lógica de la sección actual ---
-        // Eliminamos refrescarVistaActual() global aquí, 
-        // ya que inicializarFuncionesPorSeccion ya se encarga de pintar lo necesario.
+        const html = await response.text();
+
+        // Si el usuario hizo clic en otra cosa mientras esta sección cargaba, ignoramos este resultado
+        if (loadId !== currentLoadId) return; 
+
+        container.innerHTML = html;
         
         requestAnimationFrame(() => {
             inicializarFuncionesPorSeccion(sectionId);
@@ -63,10 +67,13 @@ async function showSection(sectionId) {
         });
 
     } catch (error) {
-        console.error(error);
-        if (typeof toggleLoading === 'function') toggleLoading(false);
+        if (loadId === currentLoadId) { // Solo mostrar error si es la última petición
+            console.error(error);
+            if (typeof toggleLoading === 'function') toggleLoading(false);
+        }
     }
 }
+
 // --- 3. LÓGICA DE VISTAS ---
 function inicializarFuncionesPorSeccion(sectionId) {
     if (sectionId === 'home') { actualizarHome(); actualizarFechaHeader(); }
