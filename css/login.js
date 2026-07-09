@@ -61,7 +61,7 @@ var AuthModule = {
                     errorLabel.innerText = msg;
                     errorLabel.classList.remove('hidden');
                 } else {
-                    alert(msg);
+                    //alert(msg);
                 }
             }
         } catch (err) {
