@@ -197,9 +197,10 @@ function formatCurrency(input, hiddenId) {
 }
 
 // Función de seguridad para actualizar elementos
-function safeSetText(id, value) {
+// Agrega esto a tu ui.js junto a safeSetText
+function safeSetHTML(id, htmlContent) {
     const el = document.getElementById(id);
     if (el) {
-        el.innerText = value;
+        el.innerHTML = htmlContent;
     }
 }
