@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Datos frescos sincronizados");
         refrescarVistaActual(); 
     });
+
+    // AQUÍ AGREGAS EL ESCUCHADOR
+    const buscador = document.getElementById('input-busqueda');
+    if (buscador) {
+        buscador.addEventListener('input', (e) => {
+            AppState.filtrosActuales.busqueda = e.target.value;
+            refrescarVistaActual();
+        });
+    }
 });
 
 
