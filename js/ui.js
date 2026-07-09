@@ -1,30 +1,28 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    // 1. LEEMOS DE LA CACHÉ (AppState) en lugar de llamar a una función que pueda hacer fetch
     const todosLosMovimientos = AppState.datosCache || [];
     
-    // 2. Aplicamos la lógica de filtrado sobre los datos que ya tenemos en memoria
+    // 1. Filtramos
     const filtrados = todosLosMovimientos
         .filter(m => m.tipo === tipo)
-        .filter(m => {
-            // Ejemplo: filtrar también por lo que el usuario escribió en el buscador
-            return m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
-        })
+        .filter(m => m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase()))
         .reverse();
     
-    // 3. SEGURIDAD: Actualizamos el contador solo si existe
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} items`;
     
-    // 4. SEGURIDAD: Validamos contenedor
     const cont = document.getElementById(contId);
     if (!cont) return;
 
-    // 5. RENDERIZADO
-    cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+    // 2. Construcción eficiente: Creamos una variable acumuladora
+    if (filtrados.length === 0) {
+        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+        return;
+    }
 
+    let htmlAcumulado = '';
     filtrados.forEach(m => {
-        cont.innerHTML += `
+        htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
                 <div class="flex-1">
                     <p class="text-sm font-semibold uppercase text-stone-700">${m.desc}</p>
@@ -38,15 +36,18 @@ function actualizarListadoIndividual(tipo, contId, countId) {
                     </div>
                     <div class="flex gap-1">
                         <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
                         </button>
                     </div>
                 </div>
             </div>`;
     });
+
+    // 3. Inyectamos una sola vez
+    cont.innerHTML = htmlAcumulado;
 }
 
 function actualizarSelectsCategorias() {
