@@ -8,19 +8,25 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
 document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    // ... (tu código de control de acceso)
 
-    // 1. PRIMERO: Control de acceso
-    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
-        window.location.href = "./login.html";
-        return;
-    }
-
-    // 2. SEGUNDO: Inicializar la vista por defecto
-    // Esto asegura que la página tenga algo que mostrar apenas carga
-    showSection('home');
+    // Delegación de eventos: Escuchamos todo lo que pase dentro de #app-container
+    const container = document.getElementById('app-container');
     
-    // 3. TERCERO: Iniciar la carga de datos (Google Sheets)
+    container.addEventListener('click', (event) => {
+        // Buscamos si el elemento clicado (o su padre) es un botón
+        const button = event.target.closest('button');
+        if (!button) return;
+
+        // Comprobamos el texto o alguna clase para saber qué hacer
+        if (button.innerText.includes('GUARDAR REGISTRO')) {
+            guardarRegistro();
+        }
+        // Puedes agregar más aquí:
+        // if (button.classList.contains('btn-editar')) { ... }
+    });
+
+    showSection('home');
     inicializarSincronizacion(); 
 });
 
