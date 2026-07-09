@@ -10,7 +10,7 @@ const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MX
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificación de seguridad: ¿Existe el contenedor principal aquí?
     const appContainer = document.getElementById('app-container');
-
+    
     // Si no existe (estamos en login.html), no ejecutes nada más
     if (!appContainer) {
         console.log("Página de login detectada. Omitiendo inicialización de app.");
@@ -41,8 +41,8 @@ function showSection(sectionId) {
     if (activeBtn) activeBtn.classList.add('nav-active');
 
     // 2. Cargar HTML
-
-    fetch(`${sectionId}.html`)
+    
+    fetch(`${sectionId}.html`) 
         .then(response => {
             if (!response.ok) throw new Error(`No se pudo cargar: ${sectionId}.html`);
             return response.text();
@@ -50,11 +50,14 @@ function showSection(sectionId) {
         .then(html => {
             // 3. Inyectar contenido en el contenedor específico
             container.innerHTML = html;
-
-            // 4. Inicializar lógica de la nueva vista
+            // AHORA llamamos a la función específica de esta sección
             if (sectionId === 'config') {
-                renderCategoriasConfig();
+                renderCategoriasConfig(); // Muebles puestos solo en la habitación correcta
             }
+            if (sectionId === 'ingresos') {
+                actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+            }
+            
         })
         .catch(error => {
             console.error("Error al cargar la sección:", error);
@@ -64,7 +67,7 @@ function showSection(sectionId) {
 
 // Función auxiliar para mantener el código limpio
 function inicializarFuncionesPorSeccion(sectionId) {
-    switch (sectionId) {
+    switch(sectionId) {
         case 'home':
             actualizarHome();
             actualizarFechaHeader();
@@ -92,11 +95,11 @@ function refrescarVistaActual() {
     if (typeof actualizarSelectsCategorias === "function") {
         actualizarSelectsCategorias();
     }
-
+    
     // 2. FORZAR actualización de la sección que realmente está visible
     // Buscamos cuál sección tiene display block o está activa
     const secciones = ['home', 'ingresos', 'gastos', 'resumen', 'config'];
-
+    
     secciones.forEach(sec => {
         const elemento = document.getElementById(`sec-${sec}`);
         // Verificamos si el elemento existe y está visible
