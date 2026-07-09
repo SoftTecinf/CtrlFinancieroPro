@@ -40,10 +40,11 @@ async function inicializarSincronizacion() {
         const res = await FetchAPI("obtenerDatos", {});
         if (res && res.success) {
             AppState.datosCache = res.movimientos;
+            AppState.categorias = res.categorias; // <--- Guarda esto también
             
-            // GUARDAMOS TODO EL ESTADO PARA QUE NO SE PIERDAN FILTROS
             localStorage.setItem('financiero_state', JSON.stringify({
                 movimientos: AppState.datosCache,
+                categorias: AppState.categorias, // <--- Persistencia
                 filtros: AppState.filtrosActuales
             }));
             
