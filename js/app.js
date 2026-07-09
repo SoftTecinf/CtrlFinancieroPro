@@ -11,22 +11,27 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. CARGA INMEDIATA: Usa lo que ya tienes en caché (0ms de espera)
-    const datosGuardados = localStorage.getItem('financiero_cache');
-    if (datosGuardados) {
-        AppState.datosCache = JSON.parse(datosGuardados);
-        // Pintamos la interfaz con los datos antiguos inmediatamente
-        await showSection('home');
-        refrescarVistaActual(); 
-    } else {
-        await showSection('home');
+    // 1. Recuperar datos básicos de sesión y estado
+    const userDisplayEl = document.getElementById('user-display');
+    const usuarioNombre = localStorage.getItem('session_userName');
+    if (userDisplayEl && usuarioNombre) userDisplayEl.innerText = usuarioNombre;
+
+    // 2. Recuperar el estado completo (Datos + Filtros)
+    const savedState = localStorage.getItem('financiero_state');
+    if (savedState) {
+        const parsed = JSON.parse(savedState);
+        AppState.datosCache = parsed.movimientos || [];
+        // Recuperamos los filtros si existen, si no, mantenemos los default
+        if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
     }
 
-    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO (No bloquea la navegación)
-    // Quitamos el 'await' para que la app no espere a Google
+    // 3. CARGA INMEDIATA (Interfaz lista en <100ms)
+    await showSection('home');
+    refrescarVistaActual(); 
+
+    // 4. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
-        console.log("Datos frescos cargados desde Google");
-        // Cuando lleguen los datos nuevos, la UI se actualiza sola
+        console.log("Datos frescos sincronizados");
         refrescarVistaActual(); 
     });
 });
