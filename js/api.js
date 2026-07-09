@@ -40,8 +40,14 @@ async function inicializarSincronizacion() {
         const res = await FetchAPI("obtenerDatos", {});
         if (res && res.success) {
             AppState.datosCache = res.movimientos;
-            // Guardamos el nuevo estado para que la próxima carga sea instantánea
-            localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
+            
+            // GUARDAMOS TODO EL ESTADO PARA QUE NO SE PIERDAN FILTROS
+            localStorage.setItem('financiero_state', JSON.stringify({
+                movimientos: AppState.datosCache,
+                filtros: AppState.filtrosActuales
+            }));
+            
+            refrescarVistaActual();
         }
     } catch (err) {
         console.error("Error sincronizando:", err);
