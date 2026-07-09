@@ -2,19 +2,32 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
     
-    // 1. Filtramos
-    const filtrados = todosLosMovimientos
-        .filter(m => m.tipo === tipo)
-        .filter(m => m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase()))
-        .reverse();
+    // Obtenemos los valores de los selectores (asegúrate de que tengan estos IDs en tu HTML)
+    const filtroMes = parseInt(document.getElementById('in-mes')?.value);
+    const filtroAño = parseInt(document.getElementById('in-año')?.value);
+
+    // 1. Filtramos: Tipo + Texto + Fecha (Mes/Año)
+    const filtrados = todosLosMovimientos.filter(m => {
+        const fechaMov = new Date(m.fecha + 'T00:00:00');
+        
+        const coincideTipo = m.tipo === tipo;
+        const coincideBusqueda = m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
+        
+        // Filtro de fecha: solo aplica si los selectores tienen valores válidos
+        const coincideMes = !isNaN(filtroMes) ? fechaMov.getMonth() === filtroMes : true;
+        const coincideAño = !isNaN(filtroAño) ? fechaMov.getFullYear() === filtroAño : true;
+
+        return coincideTipo && coincideBusqueda && coincideMes && coincideAño;
+    }).reverse();
     
+    // Actualizamos contador
     const countEl = document.getElementById(countId);
-    if (countEl) countEl.innerText = `${filtrados.length} items`;
+    if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
     
+    // ... resto de tu lógica de construcción de HTML se mantiene igual ...
     const cont = document.getElementById(contId);
     if (!cont) return;
 
-    // 2. Construcción eficiente: Creamos una variable acumuladora
     if (filtrados.length === 0) {
         cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
         return;
@@ -29,11 +42,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
                     <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha} | ${m.cat}</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                            ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                        </p>
-                    </div>
+                    <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </p>
                     <div class="flex gap-1">
                         <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -46,9 +57,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
             </div>`;
     });
 
-    // 3. Inyectamos una sola vez
     cont.innerHTML = htmlAcumulado;
 }
+
 function actualizarSelectsCategorias() {
     // 1. Usamos la variable que definiste arriba
     const listaCategorias = AppState.categorias || [];
