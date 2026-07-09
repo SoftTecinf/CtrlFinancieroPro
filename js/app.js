@@ -39,6 +39,7 @@ function showSection(sectionId) {
 
     // 3. Cargar el HTML
     fetch(`${sectionId}.html`) 
+    .then(res => res.text())
         .then(response => {
             if (!response.ok) throw new Error(`No se pudo cargar: ${sectionId}.html`);
             return response.text();
@@ -51,6 +52,11 @@ function showSection(sectionId) {
             inicializarFuncionesPorSeccion(sectionId);
             
             console.log(`Sección ${sectionId} cargada.`);
+        })
+        .then(res => res.text())
+        .then(html => {
+            container.innerHTML = html; // Solo inyecta dentro del main
+            inicializarFuncionesPorSeccion(sectionId);
         })
         .catch(error => {
             console.error("Error:", error);
