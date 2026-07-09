@@ -37,9 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Variable global fuera de la función
 let currentLoadId = 0;
-
-let currentLoadId = 0; 
-
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
