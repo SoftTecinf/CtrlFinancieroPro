@@ -11,29 +11,26 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    const appContainer = document.getElementById('app-container');
-    const userDisplayEl = document.getElementById('user-display');
-
-    // Si es Login (no hay contenedor app), salir
-    if (!appContainer) return;
-
-    // Verificar Sesión
-    const usuarioActivo = localStorage.getItem('session_user');
-    if (!usuarioActivo) {
-        window.location.href = "./login.html";
-        return;
-    }
-    if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName');
-
-    // Carga inicial segura
-    try {
-        await inicializarSincronizacion(); // Esto debe llenar AppState.datosCache
+    // 1. CARGA INMEDIATA: Usa lo que ya tienes en caché (0ms de espera)
+    const datosGuardados = localStorage.getItem('financiero_cache');
+    if (datosGuardados) {
+        AppState.datosCache = JSON.parse(datosGuardados);
+        // Pintamos la interfaz con los datos antiguos inmediatamente
         await showSection('home');
-        refrescarVistaActual();
-    } catch (err) {
-        console.error("Error al iniciar la app:", err);
+        refrescarVistaActual(); 
+    } else {
+        await showSection('home');
     }
+
+    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO (No bloquea la navegación)
+    // Quitamos el 'await' para que la app no espere a Google
+    inicializarSincronizacion().then(() => {
+        console.log("Datos frescos cargados desde Google");
+        // Cuando lleguen los datos nuevos, la UI se actualiza sola
+        refrescarVistaActual(); 
+    });
 });
+
 
 // Variable global fuera de la función
 let currentLoadId = 0;
