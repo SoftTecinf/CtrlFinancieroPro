@@ -91,9 +91,22 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
-    // Si los datos están en AppState, la UI se pintará correctamente aunque cambies de vista
-    if (document.getElementById('lista-ingresos')) actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    if (document.getElementById('lista-gastos')) actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    if (document.getElementById('home-stats')) actualizarHome();
-    if (document.getElementById('lista-cats-ingreso')) renderCategoriasConfig();
+    // 1. Verificación crítica: ¿Tenemos datos?
+    if (!AppState.datosCache || AppState.datosCache.length === 0) {
+        console.warn("Aún no hay datos para pintar");
+        return;
+    }
+
+    // 2. Identificar en qué página estamos (basado en el URL o estado)
+    // Supongamos que tienes una variable que sabe qué sección está activa
+    const seccionActiva = document.querySelector('.nav-active')?.id;
+
+    // 3. Refrescar según la sección
+    if (seccionActiva === 'nav-home') {
+        actualizarHome();
+    } else if (seccionActiva === 'nav-ingresos') {
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'contador-ingresos');
+    } else if (seccionActiva === 'nav-gastos') {
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'contador-gastos');
+    }
 }
