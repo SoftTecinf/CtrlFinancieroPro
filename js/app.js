@@ -7,23 +7,23 @@ let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
-document.addEventListener('DOMContentLoaded', async () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-
-    if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
-        window.location.href = "./login.html";
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Verificación de seguridad: ¿Existe el contenedor principal aquí?
+    const appContainer = document.getElementById('app-container');
+    
+    // Si no existe (estamos en login.html), no ejecutes nada más
+    if (!appContainer) {
+        console.log("Página de login detectada. Omitiendo inicialización de app.");
         return;
     }
 
-    showSection('home');
-    
-    // Esperamos a que la sincronización termine antes de intentar refrescar la vista
-    try {
-        await inicializarSincronizacion(); 
-        console.log("Sincronización completada. Refrescando vista...");
-        refrescarVistaActual();
-    } catch (error) {
-        console.error("Error al inicializar los datos:", error);
+    // 2. Si llegamos aquí, sí estamos en index.html, ejecutamos todo con seguridad
+    if (typeof inicializarSincronizacion === "function") {
+        inicializarSincronizacion()
+            .then(() => refrescarVistaActual())
+            .catch(err => console.error("Error en sincronización:", err));
+    } else {
+        console.error("La función inicializarSincronizacion no está definida");
     }
 });
 
