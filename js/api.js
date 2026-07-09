@@ -1,13 +1,11 @@
 // --- ENVIAR DATOS A APPS SCRIPT ---
 async function FetchAPI(action, extraData = {}) {
     toggleLoading(true);
-
     // 1. Preparamos el objeto con la acción y los datos extra
     const payload = {
         action: action,
         ...extraData
     };
-
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -38,8 +36,6 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    console.log("Iniciando sincronización...");
-
     // Cambiamos FetchAPI para asegurarnos de capturar el error
     const res = await FetchAPI("obtenerDatos", {});
 
@@ -50,7 +46,6 @@ async function inicializarSincronizacion() {
     }
 
     if (res.success) {
-        console.log("Datos recibidos correctamente:", res);
         movimientos = res.movimientos;
         categorias = res.categorias;
 
