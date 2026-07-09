@@ -5,8 +5,9 @@ let chartH, chartR;
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 const AppState = {
-    datosCache: [], // Aquí guardamos los datos una vez descargados
-    filtros: { busqueda: '' }
+    datosCache: [],
+    categorias: [], // <--- Añade esto
+    filtrosActuales: { busqueda: '', categoria: 'todos' }
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
