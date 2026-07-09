@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Recuperamos los filtros si existen, si no, mantenemos los default
         if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
     }
-
+    inicializarFiltrosFecha();
+    
     // 3. CARGA INMEDIATA (Interfaz lista en <100ms)
     await showSection('home');
     refrescarVistaActual(); 
@@ -130,4 +131,22 @@ function refrescarVistaActual() {
     } else if (seccionActiva === 'nav-gastos') {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'contador-gastos');
     }
+}
+
+function inicializarFiltrosFecha() {
+    const mesSelect = document.getElementById('in-mes');
+    const añoSelect = document.getElementById('in-año');
+    if (!mesSelect || !añoSelect) return;
+
+    // Llenar Meses
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    mesSelect.innerHTML = meses.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+    
+    // Llenar Años (rango +/- 1 año)
+    const year = new Date().getFullYear();
+    añoSelect.innerHTML = `<option value="${year}">${year}</option><option value="${year-1}">${year-1}</option>`;
+
+    // Poner valor actual
+    mesSelect.value = new Date().getMonth();
+    añoSelect.value = year;
 }
