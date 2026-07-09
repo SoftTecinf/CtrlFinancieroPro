@@ -94,12 +94,22 @@ function refrescarVistaActual() {
         actualizarSelectsCategorias();
     }
     
-    // 2. Según la sección, llamamos a la función de dibujo
-    if (seccionActual === 'home') actualizarHome();
-    if (seccionActual === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    if (seccionActual === 'resumen') actualizarResumen();
-    if (seccionActual === 'config') renderCategoriasConfig();
+    // 2. FORZAR actualización de la sección que realmente está visible
+    // Buscamos cuál sección tiene display block o está activa
+    const secciones = ['home', 'ingresos', 'gastos', 'resumen', 'config'];
+    
+    secciones.forEach(sec => {
+        const elemento = document.getElementById(`sec-${sec}`);
+        // Verificamos si el elemento existe y está visible
+        if (elemento && window.getComputedStyle(elemento).display !== 'none') {
+            // Si está visible, ejecutamos su lógica de dibujo
+            if (sec === 'ingresos') actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+            if (sec === 'home') actualizarHome();
+            if (sec === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+            if (sec === 'resumen') actualizarResumen();
+            if (sec === 'config') renderCategoriasConfig();
+        }
+    });
 }
 
 // --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
