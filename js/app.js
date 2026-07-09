@@ -7,21 +7,24 @@ let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-    // 1. PRIMERO: Control de acceso
     if (!isLoggedIn && !window.location.pathname.includes('login.html')) {
         window.location.href = "./login.html";
         return;
     }
 
-    // 2. SEGUNDO: Inicializar la vista por defecto
-    // Esto asegura que la página tenga algo que mostrar apenas carga
     showSection('home');
     
-    // 3. TERCERO: Iniciar la carga de datos (Google Sheets)
-    inicializarSincronizacion(); 
+    // Esperamos a que la sincronización termine antes de intentar refrescar la vista
+    try {
+        await inicializarSincronizacion(); 
+        console.log("Sincronización completada. Refrescando vista...");
+        refrescarVistaActual();
+    } catch (error) {
+        console.error("Error al inicializar los datos:", error);
+    }
 });
 
 // --- 1. SECCIÓN DE NAVEGACIÓN ---
