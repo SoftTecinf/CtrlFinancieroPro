@@ -28,29 +28,33 @@ document.addEventListener('DOMContentLoaded', () => {
 function showSection(sectionId) {
     const container = document.getElementById('app-container');
     
-    // 1. Actualizar estado visual de los botones (Menú activo)
+    // 1. Asegurar visibilidad del header (por si acaso)
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'flex'; // O 'block', según tu diseño
+
+    // 2. Actualizar estado visual de los botones
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
 
-    // 2. Cargar el HTML
+    // 3. Cargar el HTML
     fetch(`${sectionId}.html`) 
         .then(response => {
             if (!response.ok) throw new Error(`No se pudo cargar: ${sectionId}.html`);
             return response.text();
         })
         .then(html => {
+            // INYECCIÓN SEGURA:
             container.innerHTML = html;
             
-            // 3. Inicialización dinámica según la sección
-            // Esto evita modificar esta función cada vez que crees una sección nueva
+            // 4. Inicialización
             inicializarFuncionesPorSeccion(sectionId);
             
-            console.log(`Sección ${sectionId} cargada y funciones inicializadas.`);
+            console.log(`Sección ${sectionId} cargada.`);
         })
         .catch(error => {
             console.error("Error:", error);
-            container.innerHTML = `<p style="padding: 20px; color: red;">Error al cargar la sección. Verifica que el archivo exista.</p>`;
+            container.innerHTML = `<p style="padding: 20px; color: red;">Error al cargar la sección.</p>`;
         });
 }
 
