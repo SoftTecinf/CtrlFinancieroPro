@@ -38,7 +38,6 @@ function showSection(sectionId) {
     if (activeBtn) activeBtn.classList.add('nav-active');
 
     // 2. Cargar HTML
-    console.log(`Intentando mostrar la sección: ${sectionId}`);
     
     fetch(`${sectionId}.html`) 
         .then(response => {
@@ -54,7 +53,6 @@ function showSection(sectionId) {
                 inicializarFuncionesPorSeccion(sectionId);
             }
             
-            console.log(`Sección ${sectionId} cargada correctamente.`);
         })
         .catch(error => {
             console.error("Error al cargar la sección:", error);
@@ -99,8 +97,6 @@ function refrescarVistaActual() {
     if (seccionActual === 'gastos') actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     if (seccionActual === 'resumen') actualizarResumen();
     if (seccionActual === 'config') renderCategoriasConfig();
-    
-    console.log("Vista refrescada, total movimientos:", movimientos.length);
 }
 
 // --- VERIFICACIÓN DE SESIÓN AL CARGAR EL PANEL (BLINDADO) ---
