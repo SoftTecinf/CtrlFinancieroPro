@@ -1,9 +1,14 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo).reverse();
-    document.getElementById(countId).innerText = `${filtrados.length} items`;
-   
+    
+    // USAMOS LA SEGURIDAD AQUÍ
+    const countEl = document.getElementById(countId);
+    if (countEl) countEl.innerText = `${filtrados.length} items`;
+    
     const cont = document.getElementById(contId);
+    if (!cont) return; // Si no hay contenedor, no hacemos nada
+
     cont.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10">Sin registros.</p>';
 
     filtrados.forEach(m => {
@@ -189,4 +194,12 @@ function formatCurrency(input, hiddenId) {
     let numericValue = value ? parseFloat(value) / 100 : 0;
     document.getElementById(hiddenId).value = numericValue;
     input.value = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+}
+
+// Función de seguridad para actualizar elementos
+function safeSetText(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+    }
 }
