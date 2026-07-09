@@ -55,7 +55,6 @@ function showSection(sectionId) {
             if (sectionId === 'config') {
                 renderCategoriasConfig();
             }
-
         })
         .catch(error => {
             console.error("Error al cargar la sección:", error);
