@@ -36,22 +36,14 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    // Si la petición tarda más de 1 segundo, mostramos un pequeño aviso
-    const timer = setTimeout(() => {
-        const msg = document.getElementById('status-msg');
-        if (msg) msg.innerText = "Sincronizando con la nube...";
-    }, 1000);
-
     try {
         const res = await FetchAPI("obtenerDatos", {});
         if (res && res.success) {
             AppState.datosCache = res.movimientos;
+            // Guardamos el nuevo estado para que la próxima carga sea instantánea
             localStorage.setItem('financiero_cache', JSON.stringify(res.movimientos));
-            refrescarVistaActual();
         }
-    } finally {
-        clearTimeout(timer);
-        const msg = document.getElementById('status-msg');
-        if (msg) msg.innerText = ""; // Limpiamos el aviso
+    } catch (err) {
+        console.error("Error sincronizando:", err);
     }
 }
