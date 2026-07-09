@@ -7,23 +7,27 @@ let chartH, chartR, seccionActual = 'home';
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 // 2. Validación de Sesión (Lo primero que se ejecuta)
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Verificación de seguridad: ¿Existe el contenedor principal aquí?
+document.addEventListener('DOMContentLoaded', async () => {
     const appContainer = document.getElementById('app-container');
     
-    // Si no existe (estamos en login.html), no ejecutes nada más
     if (!appContainer) {
-        console.log("Página de login detectada. Omitiendo inicialización de app.");
+        console.log("Página de login detectada.");
         return;
     }
 
-    // 2. Si llegamos aquí, sí estamos en index.html, ejecutamos todo con seguridad
-    if (typeof inicializarSincronizacion === "function") {
-        inicializarSincronizacion()
-            .then(() => refrescarVistaActual())
-            .catch(err => console.error("Error en sincronización:", err));
-    } else {
-        console.error("La función inicializarSincronizacion no está definida");
+    try {
+        // 1. Cargamos la vista inicial (ejemplo: 'home')
+        // Esto inyecta el HTML dentro de app-container
+        await showSection('home'); 
+
+        // 2. Ahora que el HTML existe, inicializamos datos y refrescamos
+        if (typeof inicializarSincronizacion === "function") {
+            await inicializarSincronizacion();
+            refrescarVistaActual();
+            console.log("Sistema listo.");
+        }
+    } catch (err) {
+        console.error("Error crítico de carga:", err);
     }
 });
 
