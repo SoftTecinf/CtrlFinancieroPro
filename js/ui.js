@@ -119,10 +119,22 @@ function renderCategoriasConfig() {
 }
 
 function actualizarHome() {
-    // 1. LEEMOS DE LA CACHÉ (AppState)
-    const datos = AppState.datosCache || [];
+    // 1. LEEMOS Y NORMALIZAMOS
+    let datos = AppState.datosCache;
 
-    // 2. Cálculos
+    // Si datos es un objeto con una propiedad que contiene la lista, extráela
+    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
+        // Busca si tiene una propiedad llamada 'movimientos' o similares
+        datos = datos.movimientos || Object.values(datos); 
+    }
+    
+    // Si sigue sin ser array, forzamos array vacío
+    if (!Array.isArray(datos)) {
+        console.error("Los datos recibidos no son un array:", datos);
+        datos = [];
+    }
+
+    // 2. Cálculos (ahora seguros)
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
