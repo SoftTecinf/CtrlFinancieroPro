@@ -138,7 +138,7 @@ function refrescarVistaActual() {
     }
 }
 
-function inicializarFiltrosFecha() {
+/*function inicializarFiltrosFecha() {
     const mesSelect = document.getElementById('in-mes');
     const añoSelect = document.getElementById('in-año');
     if (!mesSelect || !añoSelect) return;
@@ -154,4 +154,4 @@ function inicializarFiltrosFecha() {
     // Poner valor actual
     mesSelect.value = new Date().getMonth();
     añoSelect.value = year;
-}
+}*/
