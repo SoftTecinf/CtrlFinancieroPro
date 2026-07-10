@@ -1,21 +1,20 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const todosLosMovimientos = AppState.datosCache || [];
-    
-    // Filtramos usando una extracción de fecha más robusta
     const filtrados = todosLosMovimientos.filter(m => {
-        // Obtenemos un objeto fecha real de forma segura
-        const fechaMov = new Date(m.fecha);
-        
-        // Si la fecha es inválida, intentamos parsearla manualmente o descartamos
-        if (isNaN(fechaMov.getTime())) return false; 
-        
-        const coincideTipo = m.tipo === tipo;
-        const coincideMes = fechaMov.getMonth() === AppState.filtrosActuales.mes;
-        const coincideAño = fechaMov.getFullYear() === AppState.filtrosActuales.año;
+    // 1. Extraemos solo la fecha (AAAA-MM-DD) y creamos el objeto Date
+    const fechaString = m.fecha.toString().split(' ')[0]; 
+    const fechaMov = new Date(fechaString + 'T00:00:00');
+    
+    // 2. Validación de seguridad
+    if (isNaN(fechaMov.getTime())) return false; 
 
-        return coincideTipo && coincideMes && coincideAño;
-    }).reverse();
+    const coincideTipo = m.tipo === tipo;
+    const coincideMes = fechaMov.getMonth() === AppState.filtrosActuales.mes;
+    const coincideAño = fechaMov.getFullYear() === AppState.filtrosActuales.año;
+
+    // 3. Retornamos solo si coincide todo
+    return coincideTipo && coincideMes && coincideAño;
+}).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
