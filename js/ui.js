@@ -166,8 +166,6 @@ function actualizarHome() {
     }
 });
 
-    
-
     // 3. Actualización de texto
     const updates = [
         { id: 'balance-general', val: fMXN(balG) },
