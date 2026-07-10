@@ -2,34 +2,40 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
     
-    // Obtenemos los valores de los selectores (asegúrate de que tengan estos IDs en tu HTML)
+    // Obtenemos los valores de los selectores de forma segura
     const filtroMes = parseInt(document.getElementById('in-mes')?.value);
     const filtroAño = parseInt(document.getElementById('in-año')?.value);
 
     // 1. Filtramos: Tipo + Texto + Fecha (Mes/Año)
     const filtrados = todosLosMovimientos.filter(m => {
-        const fechaMov = new Date(m.fecha + 'T00:00:00');
+        // --- LIMPIEZA DE FECHA ROBUSTA ---
+        // Extraemos solo la parte inicial (YYYY-MM-DD) antes de crear el objeto Date
+        const fechaString = m.fecha.toString().split(' ')[0]; 
+        const fechaMov = new Date(fechaString + 'T00:00:00');
+        
+        // Validación: Si la fecha no es válida, descartamos el registro
+        if (isNaN(fechaMov.getTime())) return false;
         
         const coincideTipo = m.tipo === tipo;
         const coincideBusqueda = m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
         
-        // Filtro de fecha: solo aplica si los selectores tienen valores válidos
+        // Comparación de Mes y Año (JS usa 0-11 para meses)
         const coincideMes = !isNaN(filtroMes) ? fechaMov.getMonth() === filtroMes : true;
         const coincideAño = !isNaN(filtroAño) ? fechaMov.getFullYear() === filtroAño : true;
 
         return coincideTipo && coincideBusqueda && coincideMes && coincideAño;
     }).reverse();
     
-    // Actualizamos contador
+    // 2. Actualizamos contador
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
     
-    // ... resto de tu lógica de construcción de HTML se mantiene igual ...
+    // 3. Renderizado eficiente
     const cont = document.getElementById(contId);
     if (!cont) return;
 
     if (filtrados.length === 0) {
-        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros para este periodo.</p>';
         return;
     }
 
