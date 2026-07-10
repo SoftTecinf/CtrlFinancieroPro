@@ -53,4 +53,10 @@ async function inicializarSincronizacion() {
     } catch (err) {
         console.error("Error sincronizando:", err);
     }
+
+    AppState.datosCache = datosRecibidos;
+    localStorage.setItem('financiero_state', JSON.stringify(AppState));
+    
+    // IMPORTANTE: Avisar a la UI que hubo cambios
+    refrescarVistaActual(); 
 }
