@@ -107,12 +107,16 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
-    console.log("Refresco disparado");
     const mesSel = document.getElementById('in-mes');
     const añoSel = document.getElementById('in-año');
 
     if (mesSel) AppState.filtrosActuales.mes = parseInt(mesSel.value);
     if (añoSel) AppState.filtrosActuales.año = parseInt(añoSel.value);
+
+    console.log("Refresco disparado");
+
+    // Aquí llamas a tus funciones de pintado
+    actualizarListadoIndividual('ingreso', 'lista-ingresos', 'contador-ingresos');
 
     // 1. Verificación crítica: ¿Tenemos datos?
     if (!AppState.datosCache || AppState.datosCache.length === 0) {
