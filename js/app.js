@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. CARGA INMEDIATA
     await showSection('home');
     refrescarVistaActual();
+    configurarEventosFiltros();
 
     // 6. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
@@ -107,51 +108,41 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
+    // 1. Sincronizar DOM -> ESTADO (Solo si los selectores existen)
     const mesSel = document.getElementById('in-mes');
     const añoSel = document.getElementById('in-año');
-
-    if (mesSel) AppState.filtrosActuales.mes = parseInt(mesSel.value);
-    if (añoSel) AppState.filtrosActuales.año = parseInt(añoSel.value);
-
-    console.log("Refresco disparado");
-
-    // Aquí llamas a tus funciones de pintado
-    actualizarListadoIndividual('ingreso', 'lista-ingresos', 'contador-ingresos');
-
-    // 1. Verificación crítica: ¿Tenemos datos?
-    if (!AppState.datosCache || AppState.datosCache.length === 0) {
-        console.warn("Aún no hay datos para pintar");
-        return;
+    
+    if (mesSel && añoSel) {
+        AppState.filtrosActuales.mes = parseInt(mesSel.value);
+        AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
 
-    // 2. Identificar en qué página estamos (basado en el URL o estado)
-    // Supongamos que tienes una variable que sabe qué sección está activa
-    const seccionActiva = document.querySelector('.nav-active')?.id;
+    console.log("Refrescando con:", AppState.filtrosActuales);
 
-    // 3. Refrescar según la sección
-    if (seccionActiva === 'nav-home') {
+    // 2. Identificar sección activa de forma segura
+    const activeBtn = document.querySelector('.nav-active');
+    if (!activeBtn) return;
+
+    const seccionId = activeBtn.id; // ej: 'nav-home'
+
+    // 3. Pintar según la sección detectada
+    if (seccionId === 'nav-home') {
         actualizarHome();
-    } else if (seccionActiva === 'nav-ingresos') {
+    } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'contador-ingresos');
-    } else if (seccionActiva === 'nav-gastos') {
+    } else if (seccionId === 'nav-gastos') {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'contador-gastos');
     }
 }
 
-/*function inicializarFiltrosFecha() {
-    const mesSelect = document.getElementById('in-mes');
-    const añoSelect = document.getElementById('in-año');
-    if (!mesSelect || !añoSelect) return;
-
-    // Llenar Meses
-    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    mesSelect.innerHTML = meses.map((m, i) => `<option value="${i}">${m}</option>`).join('');
-
-    // Llenar Años (rango +/- 1 año)
-    const year = new Date().getFullYear();
-    añoSelect.innerHTML = `<option value="${year}">${year}</option><option value="${year - 1}">${year - 1}</option>`;
-
-    // Poner valor actual
-    mesSelect.value = new Date().getMonth();
-    añoSelect.value = year;
-}*/
+function configurarEventosFiltros() {
+    const ids = ['in-mes', 'in-año', 'ex-mes', 'ex-año'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', () => {
+                refrescarVistaActual();
+            });
+        }
+    });
+}
