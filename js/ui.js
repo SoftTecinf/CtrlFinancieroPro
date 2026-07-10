@@ -141,15 +141,30 @@ function actualizarHome() {
 
     console.log("Estructura de datos recibida:", datos);
     datos.forEach(m => {
-        const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
-        balG += val;
-        if (m.fecha === hoyStr) balD += val;
+    // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
+    if (!m || typeof m.monto === 'undefined') {
+        console.warn("Registro ignorado por falta de datos:", m);
+        return; 
+    }
 
-        const mF = new Date(m.fecha + 'T00:00:00');
+    // 2. Normalización del monto (asegurar que sea número)
+    const monto = parseFloat(m.monto) || 0;
+    const val = m.tipo === 'ingreso' ? monto : -monto;
+    
+    // 3. Cálculos de balance
+    balG += val;
+    if (m.fecha === hoyStr) balD += val;
+
+    // 4. Cálculos de mes (Asegurando fecha válida)
+    const mF = new Date(m.fecha + 'T00:00:00');
+    // Verificamos que la fecha sea válida antes de comparar
+    if (!isNaN(mF.getTime())) {
         if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-            if (m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
+            if (m.tipo === 'ingreso') ingM += monto; 
+            else gasM += monto;
         }
-    });
+    }
+});
 
     
 
