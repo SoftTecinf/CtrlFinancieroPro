@@ -1,27 +1,34 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const filtrados = todosLosMovimientos.filter(m => {
-    if (!m.fecha) return false;
-    
-    const partes = m.fecha.toString().split(' ');
-    // Verificamos que tengamos al menos 4 partes (ej: Wed Jul 08 2026)
-    if (partes.length < 4) return false; 
-    
-    const fechaLimpia = `${partes[1]} ${partes[2]} ${partes[3]}`;
-    const fechaMov = new Date(fechaLimpia);
-    
-    // Si la fecha es inválida, el filtro la ignora (no la rompe)
-    if (isNaN(fechaMov.getTime())) return false; 
+    const todosLosMovimientos = AppState.datosCache || [];
 
-    return m.tipo === tipo && 
-           fechaMov.getMonth() === AppState.filtrosActuales.mes && 
-           fechaMov.getFullYear() === AppState.filtrosActuales.año;
-}).reverse();
+    if (todosLosMovimientos.length === 0) {
+        console.warn("No hay datos cargados todavía.");
+        return;
+    }
+
+    const filtrados = todosLosMovimientos.filter(m => {
+        if (!m.fecha) return false;
+
+        const partes = m.fecha.toString().split(' ');
+        // Verificamos que tengamos al menos 4 partes (ej: Wed Jul 08 2026)
+        if (partes.length < 4) return false;
+
+        const fechaLimpia = `${partes[1]} ${partes[2]} ${partes[3]}`;
+        const fechaMov = new Date(fechaLimpia);
+
+        // Si la fecha es inválida, el filtro la ignora (no la rompe)
+        if (isNaN(fechaMov.getTime())) return false;
+        console.log(`Comparando: ${fechaMov.getMonth()} === ${AppState.filtrosActuales.mes}`);
+        return m.tipo === tipo &&
+            fechaMov.getMonth() === AppState.filtrosActuales.mes &&
+            fechaMov.getFullYear() === AppState.filtrosActuales.año;
+    }).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
-    
+
     const cont = document.getElementById(contId);
     if (!cont) return;
 
@@ -60,23 +67,23 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 function actualizarSelectsCategorias() {
     // 1. Usamos la variable que definiste arriba
     const listaCategorias = AppState.categorias || [];
-    
+
     const inSel = document.getElementById('in-categoria');
     const exSel = document.getElementById('ex-categoria');
 
     if (inSel) {
         inSel.innerHTML = '<option value="">Selecciona una categoría</option>';
         // 2. Usamos 'listaCategorias' en lugar de la variable global 'categorias'
-        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => { 
-            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; 
+        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => {
+            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
         });
     }
 
     if (exSel) {
         exSel.innerHTML = '<option value="">Selecciona una categoría</option>';
         // 2. Usamos 'listaCategorias' aquí también
-        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => { 
-            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; 
+        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => {
+            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
         });
     }
 }
@@ -92,7 +99,7 @@ function renderCategoriasConfig() {
     }
 
     // Limpieza segura
-    contIng.innerHTML = ''; 
+    contIng.innerHTML = '';
     contGas.innerHTML = '';
 
     // Renderizado seguro
@@ -102,7 +109,7 @@ function renderCategoriasConfig() {
                 <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
                 <button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button>
             </div>`;
-            
+
         if (c.tipo === 'ingreso') {
             contIng.innerHTML += itemHtml;
         } else {
@@ -114,7 +121,7 @@ function renderCategoriasConfig() {
 function actualizarHome() {
     // 1. LEEMOS DE LA CACHÉ (AppState)
     const datos = AppState.datosCache || [];
-    
+
     // 2. Cálculos
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
@@ -124,7 +131,7 @@ function actualizarHome() {
         const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
         balG += val;
         if (m.fecha === hoyStr) balD += val;
-        
+
         const mF = new Date(m.fecha + 'T00:00:00');
         if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
             if (m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
@@ -149,13 +156,13 @@ function actualizarHome() {
     if (canvas) {
         const ctx = canvas.getContext('2d');
         if (chartH) chartH.destroy();
-        chartH = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { 
-                labels: ['Ingresos', 'Gastos'], 
-                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] 
-            }, 
-            options: { cutout: '75%', plugins: { legend: { display: false } } } 
+        chartH = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }]
+            },
+            options: { cutout: '75%', plugins: { legend: { display: false } } }
         });
     }
 
@@ -222,7 +229,7 @@ function inicializarFiltros() {
     const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
     const mesActual = new Date().getMonth();
-    
+
     [idsMes, idsAnio].forEach((list, idx) => {
         list.forEach(id => {
             const sel = document.getElementById(id);
