@@ -127,6 +127,7 @@ function actualizarHome() {
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
+    console.log("Estructura de datos recibida:", datos);
     datos.forEach(m => {
         const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
         balG += val;
@@ -137,6 +138,8 @@ function actualizarHome() {
             if (m.tipo === 'ingreso') ingM += m.monto; else gasM += m.monto;
         }
     });
+
+    
 
     // 3. Actualización de texto
     const updates = [
