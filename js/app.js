@@ -159,3 +159,15 @@ function configurarEventosFiltros() {
         }
     });
 }
+
+function fMXN(monto) {
+    // Convertimos a número, si no es válido, usamos 0
+    const valor = parseFloat(monto);
+    
+    if (isNaN(valor)) {
+        console.warn("Valor inválido detectado para formato:", monto);
+        return "$0.00"; 
+    }
+    
+    return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
