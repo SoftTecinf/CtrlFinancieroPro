@@ -13,7 +13,7 @@ const AppState = {
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. CARGA DE INTERFAZ PRIMERO
-    await showSection('home'); 
+    await showSection('home');
 
     // 2. RECUPERAR ESTADO
     const savedState = localStorage.getItem('financiero_state');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userDisplayEl = document.getElementById('user-display');
     if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-    inicializarFiltros(); 
+    inicializarFiltros();
     configurarEventosFiltros();
 
     // 4. ASEGURAR FILTROS
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         AppState.filtrosActuales.mes = ahora.getMonth();
         AppState.filtrosActuales.año = ahora.getFullYear();
     }
-    
+
     // 5. SINCRONIZAR UI CON ESTADO
     const mesSelect = document.getElementById('in-mes');
     const añoSelect = document.getElementById('in-año');
@@ -82,22 +82,28 @@ async function showSection(sectionId) {
 
         // 5. Renderizado final: Reactivación de la interfaz y los datos
         requestAnimationFrame(() => {
-            // A. Recuperar nombre de usuario tras inyectar el nuevo HTML
+            // A. Recuperar nombre de usuario
             const userDisplayEl = document.getElementById('user-display');
-            if (userDisplayEl) {
-                userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
-            }
+            if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-            // B. RE-INICIALIZACIÓN CRÍTICA (Lo que evita que los filtros mueran)
-            // Esto asegura que los nuevos <select> tengan vida otra vez
+            // B. Re-iniciamos filtros
             if (typeof inicializarFiltros === 'function') inicializarFiltros();
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
-            // C. Pintado de datos según la sección cargada
-            inicializarFuncionesPorSeccion(sectionId);
+            // C. ESPERA DE SEGURIDAD (50ms): Damos tiempo al navegador a que el DOM se procese totalmente
+            setTimeout(() => {
+                // D. SINCRONIZACIÓN DE EMERGENCIA
+                // Si datosCache está vacío, intentamos re-sincronizar antes de pintar
+                if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
+                    console.log("Datos vacíos detectados, forzando fetch...");
+                    inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
+                } else {
+                    inicializarFuncionesPorSeccion(sectionId);
+                }
 
-            // D. Quitar spinner
-            if (typeof toggleLoading === 'function') toggleLoading(false);
+                // E. Quitar spinner
+                if (typeof toggleLoading === 'function') toggleLoading(false);
+            }, 50);
         });
 
     } catch (error) {
@@ -121,7 +127,7 @@ function refrescarVistaActual() {
     // 1. Sincronizar DOM -> ESTADO (Solo si los selectores existen)
     const mesSel = document.getElementById('in-mes');
     const añoSel = document.getElementById('in-año');
-    
+
     if (mesSel && añoSel) {
         AppState.filtrosActuales.mes = parseInt(mesSel.value);
         AppState.filtrosActuales.año = parseInt(añoSel.value);
@@ -153,7 +159,7 @@ function configurarEventosFiltros() {
             // Clonamos el elemento para eliminar todos los eventos antiguos rápidamente
             const clone = el.cloneNode(true);
             el.parentNode.replaceChild(clone, el);
-            
+
             // Asignamos el evento al nuevo elemento limpio
             clone.addEventListener('change', () => refrescarVistaActual());
         }
@@ -163,11 +169,11 @@ function configurarEventosFiltros() {
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
     const valor = parseFloat(monto);
-    
+
     if (isNaN(valor)) {
         console.warn("Valor inválido detectado para formato:", monto);
-        return "$0.00"; 
+        return "$0.00";
     }
-    
+
     return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
