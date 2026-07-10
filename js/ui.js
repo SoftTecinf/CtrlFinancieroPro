@@ -2,18 +2,17 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
     
-    // Si no hay filtros, usa la fecha actual para no romper el sistema
-    const mesFiltro = AppState.filtrosActuales.mes ?? new Date().getMonth();
-    const añoFiltro = AppState.filtrosActuales.año ?? new Date().getFullYear();
-
+    // Filtramos usando una extracción de fecha más robusta
     const filtrados = todosLosMovimientos.filter(m => {
+        // Obtenemos un objeto fecha real de forma segura
         const fechaMov = new Date(m.fecha);
-        const coincideTipo = m.tipo === tipo;
         
-        // Comparación flexible: solo filtra si el tipo coincide
-        // (puedes descomentar las líneas de abajo si quieres filtro estricto de fecha)
-        const coincideMes = fechaMov.getMonth() === mesFiltro;
-        const coincideAño = fechaMov.getFullYear() === añoFiltro;
+        // Si la fecha es inválida, intentamos parsearla manualmente o descartamos
+        if (isNaN(fechaMov.getTime())) return false; 
+        
+        const coincideTipo = m.tipo === tipo;
+        const coincideMes = fechaMov.getMonth() === AppState.filtrosActuales.mes;
+        const coincideAño = fechaMov.getFullYear() === AppState.filtrosActuales.año;
 
         return coincideTipo && coincideMes && coincideAño;
     }).reverse();
