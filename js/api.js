@@ -39,13 +39,14 @@ async function FetchAPI(action, extraData = {}) {
 async function inicializarSincronizacion() {
     try {
         const response = await fetch(API_URL);
-        const data = await response.json(); // Asegúrate de capturar la respuesta
+        const data = await response.json();
         
-        // CORRECCIÓN: Usa la variable donde realmente guardaste la respuesta
-        AppState.datosCache = data.movimientos || data; 
+        // 1. Extraemos y limpiamos: solo guardamos objetos que tengan al menos 'monto' y 'fecha'
+        let lista = data.movimientos || data;
+        AppState.datosCache = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
         
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        console.log("Sincronización exitosa");
+        console.log("Sincronización exitosa. Registros cargados:", AppState.datosCache.length);
     } catch (err) {
         console.error("Error al sincronizar:", err);
     }
