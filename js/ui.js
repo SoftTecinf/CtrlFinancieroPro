@@ -225,6 +225,7 @@ function inicializarFiltros() {
     const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
     const mesActual = new Date().getMonth();
+    
     [idsMes, idsAnio].forEach((list, idx) => {
         list.forEach(id => {
             const sel = document.getElementById(id);
@@ -245,6 +246,11 @@ function inicializarFiltros() {
             }
         });
     });
+
+    // ¡ESTO ES LO QUE FALTABA!
+    // Sincronizamos el estado con lo que acabamos de dibujar
+    AppState.filtrosActuales.mes = mesActual;
+    AppState.filtrosActuales.año = añoActual;
 }
 
 function formatCurrency(input, hiddenId) {
