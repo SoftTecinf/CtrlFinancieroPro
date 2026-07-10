@@ -12,53 +12,47 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Recuperar datos básicos de sesión y estado
+    // 1. Recuperar sesión
     const userDisplayEl = document.getElementById('user-display');
     const usuarioNombre = localStorage.getItem('session_userName');
     if (userDisplayEl && usuarioNombre) userDisplayEl.innerText = usuarioNombre;
 
-    // 2. Recuperar el estado completo (Datos + Filtros)
+    // 2. Recuperar el estado completo
     const savedState = localStorage.getItem('financiero_state');
     if (savedState) {
         const parsed = JSON.parse(savedState);
         AppState.datosCache = parsed.movimientos || [];
-        // Recuperamos los filtros si existen, si no, mantenemos los default
         if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
     }
-    inicializarFiltrosFecha();
 
-    // 3. CARGA INMEDIATA (Interfaz lista en <100ms)
+    // 3. Inicializar selects (Usa tu función existente)
+    // Asegúrate de que esta función NO llame a refrescarVistaActual internamente
+    inicializarFiltros(); 
+
+    // 4. Asegurar que los filtros coincidan con la fecha actual SI no venían guardados
+    const ahora = new Date();
+    // Solo sobreescribimos el estado si no había filtros guardados en localStorage
+    if (!savedState || !AppState.filtrosActuales.mes) {
+        AppState.filtrosActuales.mes = ahora.getMonth();
+        AppState.filtrosActuales.año = ahora.getFullYear();
+    }
+    
+    // Sincronizar UI con el estado actual
+    const mesSelect = document.getElementById('in-mes');
+    const añoSelect = document.getElementById('in-año');
+    if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
+    if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
+
+    // 5. CARGA INMEDIATA
     await showSection('home');
     refrescarVistaActual();
 
-    // 4. SINCRONIZACIÓN EN SEGUNDO PLANO
+    // 6. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
         console.log("Datos frescos sincronizados");
         refrescarVistaActual();
     });
-
-    // 1. Configurar selectores de fecha con la fecha actual
-    const ahora = new Date();
-    const mes = ahora.getMonth(); // 0-11
-    const año = ahora.getFullYear();
-
-    const mesSelect = document.getElementById('in-mes');
-    const añoSelect = document.getElementById('in-año');
-
-    if (mesSelect) {
-        mesSelect.value = mes; // Asumiendo que tus options tienen valores 0-11
-    }
-    if (añoSelect) {
-        añoSelect.value = año;
-    }
-
-    // 2. Guardar en AppState y refrescar
-    AppState.filtrosActuales.mes = mes;
-    AppState.filtrosActuales.año = año;
-
-    refrescarVistaActual();
 });
-
 
 // Variable global fuera de la función
 let currentLoadId = 0;
@@ -113,6 +107,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
+    console.log("Refresco disparado");
     const mesSel = document.getElementById('in-mes');
     const añoSel = document.getElementById('in-año');
 
