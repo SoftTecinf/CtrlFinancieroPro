@@ -2,29 +2,25 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
     
-    // Obtenemos los valores de los selectores de forma segura
-    const filtroMes = parseInt(document.getElementById('in-mes')?.value);
-    const filtroAño = parseInt(document.getElementById('in-año')?.value);
+    // Obtener valores de filtros actuales del estado
+    const mesFiltro = AppState.filtrosActuales.mes;
+    const añoFiltro = AppState.filtrosActuales.año;
 
-    // 1. Filtramos: Tipo + Texto + Fecha (Mes/Año)
     const filtrados = todosLosMovimientos.filter(m => {
-        // --- LIMPIEZA DE FECHA ROBUSTA ---
-        // Extraemos solo la parte inicial (YYYY-MM-DD) antes de crear el objeto Date
+        // --- LIMPIEZA DE FECHA ---
+        // Extraemos solo la parte AAAA-MM-DD si es necesario
         const fechaString = m.fecha.toString().split(' ')[0]; 
         const fechaMov = new Date(fechaString + 'T00:00:00');
         
-        // Validación: Si la fecha no es válida, descartamos el registro
-        if (isNaN(fechaMov.getTime())) return false;
-        
         const coincideTipo = m.tipo === tipo;
-        const coincideBusqueda = m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
-        
-        // Comparación de Mes y Año (JS usa 0-11 para meses)
-        const coincideMes = !isNaN(filtroMes) ? fechaMov.getMonth() === filtroMes : true;
-        const coincideAño = !isNaN(filtroAño) ? fechaMov.getFullYear() === filtroAño : true;
+        const coincideMes = fechaMov.getMonth() === mesFiltro;
+        const coincideAño = fechaMov.getFullYear() === añoFiltro;
 
-        return coincideTipo && coincideBusqueda && coincideMes && coincideAño;
+        return coincideTipo && coincideMes && coincideAño;
     }).reverse();
+    
+    // Actualizar UI
+    document.getElementById(countId).innerText = `${filtrados.length} MOVIMIENTOS`;
     
     // 2. Actualizamos contador
     const countEl = document.getElementById(countId);
