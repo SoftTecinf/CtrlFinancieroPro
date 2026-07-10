@@ -26,15 +26,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
     }
     inicializarFiltrosFecha();
-    
+
     // 3. CARGA INMEDIATA (Interfaz lista en <100ms)
     await showSection('home');
-    refrescarVistaActual(); 
+    refrescarVistaActual();
 
     // 4. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
         console.log("Datos frescos sincronizados");
-        refrescarVistaActual(); 
+        refrescarVistaActual();
     });
 
     // 1. Configurar selectores de fecha con la fecha actual
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Guardar en AppState y refrescar
     AppState.filtrosActuales.mes = mes;
     AppState.filtrosActuales.año = año;
-    
+
     refrescarVistaActual();
 });
 
@@ -67,7 +67,7 @@ async function showSection(sectionId) {
     if (!container) return;
 
     const loadId = ++currentLoadId;
-    
+
     // 1. UI: Botones y Spinner (Feedback inmediato)
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
@@ -91,7 +91,7 @@ async function showSection(sectionId) {
         requestAnimationFrame(() => {
             // Si tenemos datos en caché, se verán casi instantáneamente
             inicializarFuncionesPorSeccion(sectionId);
-            
+
             if (typeof toggleLoading === 'function') toggleLoading(false);
         });
 
@@ -113,6 +113,12 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
+    const mesSel = document.getElementById('in-mes');
+    const añoSel = document.getElementById('in-año');
+
+    if (mesSel) AppState.filtrosActuales.mes = parseInt(mesSel.value);
+    if (añoSel) AppState.filtrosActuales.año = parseInt(añoSel.value);
+
     // 1. Verificación crítica: ¿Tenemos datos?
     if (!AppState.datosCache || AppState.datosCache.length === 0) {
         console.warn("Aún no hay datos para pintar");
@@ -141,10 +147,10 @@ function inicializarFiltrosFecha() {
     // Llenar Meses
     const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     mesSelect.innerHTML = meses.map((m, i) => `<option value="${i}">${m}</option>`).join('');
-    
+
     // Llenar Años (rango +/- 1 año)
     const year = new Date().getFullYear();
-    añoSelect.innerHTML = `<option value="${year}">${year}</option><option value="${year-1}">${year-1}</option>`;
+    añoSelect.innerHTML = `<option value="${year}">${year}</option><option value="${year - 1}">${year - 1}</option>`;
 
     // Poner valor actual
     mesSelect.value = new Date().getMonth();
