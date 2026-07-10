@@ -1,20 +1,21 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const filtrados = todosLosMovimientos.filter(m => {
-    // 1. Extraemos solo la parte inicial "Jul 08 2026"
-    // Esto limpia "Wed Jul 08 2026 00:00:00 GMT-0700..."
+    if (!m.fecha) return false;
+    
     const partes = m.fecha.toString().split(' ');
-    const fechaLimpia = `${partes[1]} ${partes[2]} ${partes[3]}`; // "Jul 08 2026"
+    // Verificamos que tengamos al menos 4 partes (ej: Wed Jul 08 2026)
+    if (partes.length < 4) return false; 
+    
+    const fechaLimpia = `${partes[1]} ${partes[2]} ${partes[3]}`;
     const fechaMov = new Date(fechaLimpia);
     
-    // 2. Comparamos usando métodos seguros
-    const mesMov = fechaMov.getMonth();
-    const añoMov = fechaMov.getFullYear();
-    
-    // 3. Filtramos
+    // Si la fecha es inválida, el filtro la ignora (no la rompe)
+    if (isNaN(fechaMov.getTime())) return false; 
+
     return m.tipo === tipo && 
-           mesMov === AppState.filtrosActuales.mes && 
-           añoMov === AppState.filtrosActuales.año;
+           fechaMov.getMonth() === AppState.filtrosActuales.mes && 
+           fechaMov.getFullYear() === AppState.filtrosActuales.año;
 }).reverse();
     // --------------------------------------
 
