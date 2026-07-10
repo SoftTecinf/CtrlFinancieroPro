@@ -12,12 +12,10 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Recuperar sesión
-    const userDisplayEl = document.getElementById('user-display');
-    const usuarioNombre = localStorage.getItem('session_userName');
-    if (userDisplayEl && usuarioNombre) userDisplayEl.innerText = usuarioNombre;
+    // 1. CARGA DE INTERFAZ PRIMERO
+    await showSection('home'); 
 
-    // 2. Recuperar el estado completo
+    // 2. RECUPERAR ESTADO
     const savedState = localStorage.getItem('financiero_state');
     if (savedState) {
         const parsed = JSON.parse(savedState);
@@ -25,30 +23,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
     }
 
-    // 3. Inicializar selects (Usa tu función existente)
-    // Asegúrate de que esta función NO llame a refrescarVistaActual internamente
-    inicializarFiltros(); 
+    // 3. CONFIGURACIÓN DE UI (Ahora que showSection ya inyectó el HTML)
+    const userDisplayEl = document.getElementById('user-display');
+    if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-    // 4. Asegurar que los filtros coincidan con la fecha actual SI no venían guardados
+    inicializarFiltros(); 
+    configurarEventosFiltros();
+
+    // 4. ASEGURAR FILTROS
     const ahora = new Date();
-    // Solo sobreescribimos el estado si no había filtros guardados en localStorage
-    if (!savedState || !AppState.filtrosActuales.mes) {
+    if (!savedState || AppState.filtrosActuales.mes === undefined) {
         AppState.filtrosActuales.mes = ahora.getMonth();
         AppState.filtrosActuales.año = ahora.getFullYear();
     }
     
-    // Sincronizar UI con el estado actual
+    // 5. SINCRONIZAR UI CON ESTADO
     const mesSelect = document.getElementById('in-mes');
     const añoSelect = document.getElementById('in-año');
     if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
     if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
 
-    // 5. CARGA INMEDIATA
-    await showSection('home');
+    // 6. EJECUTAR REFRESCO FINAL
     refrescarVistaActual();
-    configurarEventosFiltros();
 
-    // 6. SINCRONIZACIÓN EN SEGUNDO PLANO
+    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
         console.log("Datos frescos sincronizados");
         refrescarVistaActual();
@@ -63,7 +61,7 @@ async function showSection(sectionId) {
 
     const loadId = ++currentLoadId;
 
-    // 1. UI: Botones y Spinner (Feedback inmediato)
+    // 1. UI: Feedback inmediato
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
@@ -76,23 +74,35 @@ async function showSection(sectionId) {
         if (!response.ok) throw new Error("Error de carga");
         const html = await response.text();
 
-        // 3. Control de concurrencia: si cambió el loadId, paramos aquí
+        // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
 
         // 4. Inyectamos el esqueleto (HTML)
         container.innerHTML = html;
 
-        // 5. Renderizado final: ahora que el HTML existe, inyectamos los datos
+        // 5. Renderizado final: Reactivación de la interfaz y los datos
         requestAnimationFrame(() => {
-            // Si tenemos datos en caché, se verán casi instantáneamente
+            // A. Recuperar nombre de usuario tras inyectar el nuevo HTML
+            const userDisplayEl = document.getElementById('user-display');
+            if (userDisplayEl) {
+                userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
+            }
+
+            // B. RE-INICIALIZACIÓN CRÍTICA (Lo que evita que los filtros mueran)
+            // Esto asegura que los nuevos <select> tengan vida otra vez
+            if (typeof inicializarFiltros === 'function') inicializarFiltros();
+            if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
+
+            // C. Pintado de datos según la sección cargada
             inicializarFuncionesPorSeccion(sectionId);
 
+            // D. Quitar spinner
             if (typeof toggleLoading === 'function') toggleLoading(false);
         });
 
     } catch (error) {
         if (loadId === currentLoadId) {
-            console.error(error);
+            console.error("Error al cargar la sección:", error);
             if (typeof toggleLoading === 'function') toggleLoading(false);
         }
     }
@@ -136,13 +146,16 @@ function refrescarVistaActual() {
 }
 
 function configurarEventosFiltros() {
-    const ids = ['in-mes', 'in-año', 'ex-mes', 'ex-año'];
+    const ids = ['in-mes', 'in-año'];
     ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('change', () => {
-                refrescarVistaActual();
-            });
+            // Clonamos el elemento para eliminar todos los eventos antiguos rápidamente
+            const clone = el.cloneNode(true);
+            el.parentNode.replaceChild(clone, el);
+            
+            // Asignamos el evento al nuevo elemento limpio
+            clone.addEventListener('change', () => refrescarVistaActual());
         }
     });
 }
