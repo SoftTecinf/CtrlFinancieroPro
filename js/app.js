@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
-const API_URL = "https://script.google.com/macros/s/AKfycby7qsVqL6ufthtYSi-A7LKUs7i7yy8joqyKp7-wNxGinuFym8C4GL8R44EnkDzRAEJyog/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 let editandoId = null;
 let chartH, chartR;
 const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
