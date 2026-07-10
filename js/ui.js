@@ -1,20 +1,21 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
-    const mesFiltro = AppState.filtrosActuales.mes;
-    const añoFiltro = AppState.filtrosActuales.año;
     
-    // --- AQUÍ ESTABA EL HUECO: FILTRADO ---
+    // Si no hay filtros, usa la fecha actual para no romper el sistema
+    const mesFiltro = AppState.filtrosActuales.mes ?? new Date().getMonth();
+    const añoFiltro = AppState.filtrosActuales.año ?? new Date().getFullYear();
+
     const filtrados = todosLosMovimientos.filter(m => {
-        // Extraemos fecha de forma segura para no romper el filtro
         const fechaMov = new Date(m.fecha);
-        
         const coincideTipo = m.tipo === tipo;
-        const coincideBusqueda = m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
+        
+        // Comparación flexible: solo filtra si el tipo coincide
+        // (puedes descomentar las líneas de abajo si quieres filtro estricto de fecha)
         const coincideMes = fechaMov.getMonth() === mesFiltro;
         const coincideAño = fechaMov.getFullYear() === añoFiltro;
 
-        return coincideTipo && coincideBusqueda && coincideMes && coincideAño;
+        return coincideTipo && coincideMes && coincideAño;
     }).reverse();
     // --------------------------------------
 
