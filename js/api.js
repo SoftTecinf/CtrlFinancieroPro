@@ -35,28 +35,18 @@ async function FetchAPI(action, extraData = {}) {
     }
 }
 
+// En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
     try {
-        const res = await FetchAPI("obtenerDatos", {});
-        if (res && res.success) {
-            AppState.datosCache = res.movimientos;
-            AppState.categorias = res.categorias; // <--- Guarda esto también
-            
-            localStorage.setItem('financiero_state', JSON.stringify({
-                movimientos: AppState.datosCache,
-                categorias: AppState.categorias, // <--- Persistencia
-                filtros: AppState.filtrosActuales
-            }));
-            
-            refrescarVistaActual();
-        }
+        const response = await fetch(API_URL);
+        const data = await response.json(); // Asegúrate de capturar la respuesta
+        
+        // CORRECCIÓN: Usa la variable donde realmente guardaste la respuesta
+        AppState.datosCache = data.movimientos || data; 
+        
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        console.log("Sincronización exitosa");
     } catch (err) {
-        console.error("Error sincronizando:", err);
+        console.error("Error al sincronizar:", err);
     }
-
-    AppState.datosCache = datosRecibidos;
-    localStorage.setItem('financiero_state', JSON.stringify(AppState));
-    
-    // IMPORTANTE: Avisar a la UI que hubo cambios
-    refrescarVistaActual(); 
 }
