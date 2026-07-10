@@ -1,32 +1,34 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.datosCache || [];
-    
-    // Obtener valores de filtros actuales del estado
     const mesFiltro = AppState.filtrosActuales.mes;
     const añoFiltro = AppState.filtrosActuales.año;
 
     const filtrados = todosLosMovimientos.filter(m => {
-        // --- LIMPIEZA DE FECHA ---
-        // Extraemos solo la parte AAAA-MM-DD si es necesario
-        const fechaString = m.fecha.toString().split(' ')[0]; 
-        const fechaMov = new Date(fechaString + 'T00:00:00');
+        // --- EXTRACCIÓN MANUAL SEGURA ---
+        // Buscamos el mes y año directamente en el texto "Wed Jul 08 2026..."
+        // Esto evita depender de new Date() y formatos complejos
+        const mesesMap = { "Jan":0, "Feb":1, "Mar":2, "Apr":3, "May":4, "Jun":5, "Jul":6, "Aug":7, "Sep":8, "Oct":9, "Nov":10, "Dec":11 };
         
-        const coincideTipo = m.tipo === tipo;
-        const coincideMes = fechaMov.getMonth() === mesFiltro;
-        const coincideAño = fechaMov.getFullYear() === añoFiltro;
+        // Buscamos el mes (ej: "Jul") y el año (4 dígitos)
+        const mesEncontrado = Object.keys(mesesMap).find(mName => m.fecha.includes(mName));
+        const añoEncontrado = m.fecha.match(/\d{4}/); // Busca los 4 dígitos del año
+        
+        const mIdx = mesEncontrado ? mesesMap[mesEncontrado] : -1;
+        const aVal = añoEncontrado ? parseInt(añoEncontrado[0]) : -1;
 
-        return coincideTipo && coincideMes && coincideAño;
+        const coincideTipo = m.tipo === tipo;
+        const coincideBusqueda = m.desc.toLowerCase().includes(AppState.filtrosActuales.busqueda.toLowerCase());
+        const coincideMes = mIdx === mesFiltro;
+        const coincideAño = aVal === añoFiltro;
+
+        return coincideTipo && coincideBusqueda && coincideMes && coincideAño;
     }).reverse();
     
-    // Actualizar UI
-    document.getElementById(countId).innerText = `${filtrados.length} MOVIMIENTOS`;
-    
-    // 2. Actualizamos contador
+    // ... resto del código ...
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
     
-    // 3. Renderizado eficiente
     const cont = document.getElementById(contId);
     if (!cont) return;
 
