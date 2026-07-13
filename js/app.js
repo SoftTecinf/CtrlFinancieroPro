@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. RECUPERAR ESTADO
     const savedState = localStorage.getItem('financiero_state');
-    const ahora = new Date(); 
+    const ahora = new Date();
 
     if (savedState) {
         const parsed = JSON.parse(savedState);
@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
     // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
-    inicializarFiltros(); 
-    
+    inicializarFiltros();
+
     // Forzamos el estado a la fecha actual del sistema
-    AppState.filtrosActuales.mes = ahora.getMonth(); 
+    AppState.filtrosActuales.mes = ahora.getMonth();
     AppState.filtrosActuales.año = ahora.getFullYear();
 
     // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
@@ -52,6 +52,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const el = document.getElementById(id);
         if (el) el.value = AppState.filtrosActuales.año;
     });
+
+    const inputFecha = document.getElementById('in-fecha');
+    if (inputFecha) {
+        // Formato YYYY-MM-DD necesario para el input type="date"
+        inputFecha.value = new Date().toISOString().split('T')[0];
+    }
+    
     // 6. EJECUTAR REFRESCO FINAL
     refrescarVistaActual();
 
@@ -163,21 +170,6 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 }
-
-/*function configurarEventosFiltros() {
-    const ids = ['in-mes', 'in-año'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            // Clonamos el elemento para eliminar todos los eventos antiguos rápidamente
-            const clone = el.cloneNode(true);
-            el.parentNode.replaceChild(clone, el);
-
-            // Asignamos el evento al nuevo elemento limpio
-            clone.addEventListener('change', () => refrescarVistaActual());
-        }
-    });
-}*/
 
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
