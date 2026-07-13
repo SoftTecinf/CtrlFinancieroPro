@@ -130,7 +130,7 @@ function actualizarHome() {
     
     // Si sigue sin ser array, forzamos array vacío
     if (!Array.isArray(datos)) {
-        console.error("Los datos recibidos no son un array:", datos);
+       // console.error("Los datos recibidos no son un array:", datos);
         datos = [];
     }
 
@@ -139,11 +139,11 @@ function actualizarHome() {
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    console.log("Estructura de datos recibida:", datos);
+   // console.log("Estructura de datos recibida:", datos);
     datos.forEach(m => {
     // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
     if (!m || typeof m.monto === 'undefined') {
-        console.warn("Registro ignorado por falta de datos:", m);
+       // console.warn("Registro ignorado por falta de datos:", m);
         return; 
     }
 
