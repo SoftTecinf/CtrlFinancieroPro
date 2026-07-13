@@ -86,6 +86,8 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
+    
+console.log("Categorías");
     // 1. Obtén los elementos del DOM (¡NO el arreglo de datos!)
     const containerIng = document.getElementById('lista-cats-ingreso'); // Asegúrate que este ID exista en tu HTML
     const containerGas = document.getElementById('lista-cats-gasto');
