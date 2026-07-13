@@ -1,9 +1,9 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const todosLosMovimientos = AppState.datosCache || [];
+    const todosLosMovimientos = AppState.movimientos || []; 
 
     if (todosLosMovimientos.length === 0) {
-        console.warn("No hay datos cargados todavía.");
+        console.warn("No hay movimientos cargados todavía.");
         return;
     }
 
@@ -95,7 +95,6 @@ function renderCategoriasConfig() {
 
     // 3. Validación de seguridad
     if (!containerIng || !containerGas) {
-        console.warn("DOM no listo todavía. Esperando...");
         return;
     }
 
