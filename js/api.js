@@ -53,22 +53,19 @@ async function inicializarSincronizacion() {
     // 2. SINCRONIZACIÓN (Servidor)
     try {
         const response = await fetch(API_URL);
-        const data = await response.json(); 
+        const data = await response.json();
 
-        if (!data || typeof data !== 'object') return;
+        // 1. Validar que la respuesta tenga datos antes de tocar el AppState
+        if (data && data.movimientos) AppState.movimientos = data.movimientos;
+        if (data && data.categorias) AppState.categorias = data.categorias;
 
-        // ACTUALIZAMOS EL ESTADO con plurales
-        AppState.movimientos = data.movimientos || [];
-        AppState.categorias = data.categorias || []; 
-
-        // Guardamos todo en caché
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        
-        // 3. ACTUALIZACIÓN DE UI
+
+        // 2. Ejecutar renderizados solo si existen
         if (typeof actualizarHome === 'function') actualizarHome();
         if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
         
     } catch (err) {
-        console.error("Error al sincronizar con servidor:", err);
+        console.error("Error crítico en sincronización:", err);
     }
 }
