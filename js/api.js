@@ -44,15 +44,11 @@ async function inicializarSincronizacion() {
         // 1. Extraemos los datos
         let lista = data.movimientos || data;
         
-        // Logs de diagnóstico
-        console.log("Tipo de dato de lista:", typeof lista);
-        console.log("Contenido de lista:", lista);
-        console.log("¿Es un arreglo válido?:", Array.isArray(lista)); 
 
         // 2. BARRERA DE SEGURIDAD (Aquí arreglamos el error)
         // Si lista NO es un arreglo, mostramos una alerta y lo convertimos a un arreglo vacío
         if (!Array.isArray(lista)) {
-            console.warn("⚠️ Advertencia: La API no devolvió un arreglo. Se recibió:", data);
+           // console.warn("⚠️ Advertencia: La API no devolvió un arreglo. Se recibió:", data);
             lista = []; // Esto evita que .filter() truene
         }
         
@@ -60,7 +56,7 @@ async function inicializarSincronizacion() {
         AppState.datosCache = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
 
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        console.log("✅ Sincronización exitosa. Registros cargados:", AppState.datosCache.length);
+        //console.log("✅ Sincronización exitosa. Registros cargados:", AppState.datosCache.length);
         
     } catch (err) {
         console.error("❌ Error al sincronizar:", err);
