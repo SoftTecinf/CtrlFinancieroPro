@@ -8,19 +8,25 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     }
 
     const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
+    if (!m.fecha) return false;
 
-        // 1. Descomponemos la fecha manualmente para evitar errores de zona horaria
-        // Asumimos formato YYYY-MM-DD
-        const partes = m.fecha.split('T')[0].split('-');
-        const añoMov = parseInt(partes[0]);
-        const mesMov = parseInt(partes[1]) - 1; // Ajuste: 0 = Enero, 6 = Julio
+    // DIAGNÓSTICO: Descomenta esto para ver qué está pasando en la consola
+    // console.log("Comparando:", m.fecha, "| Tipo:", m.tipo, "vs", tipo);
 
-        // 2. Filtramos comparando directamente los números
-        return m.tipo === tipo &&
-            mesMov === AppState.filtrosActuales.mes &&
-            añoMov === AppState.filtrosActuales.año;
-    }).reverse();
+    const partes = m.fecha.split('T')[0].split('-');
+    const añoMov = parseInt(partes[0]);
+    const mesMov = parseInt(partes[1]) - 1;
+
+    const coincidenTipo = (m.tipo === tipo);
+    const coincidenMes = (mesMov === AppState.filtrosActuales.mes);
+    const coincidenAnio = (añoMov === AppState.filtrosActuales.año);
+
+    if (coincidenTipo && !coincidenMes) {
+        console.warn("Movimiento de tipo correcto, pero el mes no coincide:", mesMov, "vs", AppState.filtrosActuales.mes);
+    }
+
+    return coincidenTipo && coincidenMes && coincidenAnio;
+}).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
