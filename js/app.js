@@ -6,9 +6,10 @@ let chartH, chartR;
 
 const AppState = {
     datosCache: [],
-    movimientos: [],      // Es bueno tenerlo definido explícitamente
-    categorias: [],       // <--- Usa plural aquí
-    filtrosActuales: { busqueda: '', categoria: 'todos' }
+    movimientos: [],
+    categorias: [],
+    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
+    cargado: false // <--- NUEVA GUARDIA
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
