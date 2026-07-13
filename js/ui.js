@@ -251,7 +251,7 @@ function inicializarFiltros() {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const añoActual = new Date().getFullYear();
     const mesActual = new Date().getMonth(); // 6 para Julio
-
+    console.error(mesActual);
     const selectsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const selectsAnio = ['in-año', 'ex-año', 'res-año'];
 
