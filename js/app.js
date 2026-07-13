@@ -122,6 +122,13 @@ async function showSection(sectionId) {
             }, 50);
         });
 
+        if (sectionId === 'ingresos') {
+            const inputFecha = document.getElementById('in-fecha');
+            if (inputFecha) {
+                inputFecha.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
     } catch (error) {
         if (loadId === currentLoadId) {
             console.error("Error al cargar la sección:", error);
