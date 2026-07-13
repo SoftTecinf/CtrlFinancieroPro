@@ -252,7 +252,7 @@ function inicializarFiltros() {
     const idsAnio = ['in-año', 'ex-año', 'res-año'];
     const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
-    const mesActual = new Date().getMonth();
+    const mesActual = new Date().getMonth(); // 6 para Julio
 
     [idsMes, idsAnio].forEach((list, idx) => {
         list.forEach(id => {
@@ -264,18 +264,20 @@ function inicializarFiltros() {
                         let opt = document.createElement('option');
                         opt.value = i; opt.innerHTML = m; sel.appendChild(opt);
                     });
+                    // CORRECCIÓN: Forzamos al select a posicionarse visualmente en el mes actual
                     sel.value = mesActual;
                 } else {
                     for (let i = añoActual; i >= añoActual - 4; i--) {
                         let opt = document.createElement('option');
                         opt.value = i; opt.innerHTML = i; sel.appendChild(opt);
                     }
+                    // CORRECCIÓN: Forzamos al select a posicionarse visualmente en el año actual
+                    sel.value = añoActual;
                 }
             }
         });
     });
 
-    // ¡ESTO ES LO QUE FALTABA!
     // Sincronizamos el estado con lo que acabamos de dibujar
     AppState.filtrosActuales.mes = mesActual;
     AppState.filtrosActuales.año = añoActual;
