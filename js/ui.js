@@ -86,22 +86,23 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    // Asegúrate de que esta línea exista DENTRO de la función
-    const listaCategorias = AppState.categorias || [];
-
+    // 1. Define la variable DENTRO de la función
+    const listaCategorias = AppState.categorias || []; 
+    
+    // 2. Busca los contenedores
     const containerIng = document.getElementById('lista-cats-ingreso');
     const containerGas = document.getElementById('lista-cats-gasto');
 
+    // 3. Validación de seguridad
     if (!containerIng || !containerGas) {
-        console.warn("DOM no listo todavía.");
+        console.warn("DOM no listo todavía. Esperando...");
         return;
     }
 
-    // 4. Limpieza segura de los elementos HTML
+    // 4. Limpieza y renderizado
     containerIng.innerHTML = '';
     containerGas.innerHTML = '';
 
-    // 5. Itera sobre la lista de datos (listaCategorias)
     listaCategorias.forEach(c => {
         const itemHtml = `
             <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
