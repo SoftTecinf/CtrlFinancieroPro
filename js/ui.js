@@ -91,7 +91,7 @@ function renderCategoriasConfig() {
     const containerGas = document.getElementById('lista-cats-gasto');
 
     // 2. Obtén la lista de datos del AppState
-    const listaCategorias = AppState.categorias || [];
+    const listaCategorias = AppState.categoria || [];
 console.log("Categorías cargadas en AppState:", listaCategorias);
     // 3. Escudo de seguridad
     if (!containerIng || !containerGas) {
