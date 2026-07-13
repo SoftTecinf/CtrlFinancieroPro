@@ -38,8 +38,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     configurarEventosFiltros();
 
     // 4. ASEGURAR FILTROS (Forzamos Julio 2026 siempre al abrir)
-    AppState.filtrosActuales.mes = ahora.getMonth(); // 6 (Julio)
-    AppState.filtrosActuales.año = ahora.getFullYear(); // 2026
+    const mesSelect = document.getElementById('in-mes');
+    const añoSelect = document.getElementById('in-año');
+    if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
+    if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
 
     // 5. SINCRONIZAR UI CON ESTADO
     const mesSelect = document.getElementById('in-mes');
