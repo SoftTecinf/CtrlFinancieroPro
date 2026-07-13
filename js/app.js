@@ -130,7 +130,7 @@ function refrescarVistaActual() {
 
     const seccionId = activeBtn.id; // ej: 'nav-home'
 
-    // 2. Sincronizar DOM -> ESTADO leyendo los selectores de la sección activa
+    // 2. Sincronizar DOM -> ESTADO leyendo únicamente los selectores de la sección activa
     let mesSel = null;
     let añoSel = null;
 
@@ -140,13 +140,15 @@ function refrescarVistaActual() {
     } else if (seccionId === 'nav-gastos') {
         mesSel = document.getElementById('ex-mes');
         añoSel = document.getElementById('ex-año');
-    } else if (seccionId === 'nav-analisis') { // Por si usas filtros en análisis o resumen
+    } else if (seccionId === 'nav-analisis') {
         mesSel = document.getElementById('res-mes');
         añoSel = document.getElementById('res-año');
     }
 
-    // Solo si los selectores de la sección activa existen y tienen valor, actualizamos el estado
-    if (mesSel && añoSel && mesSel.value !== "" && añoSel.value !== "") {
+    // 🔥 CANDADO DE SEGURIDAD CRUCIAL:
+    // Solo si los selectores existen en la pantalla actual Y tienen un valor seleccionado,
+    // actualizamos el mes y año en el AppState. Si no existen (como en el Home), dejamos el mes intacto.
+    if (mesSel && añoSel && mesSel.value !== null && mesSel.value !== "") {
         AppState.filtrosActuales.mes = parseInt(mesSel.value);
         AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
@@ -155,10 +157,8 @@ function refrescarVistaActual() {
     if (seccionId === 'nav-home') {
         actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
-        // CORRECCIÓN: Ajusté los IDs de los contadores para que empaten con tu ui.js anterior ('count-in')
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
-        // CORRECCIÓN: Ajusté los IDs de los contadores para que empaten con tu ui.js anterior ('count-ex')
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 }
