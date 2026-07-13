@@ -8,18 +8,19 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     }
 
     const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
+    if (!m.fecha) return false;
 
-        // 1. SOLUCIÓN: Simplemente le pasamos la fecha directo a JavaScript
-        const fechaMov = new Date(m.fecha);
-
-        // Si la fecha es inválida, el filtro la ignora (no la rompe)
-        if (isNaN(fechaMov.getTime())) return false;
-
-        return m.tipo === tipo &&
-            fechaMov.getMonth() === AppState.filtrosActuales.mes &&
-            fechaMov.getFullYear() === AppState.filtrosActuales.año;
-    }).reverse();
+    // 1. Descomponemos la fecha manualmente para evitar errores de zona horaria
+    // Asumimos formato YYYY-MM-DD
+    const partes = m.fecha.split('T')[0].split('-'); 
+    const añoMov = parseInt(partes[0]);
+    const mesMov = parseInt(partes[1]) - 1; // Ajuste: 0 = Enero, 6 = Julio
+    
+    // 2. Filtramos comparando directamente los números
+    return m.tipo === tipo &&
+           mesMov === AppState.filtrosActuales.mes &&
+           añoMov === AppState.filtrosActuales.año;
+}).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
