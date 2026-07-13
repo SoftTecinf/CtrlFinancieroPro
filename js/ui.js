@@ -1,39 +1,32 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
+    // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
-
+    
+    // 2. Filtramos usando una lógica segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // --- AQUÍ HACES EL CAMBIO ---
-        // 1. Extraemos año y mes manualmente
-        const fechaPartes = m.fecha.split('-'); 
-        const añoMov = parseInt(fechaPartes[0]);
-        const mesMov = parseInt(fechaPartes[1]) - 1; // Ajuste a base 0
+        // Convertimos a fecha de forma segura
+        const d = new Date(m.fecha);
+        const añoMov = d.getFullYear();
+        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
 
-        // 2. Comparamos con tus filtros actuales
-        const esMismoMes = mesMov === AppState.filtrosActuales.mes;
-        const esMismoAño = añoMov === AppState.filtrosActuales.año;
-
-        // Debug para ver si finalmente coinciden
-        // console.log(`Debug: Mov=${mesMov}/${añoMov} vs Filtro=${AppState.filtrosActuales.mes}/${AppState.filtrosActuales.año}`);
-
-        // 3. Retornamos la condición
-        return m.tipo === tipo && esMismoMes && esMismoAño;
-        // -----------------------------
-
+        // Comparamos usando los valores extraídos
+        return m.tipo === tipo && 
+               mesMov === AppState.filtrosActuales.mes && 
+               añoMov === AppState.filtrosActuales.año;
     }).reverse();
-    // --------------------------------------
 
+    // 3. Renderizamos el conteo y la lista
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
     const cont = document.getElementById(contId);
-    if (!cont) return;
-
-    if (filtrados.length === 0) {
-        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros para este periodo.</p>';
-        return;
+    if (cont) {
+        cont.innerHTML = filtrados.length === 0 
+            ? '<p class="opacity-20 text-center py-10">Sin registros.</p>' 
+            : filtrados.map(m => `...tu HTML aquí...`).join('');
     }
 
     let htmlAcumulado = '';
