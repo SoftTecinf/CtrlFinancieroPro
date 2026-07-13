@@ -37,10 +37,11 @@ async function FetchAPI(action, extraData = {}) {
 
 // En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
-    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado de la última vez
+    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
-        AppState = JSON.parse(guardado);
+        // 🔥 SOLUCIÓN AQUÍ: Inyectamos los datos en lugar de reemplazar la constante
+        Object.assign(AppState, JSON.parse(guardado));
         
         // Pintamos la pantalla de inicio y la vista actual de inmediato
         if (typeof actualizarHome === 'function') actualizarHome();
