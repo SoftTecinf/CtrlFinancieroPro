@@ -39,8 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     AppState.filtrosActuales.mes = ahora.getMonth(); 
     AppState.filtrosActuales.año = ahora.getFullYear();
 
-    configurarEventosFiltros();
-
     // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
     const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
     const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
