@@ -18,9 +18,6 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
 
-        // Debug para verificar
-        console.log(`Fecha recibida: ${m.fecha} | Mes detectado: ${mesMov}, Año: ${añoMov}`);
-
         return m.tipo === tipo &&
             mesMov === AppState.filtrosActuales.mes &&
             añoMov === AppState.filtrosActuales.año;
