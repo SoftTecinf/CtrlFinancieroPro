@@ -10,16 +10,12 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        const partes = m.fecha.toString().split(' ');
-        // Verificamos que tengamos al menos 4 partes (ej: Wed Jul 08 2026)
-        if (partes.length < 4) return false;
-
-        const fechaLimpia = `${partes[1]} ${partes[2]} ${partes[3]}`;
-        const fechaMov = new Date(fechaLimpia);
+        // 1. SOLUCIÓN: Simplemente le pasamos la fecha directo a JavaScript
+        const fechaMov = new Date(m.fecha);
 
         // Si la fecha es inválida, el filtro la ignora (no la rompe)
         if (isNaN(fechaMov.getTime())) return false;
-        console.log(`Comparando: ${fechaMov.getMonth()} === ${AppState.filtrosActuales.mes}`);
+        
         return m.tipo === tipo &&
             fechaMov.getMonth() === AppState.filtrosActuales.mes &&
             fechaMov.getFullYear() === AppState.filtrosActuales.año;
@@ -42,8 +38,8 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
                 <div class="flex-1">
-                    <p class="text-sm font-semibold uppercase text-stone-700">${m.desc}</p>
-                    <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha} | ${m.cat}</p>
+                    <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
+                    <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha.split('T')[0]} | ${m.cat || 'General'}</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
