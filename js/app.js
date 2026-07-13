@@ -95,7 +95,7 @@ async function showSection(sectionId) {
         // 4. Inyectamos el esqueleto (HTML)
         container.innerHTML = html;
 
-        // 5. Renderizado final: Reactivación de la interfaz y los datos
+        // 5. Renderizado final
         requestAnimationFrame(() => {
             // A. Recuperar nombre de usuario
             const userDisplayEl = document.getElementById('user-display');
@@ -105,18 +105,27 @@ async function showSection(sectionId) {
             if (typeof inicializarFiltros === 'function') inicializarFiltros();
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
-            // C. ESPERA DE SEGURIDAD (50ms): Damos tiempo al navegador a que el DOM se procese totalmente
             setTimeout(() => {
-                // D. SINCRONIZACIÓN DE EMERGENCIA
-                // Si datosCache está vacío, intentamos re-sincronizar antes de pintar
+                // C. FORZAR FECHA EN INPUTS (Aquí sí existe el DOM)
+                if (sectionId === 'ingresos') {
+                    const inputFecha = document.getElementById('in-fecha');
+                    if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+
+                    // 🔥 FORZAR FILTRO A JULIO (Para que no inicie en Enero)
+                    const mesSel = document.getElementById('in-mes');
+                    if (mesSel) {
+                        mesSel.value = new Date().getMonth(); // 6
+                        AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                    }
+                }
+
+                // D. SINCRONIZACIÓN DE DATOS
                 if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
-                    // console.log("Datos vacíos detectados, forzando fetch...");
                     inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
                 } else {
                     inicializarFuncionesPorSeccion(sectionId);
                 }
 
-                // E. Quitar spinner
                 if (typeof toggleLoading === 'function') toggleLoading(false);
             }, 50);
         });
@@ -148,7 +157,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
 function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
-    
+
     // Solo actualiza filtros si los selectores existen Y tienen un valor seleccionado
     // Esto evita que al cambiar de página, un selector vacío reinicie tus filtros
     const seccionId = activeBtn.id;
