@@ -151,9 +151,7 @@ function refrescarVistaActual() {
     if (!activeBtn) return;
     const seccionId = activeBtn.id;
 
-    let mesSel = null;
-    let añoSel = null;
-
+    let mesSel, añoSel;
     if (seccionId === 'nav-ingresos') {
         mesSel = document.getElementById('in-mes');
         añoSel = document.getElementById('in-año');
@@ -164,8 +162,10 @@ function refrescarVistaActual() {
 
     // 🔥 CAMBIO CRUCIAL: Solo actualizamos si el usuario interactuó 
     // O si el selector tiene un valor válido diferente al por defecto (si aplica)
-    if (mesSel && añoSel && mesSel.value !== "") {
+    if (mesSel && mesSel.value !== "") {
         AppState.filtrosActuales.mes = parseInt(mesSel.value);
+    }
+    if (añoSel && añoSel.value !== "") {
         AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
 
