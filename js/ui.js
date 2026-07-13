@@ -86,7 +86,7 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    const contIng = document.getElementById('lista-cats-ingreso');
+    const contIng = AppState.categorias || [];
     const contGas = document.getElementById('lista-cats-gasto');
 
     // Escudo: Si alguno no existe, salimos de la función sin hacer nada
