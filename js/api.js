@@ -41,25 +41,23 @@ async function inicializarSincronizacion() {
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
         try {
-            const estadoLocal = JSON.parse(guardado);
-            Object.assign(AppState, estadoLocal);
-            
-            // Refrescar UI con caché
+            Object.assign(AppState, JSON.parse(guardado));
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
-        } catch (e) { console.error("Error al leer caché:", e); }
+        } catch (e) { console.error(e); }
     }
 
     // 2. SINCRONIZACIÓN (Servidor)
     try {
         const response = await fetch(API_URL);
-        const data = await response.json(); 
+        const data = await response.json(); // Se asume que tu doGet retorna { movimientos: [], categorias: [] }
 
+        // Barrera de seguridad: Validar que la respuesta sea un objeto válido
         if (!data || typeof data !== 'object') return;
 
-        // ACTUALIZAMOS EL ESTADO con plurales
+        // ACTUALIZAMOS EL ESTADO
         AppState.movimientos = data.movimientos || [];
-        AppState.categorias = data.categorias || []; 
+        AppState.categorias = data.categorias || []; // <--- AÑADE ESTO
 
         // Guardamos todo en caché
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
@@ -69,6 +67,6 @@ async function inicializarSincronizacion() {
         if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
         
     } catch (err) {
-        console.error("Error al sincronizar con servidor:", err);
+        console.error("Error al sincronizar:", err);
     }
 }
