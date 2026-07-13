@@ -120,7 +120,7 @@ function renderCategoriasConfig() {
 
 function actualizarHome() {
     // 1. LEEMOS Y NORMALIZAMOS
-    let datos = AppState.datosCache;
+    let datos = AppState.movimientos || [];
 
     // Si datos es un objeto con una propiedad que contiene la lista, extráela
     if (datos && !Array.isArray(datos) && typeof datos === 'object') {
