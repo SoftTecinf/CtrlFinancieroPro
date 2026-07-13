@@ -8,19 +8,19 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     }
 
     const filtrados = todosLosMovimientos.filter(m => {
-    if (!m.fecha) return false;
+        if (!m.fecha) return false;
 
-    // 1. Descomponemos la fecha manualmente para evitar errores de zona horaria
-    // Asumimos formato YYYY-MM-DD
-    const partes = m.fecha.split('T')[0].split('-'); 
-    const añoMov = parseInt(partes[0]);
-    const mesMov = parseInt(partes[1]) - 1; // Ajuste: 0 = Enero, 6 = Julio
-    
-    // 2. Filtramos comparando directamente los números
-    return m.tipo === tipo &&
-           mesMov === AppState.filtrosActuales.mes &&
-           añoMov === AppState.filtrosActuales.año;
-}).reverse();
+        // 1. Descomponemos la fecha manualmente para evitar errores de zona horaria
+        // Asumimos formato YYYY-MM-DD
+        const partes = m.fecha.split('T')[0].split('-');
+        const añoMov = parseInt(partes[0]);
+        const mesMov = parseInt(partes[1]) - 1; // Ajuste: 0 = Enero, 6 = Julio
+
+        // 2. Filtramos comparando directamente los números
+        return m.tipo === tipo &&
+            mesMov === AppState.filtrosActuales.mes &&
+            añoMov === AppState.filtrosActuales.año;
+    }).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
@@ -86,19 +86,17 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    
-console.log("Categorías");
+
+    console.log("Categorías");
     // 1. Obtén los elementos del DOM (¡NO el arreglo de datos!)
-    const containerIng = document.getElementById('lista-cats-ingreso'); // Asegúrate que este ID exista en tu HTML
+    console.log("Intentando buscar contenedores...");
+
+    const containerIng = document.getElementById('lista-cats-ingreso');
     const containerGas = document.getElementById('lista-cats-gasto');
 
-    // 2. Obtén la lista de datos del AppState
-    const listaCategorias = AppState.categorias || [];
-console.log("Categorías cargadas en AppState:", listaCategorias);
-    // 3. Escudo de seguridad
     if (!containerIng || !containerGas) {
-        console.warn("Contenedores de categorías no encontrados en el DOM.");
-        return;
+        console.warn("DOM no listo todavía. Esperando...");
+        return; // Aquí es donde te detienes
     }
 
     // 4. Limpieza segura de los elementos HTML
@@ -268,12 +266,12 @@ function inicializarFiltros() {
             sel.innerHTML = '';
             meses.forEach((m, i) => {
                 let opt = document.createElement('option');
-                opt.value = i; 
-                opt.innerHTML = m; 
+                opt.value = i;
+                opt.innerHTML = m;
                 sel.appendChild(opt);
             });
             sel.value = mesActual;
-            
+
             // ESCUCHA: Si el usuario cambia el mes, refrescamos la vista
             sel.addEventListener('change', () => {
                 refrescarVistaActual();
@@ -287,12 +285,12 @@ function inicializarFiltros() {
             sel.innerHTML = '';
             for (let i = añoActual; i >= añoActual - 4; i--) {
                 let opt = document.createElement('option');
-                opt.value = i; 
-                opt.innerHTML = i; 
+                opt.value = i;
+                opt.innerHTML = i;
                 sel.appendChild(opt);
             }
             sel.value = añoActual;
-            
+
             // ESCUCHA: Si el usuario cambia el año, refrescamos la vista
             sel.addEventListener('change', () => {
                 refrescarVistaActual();
