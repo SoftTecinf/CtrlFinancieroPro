@@ -148,19 +148,13 @@ function inicializarFuncionesPorSeccion(sectionId) {
 function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
+    
+    // Solo actualiza filtros si los selectores existen Y tienen un valor seleccionado
+    // Esto evita que al cambiar de página, un selector vacío reinicie tus filtros
     const seccionId = activeBtn.id;
+    const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
+    const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
 
-    let mesSel, añoSel;
-    if (seccionId === 'nav-ingresos') {
-        mesSel = document.getElementById('in-mes');
-        añoSel = document.getElementById('in-año');
-    } else if (seccionId === 'nav-gastos') {
-        mesSel = document.getElementById('ex-mes');
-        añoSel = document.getElementById('ex-año');
-    }
-
-    // 🔥 CAMBIO CRUCIAL: Solo actualizamos si el usuario interactuó 
-    // O si el selector tiene un valor válido diferente al por defecto (si aplica)
     if (mesSel && mesSel.value !== "") {
         AppState.filtrosActuales.mes = parseInt(mesSel.value);
     }
