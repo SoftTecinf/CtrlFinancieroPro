@@ -124,30 +124,42 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
-    // 1. Sincronizar DOM -> ESTADO (Solo si los selectores existen)
-    const mesSel = document.getElementById('in-mes');
-    const añoSel = document.getElementById('in-año');
-
-    if (mesSel && añoSel) {
-        AppState.filtrosActuales.mes = parseInt(mesSel.value);
-        AppState.filtrosActuales.año = parseInt(añoSel.value);
-    }
-
-    //console.log("Refrescando con:", AppState.filtrosActuales);
-
-    // 2. Identificar sección activa de forma segura
+    // 1. Identificar sección activa de forma segura primero
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
     const seccionId = activeBtn.id; // ej: 'nav-home'
 
+    // 2. Sincronizar DOM -> ESTADO leyendo los selectores de la sección activa
+    let mesSel = null;
+    let añoSel = null;
+
+    if (seccionId === 'nav-ingresos') {
+        mesSel = document.getElementById('in-mes');
+        añoSel = document.getElementById('in-año');
+    } else if (seccionId === 'nav-gastos') {
+        mesSel = document.getElementById('ex-mes');
+        añoSel = document.getElementById('ex-año');
+    } else if (seccionId === 'nav-analisis') { // Por si usas filtros en análisis o resumen
+        mesSel = document.getElementById('res-mes');
+        añoSel = document.getElementById('res-año');
+    }
+
+    // Solo si los selectores de la sección activa existen y tienen valor, actualizamos el estado
+    if (mesSel && añoSel && mesSel.value !== "" && añoSel.value !== "") {
+        AppState.filtrosActuales.mes = parseInt(mesSel.value);
+        AppState.filtrosActuales.año = parseInt(añoSel.value);
+    }
+
     // 3. Pintar según la sección detectada
     if (seccionId === 'nav-home') {
         actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
-        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'contador-ingresos');
+        // CORRECCIÓN: Ajusté los IDs de los contadores para que empaten con tu ui.js anterior ('count-in')
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'contador-gastos');
+        // CORRECCIÓN: Ajusté los IDs de los contadores para que empaten con tu ui.js anterior ('count-ex')
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 }
 
