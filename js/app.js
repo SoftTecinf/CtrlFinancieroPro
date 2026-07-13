@@ -12,40 +12,39 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. CARGA DE INTERFAZ PRIMERO
+    // 1. CARGA DE INTERFAZ
     await showSection('home');
 
     // 2. RECUPERAR ESTADO
     const savedState = localStorage.getItem('financiero_state');
-    const ahora = new Date(); // Obtenemos la fecha real HOY
+    const ahora = new Date(); 
 
     if (savedState) {
         const parsed = JSON.parse(savedState);
         AppState.datosCache = parsed.movimientos || [];
-
-        // 🔥 SOLUCIÓN: Solo recuperamos filtros si existen, 
-        // PERO si el mes guardado es "antiguo" o erróneo, forzamos la fecha actual.
+        // Solo cargamos filtros guardados si existen
         if (parsed.filtros) {
             AppState.filtrosActuales = parsed.filtros;
         }
     }
 
-    // 3. CONFIGURACIÓN DE UI (Ahora que showSection ya inyectó el HTML)
+    // 3. CONFIGURACIÓN INICIAL
     const userDisplayEl = document.getElementById('user-display');
     if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-    inicializarFiltros();
+    // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
+    inicializarFiltros(); 
+    
+    // Forzamos el estado a la fecha actual del sistema
+    AppState.filtrosActuales.mes = ahora.getMonth(); 
+    AppState.filtrosActuales.año = ahora.getFullYear();
+
     configurarEventosFiltros();
 
-    // 4. ASEGURAR FILTROS (Forzamos Julio 2026 siempre al abrir)
+    // 5. SINCRONIZAR UI CON ESTADO (Declaramos variables UNA SOLA VEZ)
     const mesSelect = document.getElementById('in-mes');
     const añoSelect = document.getElementById('in-año');
-    if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
-    if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
-
-    // 5. SINCRONIZAR UI CON ESTADO
-    const mesSelect = document.getElementById('in-mes');
-    const añoSelect = document.getElementById('in-año');
+    
     if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
     if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
 
@@ -54,7 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
-        //console.log("Datos frescos sincronizados");
         refrescarVistaActual();
     });
 });
