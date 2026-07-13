@@ -143,7 +143,6 @@ function refrescarVistaActual() {
 
     if (seccionId === 'nav-ingresos') {
         mesSel = document.getElementById('in-mes');
-        console.error(mesSel);
         añoSel = document.getElementById('in-año');
     } else if (seccionId === 'nav-gastos') {
         mesSel = document.getElementById('ex-mes');
