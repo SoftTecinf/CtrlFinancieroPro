@@ -143,6 +143,7 @@ function refrescarVistaActual() {
 
     if (seccionId === 'nav-ingresos') {
         mesSel = document.getElementById('in-mes');
+        console.error(mesSel);
         añoSel = document.getElementById('in-año');
     } else if (seccionId === 'nav-gastos') {
         mesSel = document.getElementById('ex-mes');
@@ -166,7 +167,7 @@ function refrescarVistaActual() {
     }
 }
 
-function configurarEventosFiltros() {
+/*function configurarEventosFiltros() {
     const ids = ['in-mes', 'in-año'];
     ids.forEach(id => {
         const el = document.getElementById(id);
@@ -179,7 +180,7 @@ function configurarEventosFiltros() {
             clone.addEventListener('change', () => refrescarVistaActual());
         }
     });
-}
+}*/
 
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
