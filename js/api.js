@@ -37,28 +37,39 @@ async function FetchAPI(action, extraData = {}) {
 
 // En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
+    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado de la última vez
+    const guardado = localStorage.getItem('financiero_state');
+    if (guardado) {
+        AppState = JSON.parse(guardado);
+        
+        // Pintamos la pantalla de inicio y la vista actual de inmediato
+        if (typeof actualizarHome === 'function') actualizarHome();
+        if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+        console.log("Carga instantánea desde caché lista.");
+    }
+
+    // 2. SINCRONIZACIÓN SILENCIOSA: Vamos a Google Sheets en segundo plano
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
 
-        // 1. Extraemos los datos
         let lista = data.movimientos || data;
-        
-
-        // 2. BARRERA DE SEGURIDAD (Aquí arreglamos el error)
-        // Si lista NO es un arreglo, mostramos una alerta y lo convertimos a un arreglo vacío
         if (!Array.isArray(lista)) {
-           // console.warn("⚠️ Advertencia: La API no devolvió un arreglo. Se recibió:", data);
-            lista = []; // Esto evita que .filter() truene
+            lista = []; 
         }
         
-        // 3. Ahora el filtro es 100% seguro
         AppState.datosCache = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
 
+        // Guardamos los datos más frescos en el almacenamiento
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        //console.log("✅ Sincronización exitosa. Registros cargados:", AppState.datosCache.length);
+        
+        // 3. ACTUALIZACIÓN INVISIBLE: Refrescamos la pantalla con los datos nuevos
+        if (typeof actualizarHome === 'function') actualizarHome();
+        if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+        
+        console.log("✅ Sincronización en segundo plano completada con éxito.");
         
     } catch (err) {
-        console.error("❌ Error al sincronizar:", err);
+        console.error("❌ Error al sincronizar con Google Sheets:", err);
     }
 }
