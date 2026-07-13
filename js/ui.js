@@ -15,7 +15,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
         // Si la fecha es inválida, el filtro la ignora (no la rompe)
         if (isNaN(fechaMov.getTime())) return false;
-        
+
         return m.tipo === tipo &&
             fechaMov.getMonth() === AppState.filtrosActuales.mes &&
             fechaMov.getFullYear() === AppState.filtrosActuales.año;
@@ -121,12 +121,12 @@ function actualizarHome() {
     // Si datos es un objeto con una propiedad que contiene la lista, extráela
     if (datos && !Array.isArray(datos) && typeof datos === 'object') {
         // Busca si tiene una propiedad llamada 'movimientos' o similares
-        datos = datos.movimientos || Object.values(datos); 
+        datos = datos.movimientos || Object.values(datos);
     }
-    
+
     // Si sigue sin ser array, forzamos array vacío
     if (!Array.isArray(datos)) {
-       // console.error("Los datos recibidos no son un array:", datos);
+        // console.error("Los datos recibidos no son un array:", datos);
         datos = [];
     }
 
@@ -135,32 +135,32 @@ function actualizarHome() {
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-   // console.log("Estructura de datos recibida:", datos);
+    // console.log("Estructura de datos recibida:", datos);
     datos.forEach(m => {
-    // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
-    if (!m || typeof m.monto === 'undefined') {
-       // console.warn("Registro ignorado por falta de datos:", m);
-        return; 
-    }
-
-    // 2. Normalización del monto (asegurar que sea número)
-    const monto = parseFloat(m.monto) || 0;
-    const val = m.tipo === 'ingreso' ? monto : -monto;
-    
-    // 3. Cálculos de balance
-    balG += val;
-    if (m.fecha === hoyStr) balD += val;
-
-    // 4. Cálculos de mes (Asegurando fecha válida)
-    const mF = new Date(m.fecha + 'T00:00:00');
-    // Verificamos que la fecha sea válida antes de comparar
-    if (!isNaN(mF.getTime())) {
-        if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-            if (m.tipo === 'ingreso') ingM += monto; 
-            else gasM += monto;
+        // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
+        if (!m || typeof m.monto === 'undefined') {
+            // console.warn("Registro ignorado por falta de datos:", m);
+            return;
         }
-    }
-});
+
+        // 2. Normalización del monto (asegurar que sea número)
+        const monto = parseFloat(m.monto) || 0;
+        const val = m.tipo === 'ingreso' ? monto : -monto;
+
+        // 3. Cálculos de balance
+        balG += val;
+        if (m.fecha === hoyStr) balD += val;
+
+        // 4. Cálculos de mes (Asegurando fecha válida)
+        const mF = new Date(m.fecha + 'T00:00:00');
+        // Verificamos que la fecha sea válida antes de comparar
+        if (!isNaN(mF.getTime())) {
+            if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
+                if (m.tipo === 'ingreso') ingM += monto;
+                else gasM += monto;
+            }
+        }
+    });
 
     // 3. Actualización de texto
     const updates = [
@@ -253,6 +253,10 @@ function inicializarFiltros() {
     const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
     const mesActual = new Date().getMonth(); // 6 para Julio
+
+    if (document.getElementById('in-mes')) {
+        document.getElementById('in-mes').value = mesActual;
+    }
 
     [idsMes, idsAnio].forEach((list, idx) => {
         list.forEach(id => {
