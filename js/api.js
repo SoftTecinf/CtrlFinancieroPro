@@ -39,6 +39,7 @@ async function FetchAPI(action, extraData = {}) {
 async function inicializarSincronizacion() {
     // 1. CARGA INSTANTÁNEA: Leemos el caché guardado de inmediato
     const guardado = localStorage.getItem('financiero_state');
+    
     if (guardado) {
         try {
             Object.assign(AppState, JSON.parse(guardado));
