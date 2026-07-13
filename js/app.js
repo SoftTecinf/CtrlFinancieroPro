@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
-        console.log("Datos frescos sincronizados");
+        //console.log("Datos frescos sincronizados");
         refrescarVistaActual();
     });
 });
@@ -95,7 +95,7 @@ async function showSection(sectionId) {
                 // D. SINCRONIZACIÓN DE EMERGENCIA
                 // Si datosCache está vacío, intentamos re-sincronizar antes de pintar
                 if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
-                    console.log("Datos vacíos detectados, forzando fetch...");
+                   // console.log("Datos vacíos detectados, forzando fetch...");
                     inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
                 } else {
                     inicializarFuncionesPorSeccion(sectionId);
@@ -133,7 +133,7 @@ function refrescarVistaActual() {
         AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
 
-    console.log("Refrescando con:", AppState.filtrosActuales);
+    //console.log("Refrescando con:", AppState.filtrosActuales);
 
     // 2. Identificar sección activa de forma segura
     const activeBtn = document.querySelector('.nav-active');
