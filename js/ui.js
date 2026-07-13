@@ -10,16 +10,20 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // Supongamos que m.fecha es "2026-07-08"
-        // Usamos el índice 5 y 6 para extraer el mes: "07"
-        const mesExtraido = parseInt(m.fecha.split('-')[1]) - 1;
-        const añoExtraido = parseInt(m.fecha.split('-')[0]);
+        // 1. Obtenemos el objeto fecha
+        const d = new Date(m.fecha);
 
-        console.log(`Debug: Fecha='${m.fecha}' -> Mes=${mesExtraido}, Año=${añoExtraido}`);
+        // 2. EXTRAEMOS LOS DATOS DE FORMA SEGURA
+        // Usamos el año y mes para comparar, ignorando el formato de string
+        const añoMov = d.getFullYear();
+        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
+
+        // Debug para verificar
+        console.log(`Fecha recibida: ${m.fecha} | Mes detectado: ${mesMov}, Año: ${añoMov}`);
 
         return m.tipo === tipo &&
-            mesExtraido === AppState.filtrosActuales.mes &&
-            añoExtraido === AppState.filtrosActuales.año;
+            mesMov === AppState.filtrosActuales.mes &&
+            añoMov === AppState.filtrosActuales.año;
     }).reverse();
     // --------------------------------------
 
