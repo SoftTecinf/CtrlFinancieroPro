@@ -21,6 +21,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const parsed = JSON.parse(savedState);
         AppState.datosCache = parsed.movimientos || [];
         if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
+    } const savedState = localStorage.getItem('financiero_state');
+    const ahora = new Date(); // Obtenemos la fecha real HOY
+
+    if (savedState) {
+        const parsed = JSON.parse(savedState);
+        AppState.datosCache = parsed.movimientos || [];
+
+        // 🔥 SOLUCIÓN: Solo recuperamos filtros si existen, 
+        // PERO si el mes guardado es "antiguo" o erróneo, forzamos la fecha actual.
+        if (parsed.filtros) {
+            AppState.filtrosActuales = parsed.filtros;
+        }
     }
 
     // 3. CONFIGURACIÓN DE UI (Ahora que showSection ya inyectó el HTML)
@@ -30,12 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     inicializarFiltros();
     configurarEventosFiltros();
 
-    // 4. ASEGURAR FILTROS
-    const ahora = new Date();
-    if (!savedState || AppState.filtrosActuales.mes === undefined) {
-        AppState.filtrosActuales.mes = ahora.getMonth();
-        AppState.filtrosActuales.año = ahora.getFullYear();
-    }
+    // 4. ASEGURAR FILTROS (Forzamos Julio 2026 siempre al abrir)
+    AppState.filtrosActuales.mes = ahora.getMonth(); // 6 (Julio)
+    AppState.filtrosActuales.año = ahora.getFullYear(); // 2026
 
     // 5. SINCRONIZAR UI CON ESTADO
     const mesSelect = document.getElementById('in-mes');
@@ -95,7 +104,7 @@ async function showSection(sectionId) {
                 // D. SINCRONIZACIÓN DE EMERGENCIA
                 // Si datosCache está vacío, intentamos re-sincronizar antes de pintar
                 if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
-                   // console.log("Datos vacíos detectados, forzando fetch...");
+                    // console.log("Datos vacíos detectados, forzando fetch...");
                     inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
                 } else {
                     inicializarFuncionesPorSeccion(sectionId);
@@ -145,7 +154,7 @@ function refrescarVistaActual() {
         AppState.filtrosActuales.mes = parseInt(mesSel.value);
         AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
-    
+
     // 3. Pintar según la sección detectada
     if (seccionId === 'nav-home') {
         actualizarHome();
