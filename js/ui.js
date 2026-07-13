@@ -249,40 +249,43 @@ function toggleLoading(show) {
 
 function inicializarFiltros() {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const idsAnio = ['in-año', 'ex-año', 'res-año'];
-    const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
-    const mesActual = new Date().getMonth(); // 6 para Julio
+    const mesActual = new Date().getMonth(); // Esto devolverá 6 (Julio)
 
-    if (document.getElementById('in-mes')) {
-        document.getElementById('in-mes').value = mesActual;
-    }
+    // IDs de tus selectores
+    const selectsMes = ['in-mes', 'ex-mes', 'res-mes'];
+    const selectsAnio = ['in-año', 'ex-año', 'res-año'];
 
-    [idsMes, idsAnio].forEach((list, idx) => {
-        list.forEach(id => {
-            const sel = document.getElementById(id);
-            if (sel) {
-                sel.innerHTML = '';
-                if (idx === 0) {
-                    meses.forEach((m, i) => {
-                        let opt = document.createElement('option');
-                        opt.value = i; opt.innerHTML = m; sel.appendChild(opt);
-                    });
-                    // CORRECCIÓN: Forzamos al select a posicionarse visualmente en el mes actual
-                    sel.value = mesActual;
-                } else {
-                    for (let i = añoActual; i >= añoActual - 4; i--) {
-                        let opt = document.createElement('option');
-                        opt.value = i; opt.innerHTML = i; sel.appendChild(opt);
-                    }
-                    // CORRECCIÓN: Forzamos al select a posicionarse visualmente en el año actual
-                    sel.value = añoActual;
-                }
-            }
-        });
+    // 1. Llenamos los selects y los dejamos marcados en el mes/año actual
+    selectsMes.forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) {
+            sel.innerHTML = '';
+            meses.forEach((m, i) => {
+                let opt = document.createElement('option');
+                opt.value = i; 
+                opt.innerHTML = m; 
+                sel.appendChild(opt);
+            });
+            sel.value = mesActual; // <--- ESTO ES LO QUE FALTABA
+        }
     });
 
-    // Sincronizamos el estado con lo que acabamos de dibujar
+    selectsAnio.forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) {
+            sel.innerHTML = '';
+            for (let i = añoActual; i >= añoActual - 4; i--) {
+                let opt = document.createElement('option');
+                opt.value = i; 
+                opt.innerHTML = i; 
+                sel.appendChild(opt);
+            }
+            sel.value = añoActual; // <--- ESTO ES LO QUE FALTABA
+        }
+    });
+
+    // 2. Aseguramos que el AppState tenga lo mismo que los selectores
     AppState.filtrosActuales.mes = mesActual;
     AppState.filtrosActuales.año = añoActual;
 }
