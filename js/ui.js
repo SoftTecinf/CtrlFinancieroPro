@@ -86,17 +86,15 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-
-    console.log("Categorías");
-    // 1. Obtén los elementos del DOM (¡NO el arreglo de datos!)
-    console.log("Intentando buscar contenedores...");
+    // Asegúrate de que esta línea exista DENTRO de la función
+    const listaCategorias = AppState.categorias || [];
 
     const containerIng = document.getElementById('lista-cats-ingreso');
     const containerGas = document.getElementById('lista-cats-gasto');
 
     if (!containerIng || !containerGas) {
-        console.warn("DOM no listo todavía. Esperando...");
-        return; // Aquí es donde te detienes
+        console.warn("DOM no listo todavía.");
+        return;
     }
 
     // 4. Limpieza segura de los elementos HTML
