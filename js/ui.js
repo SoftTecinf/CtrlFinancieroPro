@@ -1,25 +1,27 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-    
-    // Aseguramos que los filtros tengan valores numéricos válidos
-    const mesFiltro = parseInt(AppState.filtrosActuales.mes);
-    const añoFiltro = parseInt(AppState.filtrosActuales.año);
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // Limpiamos la fecha: forzamos el formato YYYY-MM-DD
-        const d = new Date(m.fecha.replace(/-/g, '/')); 
-        const añoMov = d.getFullYear();
-        const mesMov = d.getMonth(); // 0-11
+        // --- AQUÍ HACES EL CAMBIO ---
+        // 1. Extraemos año y mes manualmente
+        const fechaPartes = m.fecha.split('-'); 
+        const añoMov = parseInt(fechaPartes[0]);
+        const mesMov = parseInt(fechaPartes[1]) - 1; // Ajuste a base 0
 
-        // Log de depuración para ver qué está pasando
-        console.log(`Comparando: Movimiento=${mesMov}/${añoMov} vs Filtro=${mesFiltro}/${añoFiltro}`);
+        // 2. Comparamos con tus filtros actuales
+        const esMismoMes = mesMov === AppState.filtrosActuales.mes;
+        const esMismoAño = añoMov === AppState.filtrosActuales.año;
 
-        return m.tipo === tipo &&
-               mesMov === mesFiltro &&
-               añoMov === añoFiltro;
+        // Debug para ver si finalmente coinciden
+        // console.log(`Debug: Mov=${mesMov}/${añoMov} vs Filtro=${AppState.filtrosActuales.mes}/${AppState.filtrosActuales.año}`);
+
+        // 3. Retornamos la condición
+        return m.tipo === tipo && esMismoMes && esMismoAño;
+        // -----------------------------
+
     }).reverse();
     // --------------------------------------
 
