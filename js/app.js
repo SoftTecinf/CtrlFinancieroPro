@@ -41,13 +41,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     configurarEventosFiltros();
 
-    // 5. SINCRONIZAR UI CON ESTADO (Declaramos variables UNA SOLA VEZ)
-    const mesSelect = document.getElementById('in-mes');
-    const añoSelect = document.getElementById('in-año');
-    
-    if (mesSelect) mesSelect.value = AppState.filtrosActuales.mes;
-    if (añoSelect) añoSelect.value = AppState.filtrosActuales.año;
+    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
+    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
+    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
 
+    selectoresMes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.mes;
+    });
+
+    selectoresAnio.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.año;
+    });
     // 6. EJECUTAR REFRESCO FINAL
     refrescarVistaActual();
 
