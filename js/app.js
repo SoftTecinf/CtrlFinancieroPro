@@ -147,11 +147,26 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    if (sectionId === 'home') { actualizarHome(); actualizarFechaHeader(); }
-    if (sectionId === 'ingresos') { actualizarSelectsCategorias(); actualizarListadoIndividual('ingreso', 'lista-ingresos', 'cont-ingresos'); }
-    if (sectionId === 'gastos') { actualizarSelectsCategorias(); actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); }
-    if (sectionId === 'analisis') { actualizarResumen(); }
-    if (sectionId === 'ajustes') { renderCategoriasConfig(); }
+    if (sectionId === 'home') { 
+        actualizarHome(); 
+        actualizarFechaHeader(); 
+    }
+    if (sectionId === 'ingresos') { 
+        actualizarSelectsCategorias(); 
+        // Cambié 'cont-ingresos' por 'count-in' para que coincida con tu HTML
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
+    }
+    if (sectionId === 'gastos') { 
+        actualizarSelectsCategorias(); 
+        // Verifica si tu HTML de gastos tiene 'cont-gastos' o 'count-ex'
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
+    }
+    if (sectionId === 'analisis') { 
+        actualizarResumen(); 
+    }
+    if (sectionId === 'ajustes') { 
+        renderCategoriasConfig(); 
+    }
 }
 
 function refrescarVistaActual() {
