@@ -37,18 +37,24 @@ async function FetchAPI(action, extraData = {}) {
 
 // En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
-    // 1. CARGA INSTANTÁNEA (Caché)
+    // 1. Carga inmediata del caché (esto evita que veas todo vacío)
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
-        try {
-            const estadoLocal = JSON.parse(guardado);
-            Object.assign(AppState, estadoLocal);
-            
-            // Refrescar UI con caché
-            if (typeof actualizarHome === 'function') actualizarHome();
-            if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
-        } catch (e) { console.error("Error al leer caché:", e); }
+        Object.assign(AppState, JSON.parse(guardado));
+        actualizarHome(); // Pinta inmediatamente con lo que hay
     }
+
+    // 2. Sincronización en segundo plano (sin borrar lo que ya pintaste)
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        // Solo actualizamos si hay cambios reales
+        if (data.movimientos) AppState.movimientos = data.movimientos;
+
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        actualizarHome(); // Refresca con datos nuevos
+    } catch (e) { console.error(e); }
 
     // 2. SINCRONIZACIÓN (Servidor)
     try {
