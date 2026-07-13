@@ -146,13 +146,19 @@ function refrescarVistaActual() {
     }
 
     // 🔥 CANDADO DE SEGURIDAD CRUCIAL:
-    // Solo si los selectores existen en la pantalla actual Y tienen un valor seleccionado,
-    // actualizamos el mes y año en el AppState. Si no existen (como en el Home), dejamos el mes intacto.
-    if (mesSel && añoSel && mesSel.value !== null && mesSel.value !== "") {
-        AppState.filtrosActuales.mes = parseInt(mesSel.value);
-        AppState.filtrosActuales.año = parseInt(añoSel.value);
+    if (mesSel && añoSel) {
+        const nuevoMes = parseInt(mesSel.value);
+        const nuevoAnio = parseInt(añoSel.value);
+        
+        // Si el valor es un número y no es NaN, actualizamos. 
+        // Si es NaN (por error de carga), ignoramos y mantenemos el valor anterior del AppState.
+        if (!isNaN(nuevoMes) && !isNaN(nuevoAnio)) {
+            AppState.filtrosActuales.mes = nuevoMes;
+            AppState.filtrosActuales.año = nuevoAnio;
+        } else {
+            console.warn("⚠️ Valores de selectores inválidos, manteniendo filtros anteriores.");
+        }
     }
-
     // 3. Pintar según la sección detectada
     if (seccionId === 'nav-home') {
         actualizarHome();
