@@ -17,11 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. RECUPERAR ESTADO
     const savedState = localStorage.getItem('financiero_state');
-    if (savedState) {
-        const parsed = JSON.parse(savedState);
-        AppState.datosCache = parsed.movimientos || [];
-        if (parsed.filtros) AppState.filtrosActuales = parsed.filtros;
-    } const savedState = localStorage.getItem('financiero_state');
     const ahora = new Date(); // Obtenemos la fecha real HOY
 
     if (savedState) {
