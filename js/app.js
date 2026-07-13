@@ -146,18 +146,25 @@ async function showSection(sectionId) {
 }
 
 // --- 3. LÓGICA DE VISTAS ---
-async function inicializarFuncionesPorSeccion(sectionId) {
-    if (sectionId === 'home') { actualizarHome(); actualizarFechaHeader(); }
-    if (sectionId === 'ingresos') { actualizarSelectsCategorias(); actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); }
-    if (sectionId === 'gastos') { actualizarSelectsCategorias(); actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); }
-    if (sectionId === 'analisis') { actualizarResumen(); }
-    
-    // --- CORRECCIÓN AQUÍ ---
+function inicializarFuncionesPorSeccion(sectionId) {
+    if (sectionId === 'home') { 
+        actualizarHome(); 
+        actualizarFechaHeader(); 
+    }
+    if (sectionId === 'ingresos') { 
+        actualizarSelectsCategorias(); 
+        // Cambié 'cont-ingresos' por 'count-in' para que coincida con tu HTML
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
+    }
+    if (sectionId === 'gastos') { 
+        actualizarSelectsCategorias(); 
+        // Verifica si tu HTML de gastos tiene 'cont-gastos' o 'count-ex'
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
+    }
+    if (sectionId === 'analisis') { 
+        actualizarResumen(); 
+    }
     if (sectionId === 'ajustes') { 
-        // Si no tenemos categorías, las pedimos antes de renderizar
-        if (!AppState.categorias || AppState.categorias.length === 0) {
-            await inicializarSincronizacion(); // Esto debe traer movimientos Y categorías
-        }
         renderCategoriasConfig(); 
     }
 }
