@@ -37,40 +37,60 @@ async function FetchAPI(action, extraData = {}) {
 
 // En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
-    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado
+    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado de inmediato
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
-        // 🔥 SOLUCIÓN AQUÍ: Inyectamos los datos en lugar de reemplazar la constante
-        Object.assign(AppState, JSON.parse(guardado));
-        
-        // Pintamos la pantalla de inicio y la vista actual de inmediato
-        if (typeof actualizarHome === 'function') actualizarHome();
-        if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-        console.log("Carga instantánea desde caché lista.");
+        try {
+            Object.assign(AppState, JSON.parse(guardado));
+            // Pintamos la pantalla con lo que ya tenemos guardado
+            if (typeof actualizarHome === 'function') actualizarHome();
+            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+            console.log("⚡ Carga instantánea desde caché lista.");
+        } catch (e) {
+            console.error("Error al parsear el localStorage inicial:", e);
+        }
     }
 
-    // 2. SINCRONIZACIÓN SILENCIOSA: Vamos a Google Sheets en segundo plano
+    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
 
+        // Extraemos la lista de movimientos de forma segura
         let lista = data.movimientos || data;
-        if (!Array.isArray(lista)) {
-            lista = []; 
+        
+        // Si la API devolvió un objeto extraño en lugar de un arreglo, intentamos rescatarlo
+        if (lista && !Array.isArray(lista) && typeof lista === 'object') {
+            lista = Object.values(lista);
+        }
+
+        // BARRERA DE SEGURIDAD CRUCIAL:
+        // Si por alguna razón NO es un arreglo válido o viene vacío, ABORTAMOS.
+        // Jamás limpiaremos el caché si la respuesta del servidor es errónea.
+        if (!Array.isArray(lista) || lista.length === 0) {
+            console.warn("⚠️ La API no devolvió registros nuevos válidos. Se mantiene el caché actual.");
+            return; // Salimos de la función sin sobreescribir el localStorage
         }
         
-        AppState.datosCache = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
+        // Si pasamos la barrera, filtramos los datos frescos
+        const datosFiltrados = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
 
-        // Guardamos los datos más frescos en el almacenamiento
-        localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        
-        // 3. ACTUALIZACIÓN INVISIBLE: Refrescamos la pantalla con los datos nuevos
-        if (typeof actualizarHome === 'function') actualizarHome();
-        if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-        
-        //console.log("✅ Sincronización en segundo plano completada con éxito.");
+        if (datosFiltrados.length > 0) {
+            // Actualizamos el caché local de forma segura
+            AppState.datosCache = datosFiltrados;
+
+            // Guardamos los datos más frescos en el almacenamiento local
+            localStorage.setItem('financiero_state', JSON.stringify(AppState));
+            
+            // 3. ACTUALIZACIÓN DE PANTALLA: Refrescamos la UI con lo nuevo de Google Sheets
+            if (typeof actualizarHome === 'function') actualizarHome();
+            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+            
+            console.log("✅ Sincronización en segundo plano exitosa. Registros actualizados.");
+        }
         
     } catch (err) {
-        console.error("❌ Error al sincronizar con Google Sheets:", err);
+        // Si falla el internet o Google Sheets tarda de más, la app sigue funcionando con el caché
+        console.error("❌ Error al sincronizar con Google Sheets en segundo plano:", err);
     }
 }
