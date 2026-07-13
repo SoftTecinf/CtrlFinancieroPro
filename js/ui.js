@@ -87,7 +87,8 @@ function actualizarSelectsCategorias() {
 
 function renderCategoriasConfig() {
     // 1. Obtén los elementos del DOM (¡NO el arreglo de datos!)
-    const containerIng = document.getElementById('lista-cats-ingreso'); // Asegúrate que este ID exista en tu HTML
+    console.log("Categorías disponibles en AppState:", AppState.categorias); // <--- ESTO TE DIRÁ LA VERDAD
+    const listaCategorias = AppState.categorias || [];
     const containerGas = document.getElementById('lista-cats-gasto');
 
     // 2. Obtén la lista de datos del AppState
