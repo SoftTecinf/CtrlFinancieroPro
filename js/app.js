@@ -175,22 +175,18 @@ function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    // Solo actualiza filtros si los selectores existen Y tienen un valor seleccionado
-    // Esto evita que al cambiar de página, un selector vacío reinicie tus filtros
     const seccionId = activeBtn.id;
+    
+    // Sincronizar filtros primero
     const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
     const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
+    if (mesSel?.value) AppState.filtrosActuales.mes = parseInt(mesSel.value);
+    if (añoSel?.value) AppState.filtrosActuales.año = parseInt(añoSel.value);
 
-    if (mesSel && mesSel.value !== "") {
-        AppState.filtrosActuales.mes = parseInt(mesSel.value);
-    }
-    if (añoSel && añoSel.value !== "") {
-        AppState.filtrosActuales.año = parseInt(añoSel.value);
-    }
-
-    // 3. Pintar según la sección detectada
+    // Pintar según la sección
     if (seccionId === 'nav-home') {
-        actualizarHome();
+        console.log("Forzando actualización de Home...");
+        actualizarHome(); 
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
