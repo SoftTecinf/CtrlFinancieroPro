@@ -86,21 +86,25 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    const contIng = AppState.categorias || [];
-    const contGas = document.getElementById('lista-cats-gasto');
+    // 1. Obtén los elementos del DOM (¡NO el arreglo de datos!)
+    const containerIng = document.getElementById('lista-cats-ingreso'); // Asegúrate que este ID exista en tu HTML
+    const containerGas = document.getElementById('lista-cats-gasto');
 
-    // Escudo: Si alguno no existe, salimos de la función sin hacer nada
-    if (!contIng || !contGas) {
-        console.warn("Contenedores de categorías no encontrados. Renderizado omitido.");
+    // 2. Obtén la lista de datos del AppState
+    const listaCategorias = AppState.categorias || [];
+
+    // 3. Escudo de seguridad
+    if (!containerIng || !containerGas) {
+        console.warn("Contenedores de categorías no encontrados en el DOM.");
         return;
     }
 
-    // Limpieza segura
-    contIng.innerHTML = '';
-    contGas.innerHTML = '';
+    // 4. Limpieza segura de los elementos HTML
+    containerIng.innerHTML = '';
+    containerGas.innerHTML = '';
 
-    // Renderizado seguro
-    categorias.forEach(c => {
+    // 5. Itera sobre la lista de datos (listaCategorias)
+    listaCategorias.forEach(c => {
         const itemHtml = `
             <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
                 <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
@@ -108,9 +112,9 @@ function renderCategoriasConfig() {
             </div>`;
 
         if (c.tipo === 'ingreso') {
-            contIng.innerHTML += itemHtml;
+            containerIng.innerHTML += itemHtml;
         } else {
-            contGas.innerHTML += itemHtml;
+            containerGas.innerHTML += itemHtml;
         }
     });
 }
