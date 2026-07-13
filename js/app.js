@@ -124,13 +124,10 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
-    // 1. Identificar sección activa de forma segura primero
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
+    const seccionId = activeBtn.id;
 
-    const seccionId = activeBtn.id; // ej: 'nav-home'
-
-    // 2. Sincronizar DOM -> ESTADO leyendo únicamente los selectores de la sección activa
     let mesSel = null;
     let añoSel = null;
 
@@ -140,25 +137,15 @@ function refrescarVistaActual() {
     } else if (seccionId === 'nav-gastos') {
         mesSel = document.getElementById('ex-mes');
         añoSel = document.getElementById('ex-año');
-    } else if (seccionId === 'nav-analisis') {
-        mesSel = document.getElementById('res-mes');
-        añoSel = document.getElementById('res-año');
     }
 
-    // 🔥 CANDADO DE SEGURIDAD CRUCIAL:
-    if (mesSel && añoSel) {
-        const nuevoMes = parseInt(mesSel.value);
-        const nuevoAnio = parseInt(añoSel.value);
-        
-        // Si el valor es un número y no es NaN, actualizamos. 
-        // Si es NaN (por error de carga), ignoramos y mantenemos el valor anterior del AppState.
-        if (!isNaN(nuevoMes) && !isNaN(nuevoAnio)) {
-            AppState.filtrosActuales.mes = nuevoMes;
-            AppState.filtrosActuales.año = nuevoAnio;
-        } else {
-            console.warn("⚠️ Valores de selectores inválidos, manteniendo filtros anteriores.");
-        }
+    // 🔥 CAMBIO CRUCIAL: Solo actualizamos si el usuario interactuó 
+    // O si el selector tiene un valor válido diferente al por defecto (si aplica)
+    if (mesSel && añoSel && mesSel.value !== "") {
+        AppState.filtrosActuales.mes = parseInt(mesSel.value);
+        AppState.filtrosActuales.año = parseInt(añoSel.value);
     }
+    
     // 3. Pintar según la sección detectada
     if (seccionId === 'nav-home') {
         actualizarHome();
