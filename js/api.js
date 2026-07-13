@@ -46,7 +46,6 @@ async function inicializarSincronizacion() {
             // Pintamos la pantalla con lo que ya tenemos guardado
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-            console.log("⚡ Carga instantánea desde caché lista.");
         } catch (e) {
             console.error("Error al parsear el localStorage inicial:", e);
         }
