@@ -1,26 +1,25 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-
-    if (todosLosMovimientos.length === 0) {
-        console.warn("No hay movimientos cargados todavía.");
-        return;
-    }
+    
+    // Aseguramos que los filtros tengan valores numéricos válidos
+    const mesFiltro = parseInt(AppState.filtrosActuales.mes);
+    const añoFiltro = parseInt(AppState.filtrosActuales.año);
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // 1. Obtenemos el objeto fecha
-        const d = new Date(m.fecha);
-
-        // 2. EXTRAEMOS LOS DATOS DE FORMA SEGURA
-        // Usamos el año y mes para comparar, ignorando el formato de string
+        // Limpiamos la fecha: forzamos el formato YYYY-MM-DD
+        const d = new Date(m.fecha.replace(/-/g, '/')); 
         const añoMov = d.getFullYear();
-        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
+        const mesMov = d.getMonth(); // 0-11
+
+        // Log de depuración para ver qué está pasando
+        console.log(`Comparando: Movimiento=${mesMov}/${añoMov} vs Filtro=${mesFiltro}/${añoFiltro}`);
 
         return m.tipo === tipo &&
-            mesMov === AppState.filtrosActuales.mes &&
-            añoMov === AppState.filtrosActuales.año;
+               mesMov === mesFiltro &&
+               añoMov === añoFiltro;
     }).reverse();
     // --------------------------------------
 
