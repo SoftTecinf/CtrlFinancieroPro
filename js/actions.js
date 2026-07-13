@@ -58,30 +58,28 @@ async function eliminarMovimiento(id) {
 }
 
 async function agregarCategoria() {
-    const inputNombre = document.getElementById('nueva-cat-nombre');
-    const inputTipo = document.getElementById('nueva-cat-tipo');
-    
-    const nom = inputNombre.value.trim().toUpperCase();
-    const tipo = inputTipo.value;
-    
+    const nom = document.getElementById('nueva-cat-nombre').value.trim().toUpperCase();
+    const tipo = document.getElementById('nueva-cat-tipo').value;
     if (!nom) return;
 
     const nuevaCat = { id: Date.now(), nombre: nom, tipo };
 
-    // 1. Enviamos al servidor
+    // Enviamos al servidor
     const res = await FetchAPI("agregarCategoria", nuevaCat);
 
     if (res.success) {
-        // 2. Limpiamos el input
-        inputNombre.value = '';
+        document.getElementById('nueva-cat-nombre').value = '';
         
-        // 3. EN LUGAR DE USAR LA VARIABLE 'categorias' (que da error), 
-        // recargamos los datos desde el servidor o actualizamos el AppState
-        await inicializarSincronizacion(); // Esto refresca tu AppState.categorias desde el servidor
+        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+        // En lugar de usar la variable 'categorias' (que no existe), 
+        // recargamos los datos desde la fuente de verdad (sincronización)
+        await inicializarSincronizacion(); 
         
-        // 4. Refrescamos la UI
-        if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
-        alert("Categoría guardada con éxito");
+        // Ahora sí, renderizamos de nuevo. 
+        // Asegúrate de que renderCategoriasConfig lea AppState.categorias
+        renderCategoriasConfig(); 
+        
+        alert("Categoría guardada");
     } else {
         alert("Error al guardar: " + res.message);
     }
