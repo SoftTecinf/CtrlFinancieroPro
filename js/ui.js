@@ -289,6 +289,7 @@ function inicializarFiltros() {
     AppState.filtrosActuales.mes = mesActual;
     AppState.filtrosActuales.año = añoActual;
 }
+
 function formatCurrency(input, hiddenId) {
     let value = input.value.replace(/\D/g, "");
     let numericValue = value ? parseFloat(value) / 100 : 0;
