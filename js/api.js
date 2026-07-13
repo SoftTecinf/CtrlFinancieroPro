@@ -37,58 +37,36 @@ async function FetchAPI(action, extraData = {}) {
 
 // En api.js, dentro de inicializarSincronizacion
 async function inicializarSincronizacion() {
-    // 1. CARGA INSTANTÁNEA: Leemos el caché guardado de inmediato
+    // 1. CARGA INSTANTÁNEA (Caché)
     const guardado = localStorage.getItem('financiero_state');
-    
     if (guardado) {
         try {
             Object.assign(AppState, JSON.parse(guardado));
-            // Pintamos la pantalla con lo que ya tenemos guardado
             if (typeof actualizarHome === 'function') actualizarHome();
-            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-        } catch (e) {
-            console.error("Error al parsear el localStorage inicial:", e);
-        }
+            if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
+        } catch (e) { console.error(e); }
     }
 
-    // 2. SINCRONIZACIÓN EN SEGUNDO PLANO
+    // 2. SINCRONIZACIÓN (Servidor)
     try {
         const response = await fetch(API_URL);
-        const data = await response.json();
+        const data = await response.json(); // Se asume que tu doGet retorna { movimientos: [], categorias: [] }
 
-        // Extraemos la lista de movimientos de forma segura
-        let lista = data.movimientos || data;
+        // Barrera de seguridad: Validar que la respuesta sea un objeto válido
+        if (!data || typeof data !== 'object') return;
+
+        // ACTUALIZAMOS EL ESTADO
+        AppState.movimientos = data.movimientos || [];
+        AppState.categorias = data.categorias || []; // <--- AÑADE ESTO
+
+        // Guardamos todo en caché
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
         
-        // Si la API devolvió un objeto extraño en lugar de un arreglo, intentamos rescatarlo
-        if (lista && !Array.isArray(lista) && typeof lista === 'object') {
-            lista = Object.values(lista);
-        }
-
-        // BARRERA DE SEGURIDAD CRUCIAL:
-        // Si por alguna razón NO es un arreglo válido o viene vacío, ABORTAMOS.
-        // Jamás limpiaremos el caché si la respuesta del servidor es errónea.
-        if (!Array.isArray(lista) || lista.length === 0) {
-            console.warn("⚠️ La API no devolvió registros nuevos válidos. Se mantiene el caché actual.");
-            return; // Salimos de la función sin sobreescribir el localStorage
-        }
-        
-        // Si pasamos la barrera, filtramos los datos frescos
-        const datosFiltrados = lista.filter(m => m && m.monto !== undefined && m.fecha !== undefined);
-
-        if (datosFiltrados.length > 0) {
-            // Actualizamos el caché local de forma segura
-            AppState.datosCache = datosFiltrados;
-
-            // Guardamos los datos más frescos en el almacenamiento local
-            localStorage.setItem('financiero_state', JSON.stringify(AppState));
-            
-            // 3. ACTUALIZACIÓN DE PANTALLA: Refrescamos la UI con lo nuevo de Google Sheets
-            if (typeof actualizarHome === 'function') actualizarHome();
-            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-        }
+        // 3. ACTUALIZACIÓN DE UI
+        if (typeof actualizarHome === 'function') actualizarHome();
+        if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
         
     } catch (err) {
-        // Si falla el internet o Google Sheets tarda de más, la app sigue funcionando con el caché
-        console.error("❌ Error al sincronizar con Google Sheets en segundo plano:", err);
+        console.error("Error al sincronizar:", err);
     }
 }
