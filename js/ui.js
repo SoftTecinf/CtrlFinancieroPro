@@ -250,13 +250,12 @@ function toggleLoading(show) {
 function inicializarFiltros() {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const añoActual = new Date().getFullYear();
-    const mesActual = new Date().getMonth(); // Esto devolverá 6 (Julio)
+    const mesActual = new Date().getMonth(); // 6 para Julio
 
-    // IDs de tus selectores
     const selectsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const selectsAnio = ['in-año', 'ex-año', 'res-año'];
 
-    // 1. Llenamos los selects y los dejamos marcados en el mes/año actual
+    // 1. Llenamos y seteamos valores
     selectsMes.forEach(id => {
         const sel = document.getElementById(id);
         if (sel) {
@@ -267,7 +266,12 @@ function inicializarFiltros() {
                 opt.innerHTML = m; 
                 sel.appendChild(opt);
             });
-            sel.value = mesActual; // <--- ESTO ES LO QUE FALTABA
+            sel.value = mesActual;
+            
+            // ESCUCHA: Si el usuario cambia el mes, refrescamos la vista
+            sel.addEventListener('change', () => {
+                refrescarVistaActual();
+            });
         }
     });
 
@@ -281,11 +285,16 @@ function inicializarFiltros() {
                 opt.innerHTML = i; 
                 sel.appendChild(opt);
             }
-            sel.value = añoActual; // <--- ESTO ES LO QUE FALTABA
+            sel.value = añoActual;
+            
+            // ESCUCHA: Si el usuario cambia el año, refrescamos la vista
+            sel.addEventListener('change', () => {
+                refrescarVistaActual();
+            });
         }
     });
 
-    // 2. Aseguramos que el AppState tenga lo mismo que los selectores
+    // 2. Sincronizamos AppState inicial
     AppState.filtrosActuales.mes = mesActual;
     AppState.filtrosActuales.año = añoActual;
 }
