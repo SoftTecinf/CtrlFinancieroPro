@@ -92,7 +92,7 @@ function renderCategoriasConfig() {
 
     // 2. Obtén la lista de datos del AppState
     const listaCategorias = AppState.categorias || [];
-
+console.log("Categorías cargadas en AppState:", listaCategorias);
     // 3. Escudo de seguridad
     if (!containerIng || !containerGas) {
         console.warn("Contenedores de categorías no encontrados en el DOM.");
