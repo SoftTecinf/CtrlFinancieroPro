@@ -6,7 +6,8 @@ let chartH, chartR;
 
 const AppState = {
     datosCache: [],
-    categorias: [], // <--- Añade esto
+    movimientos: [],      // Es bueno tenerlo definido explícitamente
+    categorias: [],       // <--- Usa plural aquí
     filtrosActuales: { busqueda: '', categoria: 'todos' }
 };
 
