@@ -67,5 +67,32 @@ async function inicializarSincronizacion() {
         
     } catch (err) {
         console.error("Error crítico en sincronización:", err);
+    }async function inicializarSincronizacion() {
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        if (!data || typeof data !== 'object') return;
+
+        // ACTUALIZAMOS EL ESTADO (Plural siempre)
+        if (data.movimientos) {
+            AppState.movimientos = data.movimientos;
+            console.log("Movimientos cargados:", AppState.movimientos.length);
+        }
+        
+        if (data.categorias) {
+            AppState.categorias = data.categorias;
+            console.log("Categorías cargadas:", AppState.categorias.length);
+        }
+
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        
+        // ACTUALIZACIÓN DE UI (Protegida)
+        if (typeof actualizarHome === 'function') actualizarHome();
+        if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
+        
+    } catch (err) {
+        console.error("Error al sincronizar:", err);
     }
+}
 }
