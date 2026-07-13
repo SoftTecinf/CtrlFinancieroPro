@@ -68,7 +68,7 @@ async function inicializarSincronizacion() {
         if (typeof actualizarHome === 'function') actualizarHome();
         if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
         
-        console.log("✅ Sincronización en segundo plano completada con éxito.");
+        //console.log("✅ Sincronización en segundo plano completada con éxito.");
         
     } catch (err) {
         console.error("❌ Error al sincronizar con Google Sheets:", err);
