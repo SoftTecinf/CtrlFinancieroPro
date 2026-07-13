@@ -1,6 +1,6 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const todosLosMovimientos = AppState.movimientos || []; 
+    const todosLosMovimientos = AppState.movimientos || [];
 
     if (todosLosMovimientos.length === 0) {
         console.warn("No hay movimientos cargados todavía.");
@@ -8,25 +8,19 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     }
 
     const filtrados = todosLosMovimientos.filter(m => {
-    if (!m.fecha) return false;
+        if (!m.fecha) return false;
 
-    // DIAGNÓSTICO: Descomenta esto para ver qué está pasando en la consola
-    // console.log("Comparando:", m.fecha, "| Tipo:", m.tipo, "vs", tipo);
+        // Supongamos que m.fecha es "2026-07-08"
+        // Usamos el índice 5 y 6 para extraer el mes: "07"
+        const mesExtraido = parseInt(m.fecha.split('-')[1]) - 1;
+        const añoExtraido = parseInt(m.fecha.split('-')[0]);
 
-    const partes = m.fecha.split('T')[0].split('-');
-    const añoMov = parseInt(partes[0]);
-    const mesMov = parseInt(partes[1]) - 1;
+        console.log(`Debug: Fecha='${m.fecha}' -> Mes=${mesExtraido}, Año=${añoExtraido}`);
 
-    const coincidenTipo = (m.tipo === tipo);
-    const coincidenMes = (mesMov === AppState.filtrosActuales.mes);
-    const coincidenAnio = (añoMov === AppState.filtrosActuales.año);
-
-    if (coincidenTipo && !coincidenMes) {
-        console.warn("Movimiento de tipo correcto, pero el mes no coincide:", mesMov, "vs", AppState.filtrosActuales.mes);
-    }
-
-    return coincidenTipo && coincidenMes && coincidenAnio;
-}).reverse();
+        return m.tipo === tipo &&
+            mesExtraido === AppState.filtrosActuales.mes &&
+            añoExtraido === AppState.filtrosActuales.año;
+    }).reverse();
     // --------------------------------------
 
     const countEl = document.getElementById(countId);
@@ -93,8 +87,8 @@ function actualizarSelectsCategorias() {
 
 function renderCategoriasConfig() {
     // 1. Define la variable DENTRO de la función
-    const listaCategorias = AppState.categorias || []; 
-    
+    const listaCategorias = AppState.categorias || [];
+
     // 2. Busca los contenedores
     const containerIng = document.getElementById('lista-cats-ingreso');
     const containerGas = document.getElementById('lista-cats-gasto');
