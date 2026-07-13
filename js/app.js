@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const inputFecha = document.getElementById('in-fecha');
-    console.error(inputFecha);
     if (inputFecha) {
         // Formato YYYY-MM-DD necesario para el input type="date"
         inputFecha.value = new Date().toISOString().split('T')[0];
