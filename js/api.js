@@ -85,8 +85,6 @@ async function inicializarSincronizacion() {
             // 3. ACTUALIZACIÓN DE PANTALLA: Refrescamos la UI con lo nuevo de Google Sheets
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-            
-            console.log("✅ Sincronización en segundo plano exitosa. Registros actualizados.");
         }
         
     } catch (err) {
