@@ -15,28 +15,27 @@ const AppState = {
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. CARGA INMEDIATA: Lo que está en localStorage (Instantáneo)
+    const ahora = new Date(); // Declarada aquí para evitar el error
+
+    // --- CARGA INSTANTÁNEA DESDE CACHÉ ---
     const savedState = localStorage.getItem('financiero_state');
     if (savedState) {
         const parsed = JSON.parse(savedState);
         AppState.movimientos = parsed.movimientos || [];
-        AppState.categorias = parsed.categorias || [];
-        // Refrescamos la UI de inmediato con lo que ya sabemos
-        if (document.querySelector('.nav-active')) {
-            refrescarVistaActual();
-        }
+        // Refrescamos UI inmediatamente para no mostrar el historial vacío
+        refrescarVistaActual();
     }
 
     // 2. CARGA DE INTERFAZ (El resto de tu lógica)
     await showSection('home');
     inicializarFiltros();
 
-    // 3. ACTUALIZACIÓN EN SEGUNDO PLANO (Sin bloquear al usuario)
-    // No usamos 'await' aquí para que la app no espere a que Sheets responda
+    // --- SINCRONIZACIÓN EN SEGUNDO PLANO ---
+    // No usamos 'await' para que la app no se bloquee esperando a Google Sheets
     inicializarSincronizacion().then(() => {
-        console.log("Datos actualizados desde servidor");
-        // Guardamos en cache después de actualizar
+        console.log("Datos sincronizados con servidor");
+        // Guardar la versión más reciente en caché
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
-        // Refrescamos solo si es necesario
         refrescarVistaActual();
     });
 
