@@ -109,99 +109,92 @@ function renderCategoriasConfig() {
     });
 }
 
+// Variable fuera de la función para persistir el gráfico
+let chartH; 
+// Variable para evitar renderizar si los datos son idénticos
+let ultimaHashDatos = ""; 
+
 function actualizarHome() {
-    // 1. LEEMOS Y NORMALIZAMOS
-    let datos = AppState.movimientos || [];
+    const datos = AppState.movimientos || [];
+    
+    // 1. MEMOIZACIÓN: Si los datos no cambiaron, no hacemos nada
+    const hashActual = JSON.stringify(datos);
+    if (hashActual === ultimaHashDatos) return;
+    ultimaHashDatos = hashActual;
 
-    // Si datos es un objeto con una propiedad que contiene la lista, extráela
-    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
-        // Busca si tiene una propiedad llamada 'movimientos' o similares
-        datos = datos.movimientos || Object.values(datos);
-    }
-
-    // Si sigue sin ser array, forzamos array vacío
-    if (!Array.isArray(datos)) {
-        // console.error("Los datos recibidos no son un array:", datos);
-        datos = [];
-    }
-
-    // 2. Cálculos (ahora seguros)
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
+    const mesActual = ahora.getMonth();
+    const añoActual = ahora.getFullYear();
+
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    // console.log("Estructura de datos recibida:", datos);
-    datos.forEach(m => {
-        // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
-        if (!m || typeof m.monto === 'undefined') {
-            // console.warn("Registro ignorado por falta de datos:", m);
-            return;
-        }
-
-        // 2. Normalización del monto (asegurar que sea número)
+    // 2. CICLO ÚNICO: Cálculos optimizados
+    for (let i = 0; i < datos.length; i++) {
+        const m = datos[i];
         const monto = parseFloat(m.monto) || 0;
-        const val = m.tipo === 'ingreso' ? monto : -monto;
+        const esIngreso = m.tipo === 'ingreso';
+        const val = esIngreso ? monto : -monto;
 
-        // 3. Cálculos de balance
         balG += val;
         if (m.fecha === hoyStr) balD += val;
 
-        // 4. Cálculos de mes (Asegurando fecha válida)
-        const mF = new Date(m.fecha + 'T00:00:00');
-        // Verificamos que la fecha sea válida antes de comparar
-        if (!isNaN(mF.getTime())) {
-            if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-                if (m.tipo === 'ingreso') ingM += monto;
-                else gasM += monto;
-            }
+        // Comparación rápida de fechas sin convertir a objeto Date si el formato es AAAA-MM-DD
+        if (m.fecha.startsWith(`${añoActual}-${String(mesActual + 1).padStart(2, '0')}`)) {
+            if (esIngreso) ingM += monto;
+            else gasM += monto;
         }
-    });
-
-    // 3. Actualización de texto
-    const updates = [
-        { id: 'balance-general', val: fMXN(balG) },
-        { id: 'balance-dia', val: fMXN(balD) },
-        { id: 'home-ingresos', val: fMXN(ingM) },
-        { id: 'home-gastos', val: fMXN(gasM) }
-    ];
-
-    updates.forEach(item => {
-        const el = document.getElementById(item.id);
-        if (el) el.innerText = item.val;
-    });
-
-    // 4. Gráfico
-    const canvas = document.getElementById('chartHome');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (chartH) chartH.destroy();
-        chartH = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ingresos', 'Gastos'],
-                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }]
-            },
-            options: { cutout: '75%', plugins: { legend: { display: false } } }
-        });
     }
 
-    // 5. Lista reciente (usamos 'datos' en lugar de 'movimientos')
+    // 3. ACTUALIZACIÓN EFICIENTE DEL DOM
+    const elementos = {
+        'balance-general': fMXN(balG),
+        'balance-dia': fMXN(balD),
+        'home-ingresos': fMXN(ingM),
+        'home-gastos': fMXN(gasM)
+    };
+    
+    for (const id in elementos) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = elementos[id];
+    }
+
+    // 4. GRÁFICO: Actualización de datos en lugar de .destroy()
+    const canvas = document.getElementById('chartHome');
+    if (canvas) {
+        if (!chartH) {
+            chartH = new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] },
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        } else {
+            chartH.data.datasets[0].data = [ingM, gasM];
+            chartH.update('none'); // Actualiza sin animaciones pesadas
+        }
+    }
+
+    // 5. LISTA RECIENTE: Fragmentos de documento (más rápido que innerHTML)
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
-        listaH.innerHTML = '';
-        // Usamos .slice() para no modificar el array original y mostramos los últimos 10
-        [...datos].reverse().slice(0, 10).forEach(m => {
-            listaH.innerHTML += `
-                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
-                    <div>
-                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                        <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
-                    </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                    </span>
-                </div>`;
+        const fragment = document.createDocumentFragment();
+        const ultimos = [...datos].reverse().slice(0, 10);
+        
+        ultimos.forEach(m => {
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
+            div.innerHTML = `
+                <div>
+                    <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                    <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
+                </div>
+                <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                    ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                </span>`;
+            fragment.appendChild(div);
         });
+        listaH.innerHTML = '';
+        listaH.appendChild(fragment);
     }
 }
 
