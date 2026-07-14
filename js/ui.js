@@ -1,32 +1,33 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
+    const cont = document.getElementById(contId);
+    
+    // --- SEGURIDAD: Si no existe el contenedor, detenemos la función aquí ---
+    if (!cont) {
+        console.warn(`El elemento con ID "${contId}" no existe en esta vista. Ignorando renderizado.`);
+        return;
+    }
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-
-        // --- ESTE ES EL CAMBIO DE SEGURIDAD ---
-        // Usamos split('-') para evitar errores de zona horaria o formatos extraños
         const fechaPartes = m.fecha.split('-'); 
         const añoMov = parseInt(fechaPartes[0]);
-        const mesMov = parseInt(fechaPartes[1]) - 1; // Ajustamos a base 0 (Enero=0, Julio=6)
+        const mesMov = parseInt(fechaPartes[1]) - 1;
 
-        // Comparamos directamente contra los filtros del AppState
         return m.tipo === tipo && 
                mesMov === AppState.filtrosActuales.mes && 
                añoMov === AppState.filtrosActuales.año;
     }).reverse();
-        // --------------------------------------
 
-    // 3. Renderizamos el conteo y la lista
+    // 3. Renderizamos el conteo
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    const cont = document.getElementById(contId);
-    if (cont) {
-        cont.innerHTML = filtrados.length === 0 
-            ? '<p class="opacity-20 text-center py-10">Sin registros.</p>' 
-            : filtrados.map(m => `...tu HTML aquí...`).join('');
+    // 4. Renderizado seguro de la lista
+    if (filtrados.length === 0) {
+        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+        return; // Salimos si no hay nada más que renderizar
     }
 
     let htmlAcumulado = '';
@@ -41,14 +42,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
                     <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
                         ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
                     </p>
-                    <div class="flex gap-1">
-                        <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
-                        </button>
-                    </div>
+                    <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
+                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                    </button>
                 </div>
             </div>`;
     });
