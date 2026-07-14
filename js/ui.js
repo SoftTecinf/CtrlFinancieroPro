@@ -1,22 +1,22 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
-    
-    // 2. Filtramos usando una lógica segura
+
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // Convertimos a fecha de forma segura
-        const d = new Date(m.fecha);
-        const añoMov = d.getFullYear();
-        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
+        // --- ESTE ES EL CAMBIO DE SEGURIDAD ---
+        // Usamos split('-') para evitar errores de zona horaria o formatos extraños
+        const fechaPartes = m.fecha.split('-'); 
+        const añoMov = parseInt(fechaPartes[0]);
+        const mesMov = parseInt(fechaPartes[1]) - 1; // Ajustamos a base 0 (Enero=0, Julio=6)
 
-        // Comparamos usando los valores extraídos
+        // Comparamos directamente contra los filtros del AppState
         return m.tipo === tipo && 
                mesMov === AppState.filtrosActuales.mes && 
                añoMov === AppState.filtrosActuales.año;
     }).reverse();
+        // --------------------------------------
 
     // 3. Renderizamos el conteo y la lista
     const countEl = document.getElementById(countId);
