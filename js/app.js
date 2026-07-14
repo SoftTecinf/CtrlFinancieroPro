@@ -39,29 +39,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- 2. CONTROL DE VISTAS ---
-let currentLoadId = 0;
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
     const loadId = ++currentLoadId;
     
-    // Feedback visual
+    // 1. Feedback visual (esto está bien)
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     document.getElementById(`nav-${sectionId}`)?.classList.add('nav-active');
 
     try {
+        // 2. Carga el HTML
         const response = await fetch(`${sectionId}.html`);
         const html = await response.text();
 
-        if (loadId !== currentLoadId) return; // Si el usuario cambió de tab rápido, ignoramos lo viejo
+        if (loadId !== currentLoadId) return;
         
         container.innerHTML = html;
 
-        // Esperamos a que el DOM esté listo
-        requestAnimationFrame(() => {
-            inicializarFuncionesPorSeccion(sectionId);
-        });
+        // 3. RE-HIDRATACIÓN:
+        // Aquí forzamos que, sin importar el tiempo, se vuelva a pintar.
+        // Además, nos aseguramos de que el estado esté actualizado antes de pintar.
+        actualizarUsuarioHeader(); // Pinta el nombre
+        inicializarFuncionesPorSeccion(sectionId);
+        
     } catch (error) {
         console.error("Error al cargar sección:", error);
     }
