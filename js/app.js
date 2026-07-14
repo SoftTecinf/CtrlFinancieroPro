@@ -4,12 +4,11 @@ let editandoId = null;
 let chartH, chartR;
 //const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-const AppState = {
-    datosCache: [],
-    movimientos: [],
-    categorias: [],
-    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
-    cargado: false // <--- NUEVA GUARDIA
+// Objeto global para almacenar los datos
+const APP_STATE = {
+    categorias: null,
+    ingresos: null,
+    gastos: null
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
