@@ -120,47 +120,34 @@ function prepararEdicion(id, tipo) {
     const mov = AppState.movimientos.find(m => m.id === id);
     if (!mov) return;
 
-    window.editandoId = id;
+    window.editandoId = id; 
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
-    // --- 1. NORMALIZACIÓN DE FECHA ---
-    // Convertimos la fecha larga a formato YYYY-MM-DD
+    // 1. Fecha
     const fechaObj = new Date(mov.fecha);
-    const fechaFormateada = fechaObj.toISOString().split('T')[0];
-    document.getElementById(`${pref}-fecha`).value = fechaFormateada;
+    document.getElementById(`${pref}-fecha`).value = fechaObj.toISOString().split('T')[0];
 
-    // --- 2. CATEGORÍA ---
-    // Aseguramos que el select tenga el valor exacto
+    // 2. Categoría - DECLARAMOS 'selectCat' SOLO UNA VEZ
     const selectCat = document.getElementById(`${pref}-categoria`);
-    // ... dentro de prepararEdicion ...
-    
-    const selectCat = document.getElementById(`${pref}-categoria`);
-    console.log("Categoría del movimiento:", mov.cat);
-    console.log("Opciones disponibles en el select:", [...selectCat.options].map(o => o.value));
+    selectCat.value = mov.cat; 
 
-    selectCat.value = mov.cat;
-    selectCat.value = mov.cat;
-
-    // --- 3. DESCRIPCIÓN Y MONTO ---
+    // 3. Descripción y Monto
     document.getElementById(`${pref}-desc`).value = mov.desc;
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
-
+    
     if (mask && hidden) {
         hidden.value = mov.monto;
-        mask.value = Number(mov.monto).toLocaleString('es-MX', {
-            style: 'currency',
-            currency: 'MXN'
-        });
+        mask.value = Number(mov.monto).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
 
-    // Feedback visual
+    // 4. Feedback
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn) {
         btn.innerText = "ACTUALIZAR REGISTRO";
         btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
-
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
