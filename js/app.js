@@ -71,36 +71,17 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS (Corregida) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    actualizarFechaHeader(); 
-    
-    // TIENE QUE IR AQUÍ para que se pinte en cuanto cargue la pantalla
+    // Siempre actualizamos el usuario (ya que lo tienes en localStorage)
     actualizarUsuarioHeader(); 
 
     if (sectionId === 'home') {
-        actualizarHome();
-    }
-    
-    if (sectionId === 'ingresos') {
-        // A. Primero inicializamos los filtros del HTML (mes y año actual)
-        // e inyectamos los valores iniciales en AppState.filtrosActuales
-        inicializarFiltros(); 
-        
-        // B. Llenamos el select de categorías específico para ingresos
-        actualizarSelectsCategorias(); 
-        
-        // C. Renderizamos el listado de movimientos filtrados
+        actualizarHome(); // Asegúrate de que esta función pinte el resumen
+    } else if (sectionId === 'ingresos') {
+        actualizarSelectsCategorias();
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    }
-    
-    if (sectionId === 'gastos') {
-        inicializarFiltros();
+    } else if (sectionId === 'gastos') {
         actualizarSelectsCategorias();
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    }
-
-    // Si tienes una sección de ajustes/configuración de categorías, añádela aquí:
-    if (sectionId === 'ajustes') {
-        renderCategoriasConfig();
     }
 }
 
