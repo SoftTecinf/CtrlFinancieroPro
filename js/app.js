@@ -179,7 +179,6 @@ function inicializarFuncionesPorSeccion(sectionId) {
     }
     // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
     else if (idLimpio === 'config') { 
-        console.log("✅ Llamando a abrirVistaAjustesInteligente()"); 
         abrirVistaAjustesInteligente(); 
     } else {
         console.log("⚠️ No se encontró la función para la sección:", idLimpio);
@@ -200,7 +199,6 @@ function refrescarVistaActual() {
 
     // Pintar según la sección
     if (seccionId === 'nav-home') {
-        console.log("Forzando actualización de Home...");
         actualizarHome(); 
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
