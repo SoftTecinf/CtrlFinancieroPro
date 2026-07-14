@@ -22,13 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (savedState) {
         const parsed = JSON.parse(savedState);
         AppState.movimientos = parsed.movimientos || [];
-        // Refrescamos UI inmediatamente para no mostrar el historial vacío
-        refrescarVistaActual();
+        AppState.categorias = parsed.categorias || [];
     }
 
     // 2. CARGA DE INTERFAZ (El resto de tu lógica)
     await showSection('home');
-    inicializarFiltros();
+    //inicializarFiltros();
 
     // --- SINCRONIZACIÓN EN SEGUNDO PLANO ---
     // No usamos 'await' para que la app no se bloquee esperando a Google Sheets
