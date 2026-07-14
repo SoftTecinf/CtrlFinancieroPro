@@ -314,11 +314,8 @@ function safeSetHTML(id, htmlContent) {
 // --- CONTROLADOR INTELIGENTE DE VISTAS ---
 // --- CONTROLADOR INTELIGENTE DE VISTAS (MODO DEBUG) ---
 async function abrirVistaAjustesInteligente() {
-    console.log("1. Entrando a Ajustes. Estado de AppState.categorias:", AppState.categorias);
-
     // 1. Verificamos si NO hay categorías
     if (!AppState.categorias || AppState.categorias.length === 0) {
-        console.log("2. Memoria vacía. Intentando descargar de Google Apps Script...");
         
         toggleLoading(true);
         
@@ -345,9 +342,7 @@ async function abrirVistaAjustesInteligente() {
             toggleLoading(false);
         }
     } else {
-        console.log("2. Las categorías ya existían en memoria, saltando descarga.");
     }
 
-    console.log("7. Ejecutando renderCategoriasConfig con los siguientes datos:", AppState.categorias);
     renderCategoriasConfig();
 }
