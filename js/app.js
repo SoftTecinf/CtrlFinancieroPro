@@ -77,17 +77,15 @@ async function showSection(sectionId) {
 function inicializarFuncionesPorSeccion(sectionId) {
     actualizarUsuarioHeader(); 
 
-    if (sectionId === 'home') {
-        actualizarHome();
-    } else if (sectionId === 'ingresos') {
-        // PASO 1: Inyectar la fecha correcta en los selectores del DOM
+    if (sectionId === 'ingresos') {
         inicializarFiltros(); 
-        // PASO 2: Ahora sí pintar la lista
+        // PASA LOS IDS COMO STRING
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (sectionId === 'gastos') {
         inicializarFiltros();
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
+    // ...
 }
 
 function refrescarVistaActual() {
