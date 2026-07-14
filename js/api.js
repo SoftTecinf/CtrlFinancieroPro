@@ -35,13 +35,7 @@ async function FetchAPI(action, extraData = {}) {
     }
 }
 
-let estaSincronizando = false; // Bandera global
-
 async function inicializarSincronizacion() {
-    // Si ya estamos sincronizando, no hagamos nada
-    if (estaSincronizando) return; 
-    estaSincronizando = true;
-
     // 1. CARGA INICIAL (Rápida desde LocalStorage)
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
@@ -56,21 +50,25 @@ async function inicializarSincronizacion() {
 
     // 2. SINCRONIZACIÓN (Fresca desde la red)
     try {
-        // En lugar de fetch directo, usa tu función FetchAPI si ya la tienes
-        // para asegurar que los headers y el método sean correctos
-        const data = await FetchAPI("obtenerDatos", {}); 
+        const response = await fetch(API_URL);
+        const data = await response.json();
 
-        if (data && data.success) {
-            AppState.movimientos = data.movimientos;
-            AppState.categorias = data.categorias;
-            localStorage.setItem('financiero_state', JSON.stringify(AppState));
-            
-            // Solo refresca si realmente hubo un cambio
-            refrescarVistaActual();
-        }
+        if (!data || typeof data !== 'object') return;
+
+        // Actualizamos estado
+        if (data.movimientos) AppState.movimientos = data.movimientos;
+        if (data.categorias) AppState.categorias = data.categorias;
+
+        // Guardamos nuevo estado
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        
+        console.log("Sincronización completa. Refrescando UI...");
+
+        // 3. ACTUALIZACIÓN FINAL DE UI
+        if (typeof actualizarHome === 'function') actualizarHome();
+        if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
+        
     } catch (err) {
-        console.error("Error al sincronizar:", err);
-    } finally {
-        estaSincronizando = false; // Liberamos para futuras peticiones
+        console.error("Error al sincronizar con red:", err);
     }
 }
