@@ -1,50 +1,68 @@
 // --- ACCIONES CON SHEETS ---
 async function guardarRegistro(tipo) {
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    btn.disabled = true; // Deshabilita el botón
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
-
+    
+    // 1. Validaciones
     if (!monto || monto <= 0) {
         alert("Por favor ingresa un monto válido.");
-        btn.disabled = false; // Importante: volver a habilitar si hay error
         return;
     }
 
-    const descInput = document.getElementById(`${pref}-desc`).value.trim().toUpperCase();
-    const idMovi = editandoId ? editandoId : Date.now();
+    // 2. Preparamos el objeto
+    const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
         tipo,
         fecha: document.getElementById(`${pref}-fecha`).value,
         cat: document.getElementById(`${pref}-categoria`).value,
-        desc: descInput || 'SIN NOMBRE',
+        desc: document.getElementById(`${pref}-desc`).value.trim().toUpperCase() || 'SIN NOMBRE',
         monto
     };
 
-    // Declaramos 'res' y hacemos la petición UNA sola vez
-    const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
+    // 3. ACTUALIZACIÓN OPTIMISTA: Modificamos AppState inmediatamente
+    const esEdicion = !!window.editandoId;
+    const estadoAnterior = [...AppState.movimientos]; // Guardamos copia por si falla
 
-    if (res.success) {
-        if (editandoId) {
-            const idx = movimientos.findIndex(m => m.id === editandoId);
-            movimientos[idx] = nuevaData;
-            editandoId = null;
-            const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (esEdicion) {
+        const idx = AppState.movimientos.findIndex(m => m.id === idMovi);
+        if (idx !== -1) AppState.movimientos[idx] = nuevaData;
+    } else {
+        AppState.movimientos.push(nuevaData);
+    }
+    
+    // Renderizamos al instante
+    refrescarVistaActual(); 
+
+    // 4. Petición en segundo plano
+    btn.disabled = true;
+    try {
+        const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
+
+        if (!res.success) throw new Error(res.message);
+
+        // Si fue éxito y era edición, limpiamos el estado de edición
+        if (esEdicion) {
+            window.editandoId = null;
             btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
             btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
-        } else {
-            movimientos.push(nuevaData);
         }
 
+        // Limpieza de campos
         document.getElementById(`${pref}-monto-mask`).value = "";
         document.getElementById(`${pref}-monto-hidden`).value = 0;
         document.getElementById(`${pref}-desc`).value = "";
-        refrescarVistaActual();
-    }
 
-    // Ya NO volvemos a declarar 'res' aquí. Solo habilitamos el botón.
-    btn.disabled = false;
+    } catch (error) {
+        // 5. REVERSIÓN SI FALLA
+        console.error("Error al guardar en servidor:", error);
+        AppState.movimientos = estadoAnterior;
+        refrescarVistaActual();
+        alert("No se pudo guardar el registro: " + error.message);
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 async function eliminarMovimiento(id) {
