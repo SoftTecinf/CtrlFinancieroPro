@@ -15,7 +15,7 @@ const AppState = {
 // --- 1. INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', async () => {
     const savedState = localStorage.getItem('financiero_state');
-    
+
     // Recuperamos el nombre de la llave que SÍ tiene el dato
     const nombreGuardado = localStorage.getItem('session_userName') || '';
 
@@ -23,9 +23,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const parsed = JSON.parse(savedState);
         AppState.movimientos = parsed.movimientos || [];
         AppState.categorias = parsed.categorias || [];
-        
+
         // FORZAMOS la asignación aquí
-        AppState.usuario = { nombre: nombreGuardado }; 
+        AppState.usuario = { nombre: nombreGuardado };
     }
 
     // B. Carga la interfaz inicial
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- 2. CONTROL DE VISTAS ---
-let currentLoadId = 0; 
+let currentLoadId = 0;
 
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
@@ -47,7 +47,7 @@ async function showSection(sectionId) {
 
     // Ahora sí podrá leer la variable de arriba
     const loadId = ++currentLoadId;
-    
+
     // 1. Feedback visual (esto está bien)
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     document.getElementById(`nav-${sectionId}`)?.classList.add('nav-active');
@@ -56,17 +56,22 @@ async function showSection(sectionId) {
         // 2. Carga el HTML
         const response = await fetch(`${sectionId}.html`);
         const html = await response.text();
-
-        if (loadId !== currentLoadId) return;
-        
         container.innerHTML = html;
+
+        // --- IMPORTANTE: Recarga el estado ANTES de renderizar nada ---
+        const savedState = localStorage.getItem('financiero_state');
+        if (savedState) {
+            const parsed = JSON.parse(savedState);
+            AppState.movimientos = parsed.movimientos || [];
+            AppState.categorias = parsed.categorias || [];
+        }
 
         // 3. RE-HIDRATACIÓN:
         // Aquí forzamos que, sin importar el tiempo, se vuelva a pintar.
         // Además, nos aseguramos de que el estado esté actualizado antes de pintar.
         actualizarUsuarioHeader(); // Pinta el nombre
         inicializarFuncionesPorSeccion(sectionId);
-        
+
     } catch (error) {
         console.error("Error al cargar sección:", error);
     }
@@ -75,10 +80,10 @@ async function showSection(sectionId) {
 // --- 3. LÓGICA DE VISTAS (Corregida) ---
 // app.js
 function inicializarFuncionesPorSeccion(sectionId) {
-    actualizarUsuarioHeader(); 
+    actualizarUsuarioHeader();
 
     if (sectionId === 'ingresos') {
-        inicializarFiltros(); 
+        inicializarFiltros();
         // PASA LOS IDS COMO STRING
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (sectionId === 'gastos') {
@@ -91,7 +96,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
 function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
-    
+
     // Identificamos sección por ID del botón activo
     const id = activeBtn.id.replace('nav-', '');
     inicializarFuncionesPorSeccion(id);
