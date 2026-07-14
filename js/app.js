@@ -175,10 +175,8 @@ function inicializarFuncionesPorSeccion(sectionId) {
     if (sectionId === 'analisis') { 
         actualizarResumen(); 
     }
-    
-    // 🔥 CAMBIO ÚNICAMENTE AQUÍ: 
     if (sectionId === 'ajustes') { 
-        // En lugar de renderCategoriasConfig(), llamamos a nuestro nuevo controlador
+        // 🔴 CAMBIO AQUÍ: Llamamos al controlador inteligente, NO a renderCategoriasConfig directo
         abrirVistaAjustesInteligente(); 
     }
 }
