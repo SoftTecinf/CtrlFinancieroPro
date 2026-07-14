@@ -33,6 +33,7 @@ async function guardarRegistro(tipo) {
     }
     
     // Renderizamos al instante
+    limpiarFormulario();
     refrescarVistaActual(); 
 
     // 4. Petición en segundo plano
@@ -260,3 +261,24 @@ function TitRepCont(ws, tit, monto, fila) { const cell = ws.getCell(`A${fila}`);
 function DatoRepCont(ws, cat, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = cat.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
 function UtiNeta(ws, tit, monto, utilidad, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = utilidad; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
 async function descargarArchivo(workbook, nombre) { const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${nombre}.xlsx`; link.click(); }
+
+function limpiarFormulario(tipo) {
+    const pref = tipo === 'ingreso' ? 'in' : 'ex';
+    
+    // Limpiar campos visuales y ocultos
+    document.getElementById(`${pref}-fecha`).value = "";
+    document.getElementById(`${pref}-categoria`).value = "";
+    document.getElementById(`${pref}-desc`).value = "";
+    document.getElementById(`${pref}-monto-mask`).value = "";
+    document.getElementById(`${pref}-monto-hidden`).value = 0;
+    
+    // Resetear el estado de edición
+    window.editandoId = null;
+    
+    // Resetear el botón a su estado original
+    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (btn) {
+        btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+        btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
+    }
+}
