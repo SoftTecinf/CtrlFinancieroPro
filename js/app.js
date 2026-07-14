@@ -71,6 +71,7 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS (Corregida) ---
 function inicializarFuncionesPorSeccion(sectionId) {
+    console.log("Renderizando sección:", sectionId, "Datos en memoria:", AppState.movimientos.length);
     // Siempre actualizamos el usuario (ya que lo tienes en localStorage)
     actualizarUsuarioHeader(); 
 
