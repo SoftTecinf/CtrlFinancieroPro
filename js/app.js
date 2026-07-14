@@ -159,25 +159,33 @@ async function showSection(sectionId) {
 }
 
 // --- 3. LÓGICA DE VISTAS ---
+// --- 3. LÓGICA DE VISTAS (EN APP.JS) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    if (sectionId === 'home') { 
+    console.log("👉 Intentando inicializar sección:", sectionId); // <-- Agrega esta línea
+
+    // Limpiamos el ID por si acaso viene con 'nav-'
+    const idLimpio = sectionId.replace('nav-', ''); 
+
+    if (idLimpio === 'home') { 
         actualizarHome(); 
         actualizarFechaHeader(); 
     }
-    if (sectionId === 'ingresos') { 
+    else if (idLimpio === 'ingresos') { 
         actualizarSelectsCategorias(); 
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
     }
-    if (sectionId === 'gastos') { 
+    else if (idLimpio === 'gastos') { 
         actualizarSelectsCategorias(); 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
     }
-    if (sectionId === 'analisis') { 
+    else if (idLimpio === 'analisis') { 
         actualizarResumen(); 
     }
-    if (sectionId === 'ajustes') { 
-        // 🔴 CAMBIO AQUÍ: Llamamos al controlador inteligente, NO a renderCategoriasConfig directo
+    else if (idLimpio === 'ajustes') { 
+        console.log("✅ Llamando a abrirVistaAjustesInteligente()"); // <-- Y esta
         abrirVistaAjustesInteligente(); 
+    } else {
+        console.log("⚠️ No se encontró la función para la sección:", idLimpio);
     }
 }
 
