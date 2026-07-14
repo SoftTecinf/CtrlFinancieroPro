@@ -2,18 +2,18 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
-
+    
     // 2. Filtramos usando tu lógica segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
-        const mesMov = d.getMonth();
+        const mesMov = d.getMonth(); 
 
-        return m.tipo === tipo &&
-            mesMov === AppState.filtrosActuales.mes &&
-            añoMov === AppState.filtrosActuales.año;
+        return m.tipo === tipo && 
+               mesMov === AppState.filtrosActuales.mes && 
+               añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
     // 3. Renderizamos el conteo
@@ -314,31 +314,33 @@ function safeSetHTML(id, htmlContent) {
 // --- CONTROLADOR INTELIGENTE DE VISTAS ---
 async function abrirVistaAjustesInteligente() {
     // 1. Verificamos si NO hay categorías
-    toggleLoading(true);
+    if (!AppState.categorias || AppState.categorias.length === 0) {
+        
+        toggleLoading(true);
+        
+        try {
+            // AQUÍ PUEDE ESTAR EL ERROR: ¿Tu API espera esto exactamente?
+            const formData = new FormData();
+            formData.append('action', 'obtenerCategorias'); 
+            
+            console.log("3. Enviando petición a la API...");
+            const req = await fetch(API_URL, { method: 'POST', body: formData });
+            const res = await req.json();
+            
+            console.log("4. Respuesta recibida de la API:", res);
 
-    try {
-        // AQUÍ PUEDE ESTAR EL ERROR: ¿Tu API espera esto exactamente?
-        const formData = new FormData();
-        formData.append('action', 'obtenerCategorias');
-
-        console.log("3. Enviando petición a la API...");
-        const req = await fetch(API_URL, { method: 'POST', body: formData });
-        const res = await req.json();
-
-        console.log("4. Respuesta recibida de la API:", res);
-
-        if (res.exito) {
-            AppState.categorias = res.datos;
-            console.log("5. Categorías guardadas exitosamente.");
-        } else {
-            console.error("6. Error en la API. Respuesta no exitosa:", res);
+            if (res.exito) {
+                AppState.categorias = res.datos;
+                console.log("5. Categorías guardadas exitosamente.");
+            } else {
+                console.error("6. Error en la API. Respuesta no exitosa:", res);
+            }
+        } catch (error) {
+            console.error("❌ ERROR CRÍTICO AL DESCARGAR:", error);
+        } finally {
+            toggleLoading(false);
         }
-    } catch (error) {
-        console.error("❌ ERROR CRÍTICO AL DESCARGAR:", error);
-    } finally {
-        toggleLoading(false);
-
-    }
+    } 
 
     renderCategoriasConfig();
 }
