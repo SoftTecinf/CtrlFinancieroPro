@@ -20,9 +20,9 @@ async function FetchAPI(action, extraData = {}) {
         // 2. Intentamos parsear la respuesta
         const data = await response.json();
 
-        if (!data.success) {
+        /*if (!data.success) {
             alert("Error: " + (data.message || "Sin mensaje de error"));
-        }
+        }*/
         return data;
 
     } catch (error) {
