@@ -301,3 +301,11 @@ function safeSetHTML(id, htmlContent) {
     }
 }
 
+function actualizarUsuarioHeader() {
+    const nombreEl = document.getElementById('user-display');
+    if (nombreEl) {
+        // Buscamos directamente en el Storage donde SÍ está el dato
+        const nombreReal = localStorage.getItem('session_userName');
+        nombreEl.innerText = nombreReal || 'Invitado';
+    }
+}
