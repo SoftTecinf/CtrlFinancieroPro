@@ -1,56 +1,57 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const todosLosMovimientos = AppState.movimientos || [];
     const cont = document.getElementById(contId);
+    if (!cont) return; // Seguridad
 
-    // --- SEGURIDAD: Si no existe el contenedor, detenemos la función aquí ---
-    if (!cont) {
-        console.warn(`El elemento con ID "${contId}" no existe en esta vista. Ignorando renderizado.`);
-        return;
-    }
+    const todos = AppState.movimientos || [];
+    const mesFiltro = AppState.filtrosActuales.mes;
+    const añoFiltro = AppState.filtrosActuales.año;
 
-    const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
-        const fechaMov = new Date(m.fecha);
-        const añoMov = fechaMov.getFullYear();
-        const mesMov = fechaMov.getMonth();
+    // 1. FILTRADO RÁPIDO (Evitamos crear miles de objetos Date)
+    // Suponiendo que m.fecha viene como "YYYY-MM-DD"
+    const filtrados = todos.filter(m => {
+        if (!m.tipo || m.tipo !== tipo) return false;
+        
+        // Extraemos fecha sin crear objeto Date si es posible
+        const partes = m.fecha.split('-'); // ["2026", "07", "08"]
+        const añoMov = parseInt(partes[0]);
+        const mesMov = parseInt(partes[1]) - 1; 
 
-        // Ahora el filtro funcionará igual que en el Home:
-        return m.tipo === tipo &&
-            mesMov === AppState.filtrosActuales.mes &&
-            añoMov === AppState.filtrosActuales.año;
+        return mesMov === mesFiltro && añoMov === añoFiltro;
     }).reverse();
 
-    // 3. Renderizamos el conteo
+    // 2. CONTEO
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // 4. Renderizado seguro de la lista
+    // 3. RENDERIZADO CON FRAGMENT (Mucho más rápido que innerHTML acumulado)
     if (filtrados.length === 0) {
         cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-        return; // Salimos si no hay nada más que renderizar
+        return;
     }
 
-    let htmlAcumulado = '';
+    const fragment = document.createDocumentFragment();
     filtrados.forEach(m => {
-        htmlAcumulado += `
-            <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
-                    <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha.split('T')[0]} | ${m.cat || 'General'}</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                    </p>
-                    <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
-                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
-                    </button>
-                </div>
+        const div = document.createElement('div');
+        div.className = "p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm";
+        div.innerHTML = `
+            <div class="flex-1">
+                <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
+                <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha} | ${m.cat || 'General'}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                    ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                </p>
+                <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                </button>
             </div>`;
+        fragment.appendChild(div);
     });
 
-    cont.innerHTML = htmlAcumulado;
+    cont.innerHTML = ''; // Limpiamos una sola vez
+    cont.appendChild(fragment); // Añadimos todo el bloque de una vez
 }
 
 function actualizarSelectsCategorias() {
