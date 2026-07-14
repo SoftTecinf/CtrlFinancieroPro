@@ -45,7 +45,6 @@ async function inicializarSincronizacion() {
         try {
             const cache = JSON.parse(guardado);
             Object.assign(AppState, cache);
-            console.log("Cargado desde caché...");
             // Renderizamos inmediato para que el usuario vea algo al abrir
             if (typeof actualizarHome === 'function') actualizarHome();
         } catch (e) { console.error("Error al leer caché:", e); }
@@ -65,8 +64,6 @@ async function inicializarSincronizacion() {
         // Guardamos nuevo estado
         localStorage.setItem('financiero_state', JSON.stringify(AppState));
         
-        console.log("Sincronización completa. Refrescando UI...");
-
         // 3. ACTUALIZACIÓN FINAL DE UI
         if (typeof actualizarHome === 'function') actualizarHome();
         if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
