@@ -6,6 +6,7 @@ window.chartH = null;
 window.chartR = null;
 
 const AppState = {
+    usuario: { nombre: '' }, // <-- Agregamos esta línea
     movimientos: [],
     categorias: [],
     filtrosActuales: { busqueda: '', categoria: 'todos', mes: new Date().getMonth(), año: new Date().getFullYear() }
@@ -17,6 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const savedState = localStorage.getItem('financiero_state');
     if (savedState) {
         const parsed = JSON.parse(savedState);
+        // Rescatamos el usuario
+        AppState.usuario = parsed.usuario || { nombre: '' }; 
         AppState.movimientos = parsed.movimientos || [];
         AppState.categorias = parsed.categorias || [];
     }
