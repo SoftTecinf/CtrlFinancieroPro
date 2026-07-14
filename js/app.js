@@ -126,11 +126,13 @@ async function showSection(sectionId) {
                 }
 
                 // D. SINCRONIZACIÓN DE DATOS
-                if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
-                    inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
-                } else {
+                setTimeout(() => {
+                    // ELIMINA EL BLOQUE 'if (AppState.datosCache.length === 0 ...)'
+                    // Y déjalo simplemente así:
                     inicializarFuncionesPorSeccion(sectionId);
-                }
+
+                    if (typeof toggleLoading === 'function') toggleLoading(false);
+                }, 50);
 
                 if (typeof toggleLoading === 'function') toggleLoading(false);
             }, 50);
