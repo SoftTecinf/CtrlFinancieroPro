@@ -1,24 +1,16 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const cont = document.getElementById(contId);
-    if (!cont) return; // Seguridad
+    const lista = document.getElementById(listaId);
+    if (!lista) return;
 
-    const todos = AppState.movimientos || [];
-    const mesFiltro = AppState.filtrosActuales.mes;
-    const añoFiltro = AppState.filtrosActuales.año;
+    // Usamos los filtros que están en el AppState
+    const { mes, año } = AppState.filtrosActuales;
 
-    // 1. FILTRADO RÁPIDO (Evitamos crear miles de objetos Date)
-    const filtrados = todos.filter(m => {
-        if (!m.tipo || m.tipo !== tipo) return false;
-        if (!m.fecha || !m.fecha.includes('-')) return true;
-
-        const partes = m.fecha.split('-');
-        const añoMov = parseInt(partes[0]);
-        const mesMov = parseInt(partes[1]) - 1;
-
-        // DOBLE IGUAL para ignorar si uno es string "6" y el otro es número 6
-        return mesMov == mesFiltro && añoMov == añoFiltro;
-    }).reverse();
+    const filtrados = AppState.movimientos.filter(m => {
+        const [añoM, mesM] = m.fecha.split('-').map(Number);
+        // Comparación flexible (usando == en lugar de ===)
+        return m.tipo == tipo && (mesM - 1) == mes && añoM == año;
+    });
 
     // 2. CONTEO
     const countEl = document.getElementById(countId);
