@@ -8,19 +8,15 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const añoFiltro = AppState.filtrosActuales.año;
 
     // 1. FILTRADO RÁPIDO (Evitamos crear miles de objetos Date)
-    // Suponiendo que m.fecha viene como "YYYY-MM-DD"
-   // 1. FILTRADO RÁPIDO
     const filtrados = todos.filter(m => {
         if (!m.tipo || m.tipo !== tipo) return false;
-        
-        // Salvavidas: si por algún error de captura la fecha no trae guiones, mostramos el registro
-        if (!m.fecha || !m.fecha.includes('-')) return true; 
+        if (!m.fecha || !m.fecha.includes('-')) return true;
 
-        const partes = m.fecha.split('-'); // ["2026", "07", "08"]
+        const partes = m.fecha.split('-');
         const añoMov = parseInt(partes[0]);
-        const mesMov = parseInt(partes[1]) - 1; 
+        const mesMov = parseInt(partes[1]) - 1;
 
-        // CAMBIO CLAVE: Usamos == (doble igual) para evitar errores de Texto vs Número
+        // DOBLE IGUAL para ignorar si uno es string "6" y el otro es número 6
         return mesMov == mesFiltro && añoMov == añoFiltro;
     }).reverse();
 
@@ -115,11 +111,11 @@ function renderCategoriasConfig() {
 }
 
 // Variable para evitar renderizar si los datos son idénticos
-let ultimaHashDatos = ""; 
+let ultimaHashDatos = "";
 
 function actualizarHome() {
     const datos = AppState.movimientos || [];
-    
+
     // 1. MEMOIZACIÓN: Si los datos no cambiaron, no hacemos nada
     const hashActual = JSON.stringify(datos);
     if (hashActual === ultimaHashDatos) return;
@@ -156,7 +152,7 @@ function actualizarHome() {
         'home-ingresos': fMXN(ingM),
         'home-gastos': fMXN(gasM)
     };
-    
+
     for (const id in elementos) {
         const el = document.getElementById(id);
         if (el) el.innerText = elementos[id];
@@ -182,7 +178,7 @@ function actualizarHome() {
     if (listaH) {
         const fragment = document.createDocumentFragment();
         const ultimos = [...datos].reverse().slice(0, 10);
-        
+
         ultimos.forEach(m => {
             const div = document.createElement('div');
             div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
