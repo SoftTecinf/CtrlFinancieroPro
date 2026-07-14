@@ -166,19 +166,20 @@ function inicializarFuncionesPorSeccion(sectionId) {
     }
     if (sectionId === 'ingresos') { 
         actualizarSelectsCategorias(); 
-        // Cambié 'cont-ingresos' por 'count-in' para que coincida con tu HTML
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
     }
     if (sectionId === 'gastos') { 
         actualizarSelectsCategorias(); 
-        // Verifica si tu HTML de gastos tiene 'cont-gastos' o 'count-ex'
         actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
     }
     if (sectionId === 'analisis') { 
         actualizarResumen(); 
     }
+    
+    // 🔥 CAMBIO ÚNICAMENTE AQUÍ: 
     if (sectionId === 'ajustes') { 
-        renderCategoriasConfig(); 
+        // En lugar de renderCategoriasConfig(), llamamos a nuestro nuevo controlador
+        abrirVistaAjustesInteligente(); 
     }
 }
 
