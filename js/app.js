@@ -1,108 +1,207 @@
 // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
 const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
-
-// Usamos window.variable para evitar el error "already been declared"
-window.chartH = null;
-window.chartR = null;
+let editandoId = null;
+let chartH, chartR;
+//const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 const AppState = {
-    usuario: { nombre: '' }, // <-- Agregamos esta línea
+    datosCache: [],
     movimientos: [],
     categorias: [],
-    filtrosActuales: { busqueda: '', categoria: 'todos', mes: new Date().getMonth(), año: new Date().getFullYear() }
+    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
+    cargado: false // <--- NUEVA GUARDIA
 };
 
-// --- 1. INICIALIZACIÓN ---
+// --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    const savedState = localStorage.getItem('financiero_state');
+    // 1. CARGA DE INTERFAZ
+    await showSection('home');
 
-    // Recuperamos el nombre de la llave que SÍ tiene el dato
-    const nombreGuardado = localStorage.getItem('session_userName') || '';
+    // 2. RECUPERAR ESTADO
+    const savedState = localStorage.getItem('financiero_state');
+    const ahora = new Date();
 
     if (savedState) {
         const parsed = JSON.parse(savedState);
-        AppState.movimientos = parsed.movimientos || [];
-        AppState.categorias = parsed.categorias || [];
-
-        // FORZAMOS la asignación aquí
-        AppState.usuario = { nombre: nombreGuardado };
+        AppState.datosCache = parsed.movimientos || [];
+        // Solo cargamos filtros guardados si existen
+        if (parsed.filtros) {
+            AppState.filtrosActuales = parsed.filtros;
+        }
     }
 
-    // B. Carga la interfaz inicial
-    await showSection('home');
+    // 3. CONFIGURACIÓN INICIAL
+    const userDisplayEl = document.getElementById('user-display');
+    if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-    // C. Sincronización única (Sin bloquear la UI)
+    // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
+    inicializarFiltros();
+
+    // Forzamos el estado a la fecha actual del sistema
+    AppState.filtrosActuales.mes = ahora.getMonth();
+    AppState.filtrosActuales.año = ahora.getFullYear();
+
+    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
+    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
+    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
+
+    selectoresMes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.mes;
+    });
+
+    selectoresAnio.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.año;
+    });
+
+    const inputFecha = document.getElementById('in-fecha');
+    if (inputFecha) {
+        // Formato YYYY-MM-DD necesario para el input type="date"
+        inputFecha.value = new Date().toISOString().split('T')[0];
+    }
+
+    // 6. EJECUTAR REFRESCO FINAL
+    refrescarVistaActual();
+
+    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
     inicializarSincronizacion().then(() => {
-        localStorage.setItem('financiero_state', JSON.stringify(AppState));
         refrescarVistaActual();
     });
 });
 
-// --- 2. CONTROL DE VISTAS ---
+// Variable global fuera de la función
 let currentLoadId = 0;
-
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
-    // Ahora sí podrá leer la variable de arriba
     const loadId = ++currentLoadId;
 
-    // 1. Feedback visual (esto está bien)
+    // 1. UI: Feedback inmediato
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
-    document.getElementById(`nav-${sectionId}`)?.classList.add('nav-active');
+    const activeBtn = document.getElementById(`nav-${sectionId}`);
+    if (activeBtn) activeBtn.classList.add('nav-active');
+
+    if (typeof toggleLoading === 'function') toggleLoading(true);
 
     try {
-        // 2. Carga el HTML
+        // 2. Fetch del HTML
         const response = await fetch(`${sectionId}.html`);
+        if (!response.ok) throw new Error("Error de carga");
         const html = await response.text();
+
+        // 3. Control de concurrencia
+        if (loadId !== currentLoadId) return;
+
+        // 4. Inyectamos el esqueleto (HTML)
         container.innerHTML = html;
 
-        // --- IMPORTANTE: Recarga el estado ANTES de renderizar nada ---
-        const savedState = localStorage.getItem('financiero_state');
-        if (savedState) {
-            const parsed = JSON.parse(savedState);
-            AppState.movimientos = parsed.movimientos || [];
-            AppState.categorias = parsed.categorias || [];
+        // 5. Renderizado final
+        requestAnimationFrame(() => {
+            // A. Recuperar nombre de usuario
+            const userDisplayEl = document.getElementById('user-display');
+            if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
+
+            // B. Re-iniciamos filtros
+            if (typeof inicializarFiltros === 'function') inicializarFiltros();
+            if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
+
+            setTimeout(() => {
+                // C. FORZAR FECHA EN INPUTS (Aquí sí existe el DOM)
+                if (sectionId === 'ingresos') {
+                    const inputFecha = document.getElementById('in-fecha');
+                    if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+
+                    // 🔥 FORZAR FILTRO A JULIO (Para que no inicie en Enero)
+                    const mesSel = document.getElementById('in-mes');
+                    if (mesSel) {
+                        mesSel.value = new Date().getMonth(); // 6
+                        AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                    }
+                }
+
+                // D. SINCRONIZACIÓN DE DATOS
+                if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
+                    inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
+                } else {
+                    inicializarFuncionesPorSeccion(sectionId);
+                }
+
+                if (typeof toggleLoading === 'function') toggleLoading(false);
+            }, 50);
+        });
+
+        if (sectionId === 'ingresos') {
+            const inputFecha = document.getElementById('in-fecha');
+            if (inputFecha) {
+                inputFecha.value = new Date().toISOString().split('T')[0];
+            }
         }
 
-        // 3. RE-HIDRATACIÓN:
-        // Aquí forzamos que, sin importar el tiempo, se vuelva a pintar.
-        // Además, nos aseguramos de que el estado esté actualizado antes de pintar.
-        actualizarUsuarioHeader(); // Pinta el nombre
-        inicializarFuncionesPorSeccion(sectionId);
-
     } catch (error) {
-        console.error("Error al cargar sección:", error);
+        if (loadId === currentLoadId) {
+            console.error("Error al cargar la sección:", error);
+            if (typeof toggleLoading === 'function') toggleLoading(false);
+        }
     }
 }
 
-// --- 3. LÓGICA DE VISTAS (Corregida) ---
-// app.js
+// --- 3. LÓGICA DE VISTAS ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    actualizarUsuarioHeader();
-
-    if (sectionId === 'ingresos') {
-        inicializarFiltros();
-        // PASA LOS IDS COMO STRING
-        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    } else if (sectionId === 'gastos') {
-        inicializarFiltros();
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+    if (sectionId === 'home') { 
+        actualizarHome(); 
+        actualizarFechaHeader(); 
     }
-    // ...
+    if (sectionId === 'ingresos') { 
+        actualizarSelectsCategorias(); 
+        // Cambié 'cont-ingresos' por 'count-in' para que coincida con tu HTML
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
+    }
+    if (sectionId === 'gastos') { 
+        actualizarSelectsCategorias(); 
+        // Verifica si tu HTML de gastos tiene 'cont-gastos' o 'count-ex'
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
+    }
+    if (sectionId === 'analisis') { 
+        actualizarResumen(); 
+    }
+    if (sectionId === 'ajustes') { 
+        renderCategoriasConfig(); 
+    }
 }
 
 function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    // Identificamos sección por ID del botón activo
-    const id = activeBtn.id.replace('nav-', '');
-    inicializarFuncionesPorSeccion(id);
+    const seccionId = activeBtn.id;
+    
+    // Sincronizar filtros primero
+    const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
+    const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
+    if (mesSel?.value) AppState.filtrosActuales.mes = parseInt(mesSel.value);
+    if (añoSel?.value) AppState.filtrosActuales.año = parseInt(añoSel.value);
+
+    // Pintar según la sección
+    if (seccionId === 'nav-home') {
+        console.log("Forzando actualización de Home...");
+        actualizarHome(); 
+    } else if (seccionId === 'nav-ingresos') {
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+    } else if (seccionId === 'nav-gastos') {
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+    }
 }
 
 function fMXN(monto) {
-    const valor = parseFloat(monto) || 0;
+    // Convertimos a número, si no es válido, usamos 0
+    const valor = parseFloat(monto);
+
+    if (isNaN(valor)) {
+        console.warn("Valor inválido detectado para formato:", monto);
+        return "$0.00";
+    }
+
     return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
