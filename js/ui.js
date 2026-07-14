@@ -1,11 +1,13 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const lista = document.getElementById(listaId); // <--- Aquí debe coincidir con el nombre de arriba
+    const lista = document.getElementById(listaId);
+    const contador = document.getElementById(countId);
+    
     if (!lista) {
         console.error("No se encontró el elemento con ID:", listaId);
         return;
     }
-    
+
     // Usamos los filtros que están en el AppState
     const { mes, año } = AppState.filtrosActuales;
 
