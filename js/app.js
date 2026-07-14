@@ -39,10 +39,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- 2. CONTROL DE VISTAS ---
+let currentLoadId = 0; 
+
 async function showSection(sectionId) {
     const container = document.getElementById('app-container');
     if (!container) return;
 
+    // Ahora sí podrá leer la variable de arriba
     const loadId = ++currentLoadId;
     
     // 1. Feedback visual (esto está bien)
