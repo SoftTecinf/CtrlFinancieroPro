@@ -117,38 +117,39 @@ async function eliminarCategoria(id) {
 }
 
 function prepararEdicion(id, tipo) {
-    // 1. Buscamos en el AppState, no en una variable global 'movimientos'
     const mov = AppState.movimientos.find(m => m.id === id);
-    
-    if (!mov) {
-        console.error("No se encontró el movimiento con ID:", id);
-        return;
-    }
+    if (!mov) return;
 
-    // Aseguramos que la variable global de control exista si la usas en otro lado
     window.editandoId = id; 
-    
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
-    // 2. Rellenamos el formulario
-    document.getElementById(`${pref}-fecha`).value = mov.fecha.split('T')[0];
-    document.getElementById(`${pref}-categoria`).value = mov.cat;
-    document.getElementById(`${pref}-desc`).value = mov.desc;
+    // --- 1. NORMALIZACIÓN DE FECHA ---
+    // Convertimos la fecha larga a formato YYYY-MM-DD
+    const fechaObj = new Date(mov.fecha);
+    const fechaFormateada = fechaObj.toISOString().split('T')[0];
+    document.getElementById(`${pref}-fecha`).value = fechaFormateada;
 
-    // 3. Manejo del monto
+    // --- 2. CATEGORÍA ---
+    // Aseguramos que el select tenga el valor exacto
+    const selectCat = document.getElementById(`${pref}-categoria`);
+    selectCat.value = mov.cat; 
+
+    // --- 3. DESCRIPCIÓN Y MONTO ---
+    document.getElementById(`${pref}-desc`).value = mov.desc;
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
     
     if (mask && hidden) {
         hidden.value = mov.monto;
-        mask.value = Number(mov.monto).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+        mask.value = Number(mov.monto).toLocaleString('es-MX', { 
+            style: 'currency', 
+            currency: 'MXN' 
+        });
     }
 
-    // 4. Feedback visual al usuario
-    const container = document.getElementById(`sec-${tipo}s`);
-    const btn = container ? container.querySelector('button[onclick^="guardarRegistro"]') : null;
-    
-    if (btn) {
+    // Feedback visual
+    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if(btn) {
         btn.innerText = "ACTUALIZAR REGISTRO";
         btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
