@@ -1,54 +1,59 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    const lista = document.getElementById(listaId);
-    const contador = document.getElementById(countId);
+    // 1. Obtén los movimientos del AppState centralizado
+    const todosLosMovimientos = AppState.movimientos || [];
     
-    if (!lista) {
-        console.error("No se encontró el elemento con ID:", listaId);
-        return;
-    }
+    // 2. Filtramos usando una lógica segura
+    const filtrados = todosLosMovimientos.filter(m => {
+        if (!m.fecha) return false;
 
-    // Usamos los filtros que están en el AppState
-    const { mes, año } = AppState.filtrosActuales;
+        // Convertimos a fecha de forma segura
+        const d = new Date(m.fecha);
+        const añoMov = d.getFullYear();
+        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
 
-    const filtrados = AppState.movimientos.filter(m => {
-        const [añoM, mesM] = m.fecha.split('-').map(Number);
-        // Comparación flexible (usando == en lugar de ===)
-        return m.tipo == tipo && (mesM - 1) == mes && añoM == año;
-    });
+        // Comparamos usando los valores extraídos
+        return m.tipo === tipo && 
+               mesMov === AppState.filtrosActuales.mes && 
+               añoMov === AppState.filtrosActuales.año;
+    }).reverse();
 
-    // 2. CONTEO
+    // 3. Renderizamos el conteo y la lista
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // 3. RENDERIZADO CON FRAGMENT (Mucho más rápido que innerHTML acumulado)
-    if (filtrados.length === 0) {
-        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-        return;
+    const cont = document.getElementById(contId);
+    if (cont) {
+        cont.innerHTML = filtrados.length === 0 
+            ? '<p class="opacity-20 text-center py-10">Sin registros.</p>' 
+            : filtrados.map(m => `...tu HTML aquí...`).join('');
     }
 
-    const fragment = document.createDocumentFragment();
+    let htmlAcumulado = '';
     filtrados.forEach(m => {
-        const div = document.createElement('div');
-        div.className = "p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm";
-        div.innerHTML = `
-            <div class="flex-1">
-                <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
-                <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha} | ${m.cat || 'General'}</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                    ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                </p>
-                <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
-                </button>
+        htmlAcumulado += `
+            <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
+                <div class="flex-1">
+                    <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
+                    <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha.split('T')[0]} | ${m.cat || 'General'}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </p>
+                    <div class="flex gap-1">
+                        <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
             </div>`;
-        fragment.appendChild(div);
     });
 
-    cont.innerHTML = ''; // Limpiamos una sola vez
-    cont.appendChild(fragment); // Añadimos todo el bloque de una vez
+    cont.innerHTML = htmlAcumulado;
 }
 
 function actualizarSelectsCategorias() {
@@ -107,90 +112,99 @@ function renderCategoriasConfig() {
     });
 }
 
-// Variable para evitar renderizar si los datos son idénticos
-let ultimaHashDatos = "";
-
 function actualizarHome() {
-    const datos = AppState.movimientos || [];
+    // 1. LEEMOS Y NORMALIZAMOS
+    let datos = AppState.movimientos || [];
 
-    // 1. MEMOIZACIÓN: Si los datos no cambiaron, no hacemos nada
-    const hashActual = JSON.stringify(datos);
-    if (hashActual === ultimaHashDatos) return;
-    ultimaHashDatos = hashActual;
+    // Si datos es un objeto con una propiedad que contiene la lista, extráela
+    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
+        // Busca si tiene una propiedad llamada 'movimientos' o similares
+        datos = datos.movimientos || Object.values(datos);
+    }
 
+    // Si sigue sin ser array, forzamos array vacío
+    if (!Array.isArray(datos)) {
+        // console.error("Los datos recibidos no son un array:", datos);
+        datos = [];
+    }
+
+    // 2. Cálculos (ahora seguros)
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
-    const mesActual = ahora.getMonth();
-    const añoActual = ahora.getFullYear();
-
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    // 2. CICLO ÚNICO: Cálculos optimizados
-    for (let i = 0; i < datos.length; i++) {
-        const m = datos[i];
-        const monto = parseFloat(m.monto) || 0;
-        const esIngreso = m.tipo === 'ingreso';
-        const val = esIngreso ? monto : -monto;
+    // console.log("Estructura de datos recibida:", datos);
+    datos.forEach(m => {
+        // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
+        if (!m || typeof m.monto === 'undefined') {
+            // console.warn("Registro ignorado por falta de datos:", m);
+            return;
+        }
 
+        // 2. Normalización del monto (asegurar que sea número)
+        const monto = parseFloat(m.monto) || 0;
+        const val = m.tipo === 'ingreso' ? monto : -monto;
+
+        // 3. Cálculos de balance
         balG += val;
         if (m.fecha === hoyStr) balD += val;
 
-        // Comparación rápida de fechas sin convertir a objeto Date si el formato es AAAA-MM-DD
-        if (m.fecha.startsWith(`${añoActual}-${String(mesActual + 1).padStart(2, '0')}`)) {
-            if (esIngreso) ingM += monto;
-            else gasM += monto;
+        // 4. Cálculos de mes (Asegurando fecha válida)
+        const mF = new Date(m.fecha + 'T00:00:00');
+        // Verificamos que la fecha sea válida antes de comparar
+        if (!isNaN(mF.getTime())) {
+            if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
+                if (m.tipo === 'ingreso') ingM += monto;
+                else gasM += monto;
+            }
         }
-    }
+    });
 
-    // 3. ACTUALIZACIÓN EFICIENTE DEL DOM
-    const elementos = {
-        'balance-general': fMXN(balG),
-        'balance-dia': fMXN(balD),
-        'home-ingresos': fMXN(ingM),
-        'home-gastos': fMXN(gasM)
-    };
+    // 3. Actualización de texto
+    const updates = [
+        { id: 'balance-general', val: fMXN(balG) },
+        { id: 'balance-dia', val: fMXN(balD) },
+        { id: 'home-ingresos', val: fMXN(ingM) },
+        { id: 'home-gastos', val: fMXN(gasM) }
+    ];
 
-    for (const id in elementos) {
-        const el = document.getElementById(id);
-        if (el) el.innerText = elementos[id];
-    }
+    updates.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) el.innerText = item.val;
+    });
 
-    // 4. GRÁFICO: Actualización de datos en lugar de .destroy()
+    // 4. Gráfico
     const canvas = document.getElementById('chartHome');
     if (canvas) {
-        if (!chartH) {
-            chartH = new Chart(canvas.getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] },
-                options: { cutout: '75%', plugins: { legend: { display: false } } }
-            });
-        } else {
-            chartH.data.datasets[0].data = [ingM, gasM];
-            chartH.update('none'); // Actualiza sin animaciones pesadas
-        }
+        const ctx = canvas.getContext('2d');
+        if (chartH) chartH.destroy();
+        chartH = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }]
+            },
+            options: { cutout: '75%', plugins: { legend: { display: false } } }
+        });
     }
 
-    // 5. LISTA RECIENTE: Fragmentos de documento (más rápido que innerHTML)
+    // 5. Lista reciente (usamos 'datos' en lugar de 'movimientos')
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
-        const fragment = document.createDocumentFragment();
-        const ultimos = [...datos].reverse().slice(0, 10);
-
-        ultimos.forEach(m => {
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            div.innerHTML = `
-                <div>
-                    <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                    <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
-                </div>
-                <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                    ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                </span>`;
-            fragment.appendChild(div);
-        });
         listaH.innerHTML = '';
-        listaH.appendChild(fragment);
+        // Usamos .slice() para no modificar el array original y mostramos los últimos 10
+        [...datos].reverse().slice(0, 10).forEach(m => {
+            listaH.innerHTML += `
+                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
+                    <div>
+                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                        <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
+                    </div>
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </span>
+                </div>`;
+        });
     }
 }
 
@@ -295,14 +309,5 @@ function safeSetHTML(id, htmlContent) {
     const el = document.getElementById(id);
     if (el) {
         el.innerHTML = htmlContent;
-    }
-}
-
-function actualizarUsuarioHeader() {
-    const nombreEl = document.getElementById('user-display');
-    if (nombreEl) {
-        // Buscamos directamente en el Storage donde SÍ está el dato
-        const nombreReal = localStorage.getItem('session_userName');
-        nombreEl.innerText = nombreReal || 'Invitado';
     }
 }
