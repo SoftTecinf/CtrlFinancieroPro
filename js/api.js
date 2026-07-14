@@ -37,6 +37,9 @@ async function FetchAPI(action, extraData = {}) {
 
 async function inicializarSincronizacion() {
     // 1. CARGA INICIAL (Rápida desde LocalStorage)
+    if (AppState.movimientos.length > 0 && AppState.categorias.length > 0 && AppState.cargado) {
+        return; 
+    }
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
         try {
