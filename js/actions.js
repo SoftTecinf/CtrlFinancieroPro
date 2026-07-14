@@ -95,28 +95,24 @@ async function agregarCategoria() {
 async function eliminarCategoria(id) {
     if (!confirm("¿Deseas borrar esta categoría?")) return;
 
-    // 1. GUARDAMOS EL ESTADO ORIGINAL (por si hay que revertir)
     const estadoAnterior = [...AppState.categorias];
-
-    // 2. ELIMINACIÓN OPTIMISTA (Instantánea)
     AppState.categorias = AppState.categorias.filter(c => c.id !== id);
-    renderCategoriasConfig(); // Actualizamos la UI inmediatamente
+    renderCategoriasConfig();
 
-    // 3. PETICIÓN EN SEGUNDO PLANO
     try {
         const res = await FetchAPI("eliminarCategoria", { id });
         
-        if (!res.success) {
-            throw new Error(res.message || "Error al eliminar en la nube");
+        // 🔥 MODIFICACIÓN AQUÍ: Si res es null o no es lo que esperamos
+        if (!res || !res.success) {
+            console.error("Respuesta del servidor:", res); // <-- Mira esto en la consola
+            throw new Error(res ? res.message : "Error de conexión");
         }
-        console.log("Categoría eliminada del servidor exitosamente.");
-        
     } catch (error) {
-        // 4. REVERSIÓN SI FALLA
-        console.error("Error al eliminar, revirtiendo...", error);
-        AppState.categorias = estadoAnterior; // Restauramos la lista
-        renderCategoriasConfig(); // Volvemos a pintar la lista original
-        alert("No se pudo eliminar en el servidor. Intenta de nuevo.");
+        console.error("Error al eliminar:", error);
+        AppState.categorias = estadoAnterior;
+        renderCategoriasConfig();
+        // 🔥 AQUÍ VEREMOS EL ERROR REAL
+        alert("No se pudo eliminar: " + error.message); 
     }
 }
 
