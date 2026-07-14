@@ -117,22 +117,42 @@ async function eliminarCategoria(id) {
 }
 
 function prepararEdicion(id, tipo) {
-    const mov = movimientos.find(m => m.id === id);
-    if (!mov) return;
-    editandoId = id;
+    // 1. Buscamos en el AppState, no en una variable global 'movimientos'
+    const mov = AppState.movimientos.find(m => m.id === id);
+    
+    if (!mov) {
+        console.error("No se encontró el movimiento con ID:", id);
+        return;
+    }
+
+    // Aseguramos que la variable global de control exista si la usas en otro lado
+    window.editandoId = id; 
+    
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
-    document.getElementById(`${pref}-fecha`).value = mov.fecha;
+    // 2. Rellenamos el formulario
+    document.getElementById(`${pref}-fecha`).value = mov.fecha.split('T')[0];
     document.getElementById(`${pref}-categoria`).value = mov.cat;
     document.getElementById(`${pref}-desc`).value = mov.desc;
 
+    // 3. Manejo del monto
     const mask = document.getElementById(`${pref}-monto-mask`);
-    document.getElementById(`${pref}-monto-hidden`).value = mov.monto;
-    mask.value = mov.monto.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+    const hidden = document.getElementById(`${pref}-monto-hidden`);
+    
+    if (mask && hidden) {
+        hidden.value = mov.monto;
+        mask.value = Number(mov.monto).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
+    }
 
-    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    btn.innerText = "ACTUALIZAR REGISTRO";
-    btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+    // 4. Feedback visual al usuario
+    const container = document.getElementById(`sec-${tipo}s`);
+    const btn = container ? container.querySelector('button[onclick^="guardarRegistro"]') : null;
+    
+    if (btn) {
+        btn.innerText = "ACTUALIZAR REGISTRO";
+        btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+    }
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
