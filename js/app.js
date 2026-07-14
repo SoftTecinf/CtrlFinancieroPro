@@ -138,6 +138,9 @@ async function showSection(sectionId) {
                     // Ya tenemos datos (o ya se intentó cargar), solo renderizamos instantáneamente
                     inicializarFuncionesPorSeccion(sectionId);
                 }
+
+                if (typeof toggleLoading === 'function') toggleLoading(false);
+            }, 50);
         });
 
         if (sectionId === 'ingresos') {
