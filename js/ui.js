@@ -300,3 +300,14 @@ function safeSetHTML(id, htmlContent) {
         el.innerHTML = htmlContent;
     }
 }
+
+function actualizarUsuarioHeader() {
+    // 1. Buscamos EXACTAMENTE el ID que tienes en tu HTML
+    const nombreEl = document.getElementById('user-display'); 
+    
+    if (nombreEl) {
+        // 2. Si existe el usuario en AppState lo pintamos, si no, ponemos algo genérico
+        // Usamos el encadenamiento opcional (?) por si AppState.usuario no existe aún
+        nombreEl.innerText = AppState.usuario?.nombre || 'Invitado'; 
+    }
+}
