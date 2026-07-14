@@ -65,8 +65,10 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS (Corregida) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    // 1. Ejecuciones comunes o inicializaciones obligatorias
-    actualizarFechaHeader(); // Asegura la fecha del sistema si existe en la sección
+    actualizarFechaHeader(); 
+    
+    // TIENE QUE IR AQUÍ para que se pinte en cuanto cargue la pantalla
+    actualizarUsuarioHeader(); 
 
     if (sectionId === 'home') {
         actualizarHome();
