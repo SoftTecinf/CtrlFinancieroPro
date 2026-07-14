@@ -2,7 +2,7 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const cont = document.getElementById(contId);
-    
+
     // --- SEGURIDAD: Si no existe el contenedor, detenemos la función aquí ---
     if (!cont) {
         console.warn(`El elemento con ID "${contId}" no existe en esta vista. Ignorando renderizado.`);
@@ -11,13 +11,14 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-        const fechaPartes = m.fecha.split('-'); 
-        const añoMov = parseInt(fechaPartes[0]);
-        const mesMov = parseInt(fechaPartes[1]) - 1;
+        const fechaMov = new Date(m.fecha);
+        const añoMov = fechaMov.getFullYear();
+        const mesMov = fechaMov.getMonth();
 
-        return m.tipo === tipo && 
-               mesMov === AppState.filtrosActuales.mes && 
-               añoMov === AppState.filtrosActuales.año;
+        // Ahora el filtro funcionará igual que en el Home:
+        return m.tipo === tipo &&
+            mesMov === AppState.filtrosActuales.mes &&
+            añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
     // 3. Renderizamos el conteo
