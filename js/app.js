@@ -22,8 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (savedState) {
         const parsed = JSON.parse(savedState);
-        AppState.datosCache = parsed.movimientos || [];
-        // Solo cargamos filtros guardados si existen
+        // CAMBIO AQUÍ: Usamos AppState.movimientos consistentemente
+        AppState.movimientos = parsed.movimientos || []; 
+        
         if (parsed.filtros) {
             AppState.filtrosActuales = parsed.filtros;
         }
@@ -121,14 +122,22 @@ async function showSection(sectionId) {
                 }
 
                 // D. SINCRONIZACIÓN DE DATOS
-                if (AppState.datosCache.length === 0 && typeof inicializarSincronizacion === 'function') {
-                    inicializarSincronizacion().then(() => inicializarFuncionesPorSeccion(sectionId));
+                // Verificamos si nos faltan los movimientos O las categorías
+                const faltanMovimientos = AppState.movimientos.length === 0;
+                const faltanCategorias = (!AppState.categorias || AppState.categorias.length === 0);
+
+                // Si ya cargamos una vez, AppState.cargado debe ser true.
+                if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
+                    if (typeof inicializarSincronizacion === 'function') {
+                        inicializarSincronizacion().then(() => {
+                            AppState.cargado = true; // Marcamos como cargado
+                            inicializarFuncionesPorSeccion(sectionId);
+                        });
+                    }
                 } else {
+                    // Ya tenemos datos (o ya se intentó cargar), solo renderizamos instantáneamente
                     inicializarFuncionesPorSeccion(sectionId);
                 }
-
-                if (typeof toggleLoading === 'function') toggleLoading(false);
-            }, 50);
         });
 
         if (sectionId === 'ingresos') {
