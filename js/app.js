@@ -14,14 +14,18 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // A. Carga desde caché local (Instantáneo)
     const savedState = localStorage.getItem('financiero_state');
+    
+    // Recuperamos el nombre de la llave que SÍ tiene el dato
+    const nombreGuardado = localStorage.getItem('session_userName') || '';
+
     if (savedState) {
         const parsed = JSON.parse(savedState);
-        // Rescatamos el usuario
-        AppState.usuario = parsed.usuario || { nombre: '' }; 
         AppState.movimientos = parsed.movimientos || [];
         AppState.categorias = parsed.categorias || [];
+        
+        // FORZAMOS la asignación aquí
+        AppState.usuario = { nombre: nombreGuardado }; 
     }
 
     // B. Carga la interfaz inicial
