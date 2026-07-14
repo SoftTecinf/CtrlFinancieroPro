@@ -1,18 +1,22 @@
 // --- ACCIONES CON SHEETS ---
 async function guardarRegistro(tipo) {
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    btn.disabled = true; // Deshabilita el botón
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
 
     if (!monto || monto <= 0) {
         alert("Por favor ingresa un monto válido.");
-        btn.disabled = false; // Importante: volver a habilitar si hay error
         return;
     }
 
+    // Feedback visual
+    btn.disabled = true;
+    const textoOriginal = btn.innerText;
+    btn.innerText = "Guardando...";
+
     const descInput = document.getElementById(`${pref}-desc`).value.trim().toUpperCase();
     const idMovi = editandoId ? editandoId : Date.now();
+    
     const nuevaData = {
         id: idMovi,
         tipo,
@@ -22,29 +26,35 @@ async function guardarRegistro(tipo) {
         monto
     };
 
-    // Declaramos 'res' y hacemos la petición UNA sola vez
     const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
 
     if (res.success) {
         if (editandoId) {
-            const idx = movimientos.findIndex(m => m.id === editandoId);
-            movimientos[idx] = nuevaData;
+            // Lógica para actualizar
+            const idx = AppState.movimientos.findIndex(m => m.id === editandoId);
+            if (idx !== -1) {
+                AppState.movimientos[idx] = nuevaData;
+            }
             editandoId = null;
-            const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-            btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
             btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
         } else {
-            movimientos.push(nuevaData);
+            // Lógica para nuevo registro
+            AppState.movimientos.push(nuevaData);
         }
 
+        // Limpieza de UI
         document.getElementById(`${pref}-monto-mask`).value = "";
         document.getElementById(`${pref}-monto-hidden`).value = 0;
         document.getElementById(`${pref}-desc`).value = "";
+        
         refrescarVistaActual();
+    } else {
+        alert("Error al guardar en el servidor. Intenta de nuevo.");
     }
 
-    // Ya NO volvemos a declarar 'res' aquí. Solo habilitamos el botón.
+    // Restaurar botón
     btn.disabled = false;
+    btn.innerText = textoOriginal;
 }
 
 async function eliminarMovimiento(id) {
@@ -69,16 +79,16 @@ async function agregarCategoria() {
 
     if (res.success) {
         document.getElementById('nueva-cat-nombre').value = '';
-        
+
         // --- AQUÍ ESTÁ LA CORRECCIÓN ---
         // En lugar de usar la variable 'categorias' (que no existe), 
         // recargamos los datos desde la fuente de verdad (sincronización)
-        await inicializarSincronizacion(); 
-        
+        await inicializarSincronizacion();
+
         // Ahora sí, renderizamos de nuevo. 
         // Asegúrate de que renderCategoriasConfig lea AppState.categorias
-        renderCategoriasConfig(); 
-        
+        renderCategoriasConfig();
+
         alert("Categoría guardada");
     } else {
         alert("Error al guardar: " + res.message);
