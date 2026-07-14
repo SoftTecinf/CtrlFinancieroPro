@@ -93,12 +93,30 @@ async function agregarCategoria() {
 }
 
 async function eliminarCategoria(id) {
-    if (confirm("¿Deseas borrar esta categoría?")) {
+    if (!confirm("¿Deseas borrar esta categoría?")) return;
+
+    // 1. GUARDAMOS EL ESTADO ORIGINAL (por si hay que revertir)
+    const estadoAnterior = [...AppState.categorias];
+
+    // 2. ELIMINACIÓN OPTIMISTA (Instantánea)
+    AppState.categorias = AppState.categorias.filter(c => c.id !== id);
+    renderCategoriasConfig(); // Actualizamos la UI inmediatamente
+
+    // 3. PETICIÓN EN SEGUNDO PLANO
+    try {
         const res = await FetchAPI("eliminarCategoria", { id });
-        if (res.success) {
-            categorias = categorias.filter(c => c.id !== id);
-            refrescarVistaActual();
+        
+        if (!res.success) {
+            throw new Error(res.message || "Error al eliminar en la nube");
         }
+        console.log("Categoría eliminada del servidor exitosamente.");
+        
+    } catch (error) {
+        // 4. REVERSIÓN SI FALLA
+        console.error("Error al eliminar, revirtiendo...", error);
+        AppState.categorias = estadoAnterior; // Restauramos la lista
+        renderCategoriasConfig(); // Volvemos a pintar la lista original
+        alert("No se pudo eliminar en el servidor. Intenta de nuevo.");
     }
 }
 
