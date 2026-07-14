@@ -14,58 +14,29 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. CARGA DE INTERFAZ
-    await showSection('home');
-
-    // 2. RECUPERAR ESTADO
+    // 1. CARGA INMEDIATA: Lo que está en localStorage (Instantáneo)
     const savedState = localStorage.getItem('financiero_state');
-    const ahora = new Date();
-
     if (savedState) {
         const parsed = JSON.parse(savedState);
-        AppState.datosCache = parsed.movimientos || [];
-        // Solo cargamos filtros guardados si existen
-        if (parsed.filtros) {
-            AppState.filtrosActuales = parsed.filtros;
+        AppState.movimientos = parsed.movimientos || [];
+        AppState.categorias = parsed.categorias || [];
+        // Refrescamos la UI de inmediato con lo que ya sabemos
+        if (document.querySelector('.nav-active')) {
+            refrescarVistaActual();
         }
     }
 
-    // 3. CONFIGURACIÓN INICIAL
-    const userDisplayEl = document.getElementById('user-display');
-    if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
-
-    // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
+    // 2. CARGA DE INTERFAZ (El resto de tu lógica)
+    await showSection('home');
     inicializarFiltros();
 
-    // Forzamos el estado a la fecha actual del sistema
-    AppState.filtrosActuales.mes = ahora.getMonth();
-    AppState.filtrosActuales.año = ahora.getFullYear();
-
-    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
-    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
-    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
-
-    selectoresMes.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = AppState.filtrosActuales.mes;
-    });
-
-    selectoresAnio.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = AppState.filtrosActuales.año;
-    });
-
-    const inputFecha = document.getElementById('in-fecha');
-    if (inputFecha) {
-        // Formato YYYY-MM-DD necesario para el input type="date"
-        inputFecha.value = new Date().toISOString().split('T')[0];
-    }
-
-    // 6. EJECUTAR REFRESCO FINAL
-    refrescarVistaActual();
-
-    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
+    // 3. ACTUALIZACIÓN EN SEGUNDO PLANO (Sin bloquear al usuario)
+    // No usamos 'await' aquí para que la app no espere a que Sheets responda
     inicializarSincronizacion().then(() => {
+        console.log("Datos actualizados desde servidor");
+        // Guardamos en cache después de actualizar
+        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        // Refrescamos solo si es necesario
         refrescarVistaActual();
     });
 });
