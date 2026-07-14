@@ -39,6 +39,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Refrescamos solo si es necesario
         refrescarVistaActual();
     });
+
+    // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
+    inicializarFiltros();
+
+    // Forzamos el estado a la fecha actual del sistema
+    AppState.filtrosActuales.mes = ahora.getMonth();
+    AppState.filtrosActuales.año = ahora.getFullYear();
+
+    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
+    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
+    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
+
+    selectoresMes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.mes;
+    });
+
+    selectoresAnio.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = AppState.filtrosActuales.año;
+    });
+
+    const inputFecha = document.getElementById('in-fecha');
+    if (inputFecha) {
+        // Formato YYYY-MM-DD necesario para el input type="date"
+        inputFecha.value = new Date().toISOString().split('T')[0];
+    }
+
+    // 6. EJECUTAR REFRESCO FINAL
+    refrescarVistaActual();
+
+    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
+    inicializarSincronizacion().then(() => {
+        refrescarVistaActual();
+    });
 });
 
 // Variable global fuera de la función
@@ -120,25 +155,25 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    if (sectionId === 'home') { 
-        actualizarHome(); 
-        actualizarFechaHeader(); 
+    if (sectionId === 'home') {
+        actualizarHome();
+        actualizarFechaHeader();
     }
-    if (sectionId === 'ingresos') { 
-        actualizarSelectsCategorias(); 
+    if (sectionId === 'ingresos') {
+        actualizarSelectsCategorias();
         // Cambié 'cont-ingresos' por 'count-in' para que coincida con tu HTML
-        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     }
-    if (sectionId === 'gastos') { 
-        actualizarSelectsCategorias(); 
+    if (sectionId === 'gastos') {
+        actualizarSelectsCategorias();
         // Verifica si tu HTML de gastos tiene 'cont-gastos' o 'count-ex'
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
     }
-    if (sectionId === 'analisis') { 
-        actualizarResumen(); 
+    if (sectionId === 'analisis') {
+        actualizarResumen();
     }
-    if (sectionId === 'ajustes') { 
-        renderCategoriasConfig(); 
+    if (sectionId === 'ajustes') {
+        renderCategoriasConfig();
     }
 }
 
@@ -147,7 +182,7 @@ function refrescarVistaActual() {
     if (!activeBtn) return;
 
     const seccionId = activeBtn.id;
-    
+
     // Sincronizar filtros primero
     const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
     const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
@@ -157,7 +192,7 @@ function refrescarVistaActual() {
     // Pintar según la sección
     if (seccionId === 'nav-home') {
         console.log("Forzando actualización de Home...");
-        actualizarHome(); 
+        actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
