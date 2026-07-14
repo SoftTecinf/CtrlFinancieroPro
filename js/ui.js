@@ -310,3 +310,48 @@ function safeSetHTML(id, htmlContent) {
         el.innerHTML = htmlContent;
     }
 }
+
+// --- CONTROLADOR INTELIGENTE DE VISTAS ---
+async function abrirVistaAjustesInteligente() {
+    // 1. Verificamos si NO hay categorías cargadas en el AppState
+    if (!AppState.categorias || AppState.categorias.length === 0) {
+        console.log("No hay categorías en memoria. Descargando de Google Apps Script...");
+        
+        toggleLoading(true);
+        
+        try {
+            // Hacemos el fetch a la API
+            const formData = new FormData();
+            formData.append('action', 'obtenerCategorias'); 
+            
+            const req = await fetch(API_URL, { method: 'POST', body: formData });
+            const res = await req.json();
+            
+            // Verificamos que la API devuelva éxito
+            if (res.exito) {
+                // Guardamos en la memoria global
+                AppState.categorias = res.datos;
+                console.log("Categorías descargadas y guardadas en AppState.");
+                
+                // Opcional: Actualizamos la caché persistente para el próximo reinicio
+                const savedState = localStorage.getItem('financiero_state');
+                if (savedState) {
+                    const parsed = JSON.parse(savedState);
+                    parsed.categorias = res.datos;
+                    localStorage.setItem('financiero_state', JSON.stringify(parsed));
+                }
+            } else {
+                console.error("La API no devolvió éxito:", res);
+            }
+        } catch (error) {
+            console.error("Error crítico al descargar categorías:", error);
+        } finally {
+            toggleLoading(false);
+        }
+    } else {
+        console.log("Categorías cargadas instantáneamente desde la memoria.");
+    }
+
+    // 2. Independientemente de si se descargaron o ya estaban, renderizamos
+    renderCategoriasConfig();
+}
