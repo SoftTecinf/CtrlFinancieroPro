@@ -73,18 +73,19 @@ async function showSection(sectionId) {
 }
 
 // --- 3. LÓGICA DE VISTAS (Corregida) ---
+// app.js
 function inicializarFuncionesPorSeccion(sectionId) {
-    console.log("Renderizando sección:", sectionId, "Datos en memoria:", AppState.movimientos.length);
-    // Siempre actualizamos el usuario (ya que lo tienes en localStorage)
     actualizarUsuarioHeader(); 
 
     if (sectionId === 'home') {
-        actualizarHome(); // Asegúrate de que esta función pinte el resumen
+        actualizarHome();
     } else if (sectionId === 'ingresos') {
-        actualizarSelectsCategorias();
+        // PASO 1: Inyectar la fecha correcta en los selectores del DOM
+        inicializarFiltros(); 
+        // PASO 2: Ahora sí pintar la lista
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (sectionId === 'gastos') {
-        actualizarSelectsCategorias();
+        inicializarFiltros();
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 }
