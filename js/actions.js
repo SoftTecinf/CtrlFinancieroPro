@@ -58,30 +58,37 @@ async function eliminarMovimiento(id) {
 }
 
 async function agregarCategoria() {
-    const nom = document.getElementById('nueva-cat-nombre').value.trim().toUpperCase();
+    const inputNombre = document.getElementById('nueva-cat-nombre');
+    const nom = inputNombre.value.trim().toUpperCase();
     const tipo = document.getElementById('nueva-cat-tipo').value;
+    
     if (!nom) return;
 
+    // 1. CREAMOS EL OBJETO DE MANERA OPTIMISTA
     const nuevaCat = { id: Date.now(), nombre: nom, tipo };
 
-    // Enviamos al servidor
-    const res = await FetchAPI("agregarCategoria", nuevaCat);
+    // 2. ACTUALIZAMOS LA MEMORIA Y LA INTERFAZ AL INSTANTE (0 ms)
+    AppState.categorias.push(nuevaCat);
+    renderCategoriasConfig(); // Actualiza el DOM inmediatamente
+    inputNombre.value = '';   // Limpiamos el input
 
-    if (res.success) {
-        document.getElementById('nueva-cat-nombre').value = '';
-        
-        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
-        // En lugar de usar la variable 'categorias' (que no existe), 
-        // recargamos los datos desde la fuente de verdad (sincronización)
-        await inicializarSincronizacion(); 
-        
-        // Ahora sí, renderizamos de nuevo. 
-        // Asegúrate de que renderCategoriasConfig lea AppState.categorias
-        renderCategoriasConfig(); 
-        
-        alert("Categoría guardada");
-    } else {
-        alert("Error al guardar: " + res.message);
+    // 3. ENVIAMOS AL SERVIDOR EN SEGUNDO PLANO (No bloqueamos al usuario)
+    try {
+        const res = await FetchAPI("agregarCategoria", nuevaCat);
+
+        if (res.success) {
+            console.log("Categoría sincronizada con éxito en Google Sheets.");
+            // Opcional: Si el ID real viene de Google, podrías actualizarlo aquí, 
+            // pero para una lista simple, Date.now() es suficiente.
+        } else {
+            throw new Error(res.message);
+        }
+    } catch (error) {
+        // 4. REVERSIÓN SI FALLA (Manejo de errores)
+        console.error("Error al guardar, revirtiendo cambios...", error);
+        AppState.categorias = AppState.categorias.filter(c => c.id !== nuevaCat.id);
+        renderCategoriasConfig();
+        alert("Hubo un error al guardar en la nube. Intenta de nuevo.");
     }
 }
 
