@@ -312,46 +312,42 @@ function safeSetHTML(id, htmlContent) {
 }
 
 // --- CONTROLADOR INTELIGENTE DE VISTAS ---
+// --- CONTROLADOR INTELIGENTE DE VISTAS (MODO DEBUG) ---
 async function abrirVistaAjustesInteligente() {
-    // 1. Verificamos si NO hay categorías cargadas en el AppState
+    console.log("1. Entrando a Ajustes. Estado de AppState.categorias:", AppState.categorias);
+
+    // 1. Verificamos si NO hay categorías
     if (!AppState.categorias || AppState.categorias.length === 0) {
-        console.log("No hay categorías en memoria. Descargando de Google Apps Script...");
+        console.log("2. Memoria vacía. Intentando descargar de Google Apps Script...");
         
         toggleLoading(true);
         
         try {
-            // Hacemos el fetch a la API
+            // AQUÍ PUEDE ESTAR EL ERROR: ¿Tu API espera esto exactamente?
             const formData = new FormData();
             formData.append('action', 'obtenerCategorias'); 
             
+            console.log("3. Enviando petición a la API...");
             const req = await fetch(API_URL, { method: 'POST', body: formData });
             const res = await req.json();
             
-            // Verificamos que la API devuelva éxito
+            console.log("4. Respuesta recibida de la API:", res);
+
             if (res.exito) {
-                // Guardamos en la memoria global
                 AppState.categorias = res.datos;
-                console.log("Categorías descargadas y guardadas en AppState.");
-                
-                // Opcional: Actualizamos la caché persistente para el próximo reinicio
-                const savedState = localStorage.getItem('financiero_state');
-                if (savedState) {
-                    const parsed = JSON.parse(savedState);
-                    parsed.categorias = res.datos;
-                    localStorage.setItem('financiero_state', JSON.stringify(parsed));
-                }
+                console.log("5. Categorías guardadas exitosamente.");
             } else {
-                console.error("La API no devolvió éxito:", res);
+                console.error("6. Error en la API. Respuesta no exitosa:", res);
             }
         } catch (error) {
-            console.error("Error crítico al descargar categorías:", error);
+            console.error("❌ ERROR CRÍTICO AL DESCARGAR:", error);
         } finally {
             toggleLoading(false);
         }
     } else {
-        console.log("Categorías cargadas instantáneamente desde la memoria.");
+        console.log("2. Las categorías ya existían en memoria, saltando descarga.");
     }
 
-    // 2. Independientemente de si se descargaron o ya estaban, renderizamos
+    console.log("7. Ejecutando renderCategoriasConfig con los siguientes datos:", AppState.categorias);
     renderCategoriasConfig();
 }
