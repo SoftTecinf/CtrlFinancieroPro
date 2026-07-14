@@ -110,8 +110,6 @@ function renderCategoriasConfig() {
     });
 }
 
-// Variable fuera de la función para persistir el gráfico
-let chartH; 
 // Variable para evitar renderizar si los datos son idénticos
 let ultimaHashDatos = ""; 
 
