@@ -9,15 +9,19 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     // 1. FILTRADO RÁPIDO (Evitamos crear miles de objetos Date)
     // Suponiendo que m.fecha viene como "YYYY-MM-DD"
+   // 1. FILTRADO RÁPIDO
     const filtrados = todos.filter(m => {
         if (!m.tipo || m.tipo !== tipo) return false;
         
-        // Extraemos fecha sin crear objeto Date si es posible
+        // Salvavidas: si por algún error de captura la fecha no trae guiones, mostramos el registro
+        if (!m.fecha || !m.fecha.includes('-')) return true; 
+
         const partes = m.fecha.split('-'); // ["2026", "07", "08"]
         const añoMov = parseInt(partes[0]);
         const mesMov = parseInt(partes[1]) - 1; 
 
-        return mesMov === mesFiltro && añoMov === añoFiltro;
+        // CAMBIO CLAVE: Usamos == (doble igual) para evitar errores de Texto vs Número
+        return mesMov == mesFiltro && añoMov == añoFiltro;
     }).reverse();
 
     // 2. CONTEO
