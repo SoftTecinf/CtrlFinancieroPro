@@ -61,7 +61,7 @@ async function agregarCategoria() {
     const inputNombre = document.getElementById('nueva-cat-nombre');
     const nom = inputNombre.value.trim().toUpperCase();
     const tipo = document.getElementById('nueva-cat-tipo').value;
-    
+
     if (!nom) return;
 
     // 1. CREAMOS EL OBJETO DE MANERA OPTIMISTA
@@ -101,7 +101,7 @@ async function eliminarCategoria(id) {
 
     try {
         const res = await FetchAPI("eliminarCategoria", { id });
-        
+
         // 🔥 MODIFICACIÓN AQUÍ: Si res es null o no es lo que esperamos
         if (!res || !res.success) {
             console.error("Respuesta del servidor:", res); // <-- Mira esto en la consola
@@ -112,7 +112,7 @@ async function eliminarCategoria(id) {
         AppState.categorias = estadoAnterior;
         renderCategoriasConfig();
         // 🔥 AQUÍ VEREMOS EL ERROR REAL
-        alert("No se pudo eliminar: " + error.message); 
+        alert("No se pudo eliminar: " + error.message);
     }
 }
 
@@ -120,7 +120,7 @@ function prepararEdicion(id, tipo) {
     const mov = AppState.movimientos.find(m => m.id === id);
     if (!mov) return;
 
-    window.editandoId = id; 
+    window.editandoId = id;
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
     // --- 1. NORMALIZACIÓN DE FECHA ---
@@ -132,28 +132,35 @@ function prepararEdicion(id, tipo) {
     // --- 2. CATEGORÍA ---
     // Aseguramos que el select tenga el valor exacto
     const selectCat = document.getElementById(`${pref}-categoria`);
-    selectCat.value = mov.cat; 
+    // ... dentro de prepararEdicion ...
+    
+    const selectCat = document.getElementById(`${pref}-categoria`);
+    console.log("Categoría del movimiento:", mov.cat);
+    console.log("Opciones disponibles en el select:", [...selectCat.options].map(o => o.value));
+
+    selectCat.value = mov.cat;
+    selectCat.value = mov.cat;
 
     // --- 3. DESCRIPCIÓN Y MONTO ---
     document.getElementById(`${pref}-desc`).value = mov.desc;
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
-    
+
     if (mask && hidden) {
         hidden.value = mov.monto;
-        mask.value = Number(mov.monto).toLocaleString('es-MX', { 
-            style: 'currency', 
-            currency: 'MXN' 
+        mask.value = Number(mov.monto).toLocaleString('es-MX', {
+            style: 'currency',
+            currency: 'MXN'
         });
     }
 
     // Feedback visual
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    if(btn) {
+    if (btn) {
         btn.innerText = "ACTUALIZAR REGISTRO";
         btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
