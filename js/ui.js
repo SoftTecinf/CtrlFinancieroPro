@@ -3,32 +3,33 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
     
-    // 2. Filtramos usando una lógica segura
+    // 2. Filtramos usando tu lógica segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // Convertimos a fecha de forma segura
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
-        const mesMov = d.getMonth(); // 0 = Enero, 6 = Julio
+        const mesMov = d.getMonth(); 
 
-        // Comparamos usando los valores extraídos
         return m.tipo === tipo && 
                mesMov === AppState.filtrosActuales.mes && 
                añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
-    // 3. Renderizamos el conteo y la lista
+    // 3. Renderizamos el conteo
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
     const cont = document.getElementById(contId);
-    if (cont) {
-        cont.innerHTML = filtrados.length === 0 
-            ? '<p class="opacity-20 text-center py-10">Sin registros.</p>' 
-            : filtrados.map(m => `...tu HTML aquí...`).join('');
+    if (!cont) return; // Si no existe el contenedor, salimos de la función
+
+    // 4. Validamos si está vacío de forma definitiva
+    if (filtrados.length === 0) {
+        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+        return; // Detenemos la ejecución aquí ya que no hay nada que recorrer
     }
 
+    // 5. Si sí hay datos, acumulamos el HTML y lo insertamos una sola vez
     let htmlAcumulado = '';
     filtrados.forEach(m => {
         htmlAcumulado += `
@@ -81,21 +82,15 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    // 1. Define la variable DENTRO de la función
     const listaCategorias = AppState.categorias || [];
-
-    // 2. Busca los contenedores
     const containerIng = document.getElementById('lista-cats-ingreso');
     const containerGas = document.getElementById('lista-cats-gasto');
 
-    // 3. Validación de seguridad
-    if (!containerIng || !containerGas) {
-        return;
-    }
+    if (!containerIng || !containerGas) return;
 
-    // 4. Limpieza y renderizado
-    containerIng.innerHTML = '';
-    containerGas.innerHTML = '';
+    // Variables temporales para acumular el HTML
+    let htmlIngresos = '';
+    let htmlGastos = '';
 
     listaCategorias.forEach(c => {
         const itemHtml = `
@@ -105,11 +100,15 @@ function renderCategoriasConfig() {
             </div>`;
 
         if (c.tipo === 'ingreso') {
-            containerIng.innerHTML += itemHtml;
+            htmlIngresos += itemHtml; // Acumulamos en texto
         } else {
-            containerGas.innerHTML += itemHtml;
+            htmlGastos += itemHtml;   // Acumulamos en texto
         }
     });
+
+    // Modificamos el DOM una sola vez al final
+    containerIng.innerHTML = htmlIngresos;
+    containerGas.innerHTML = htmlGastos;
 }
 
 function actualizarHome() {
