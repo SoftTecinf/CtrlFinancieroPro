@@ -158,12 +158,8 @@ async function showSection(sectionId) {
     }
 }
 
-// --- 3. LÓGICA DE VISTAS ---
 // --- 3. LÓGICA DE VISTAS (EN APP.JS) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    console.log("👉 Intentando inicializar sección:", sectionId); // <-- Agrega esta línea
-
-    // Limpiamos el ID por si acaso viene con 'nav-'
     const idLimpio = sectionId.replace('nav-', ''); 
 
     if (idLimpio === 'home') { 
@@ -181,8 +177,9 @@ function inicializarFuncionesPorSeccion(sectionId) {
     else if (idLimpio === 'analisis') { 
         actualizarResumen(); 
     }
-    else if (idLimpio === 'ajustes') { 
-        console.log("✅ Llamando a abrirVistaAjustesInteligente()"); // <-- Y esta
+    // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
+    else if (idLimpio === 'config') { 
+        console.log("✅ Llamando a abrirVistaAjustesInteligente()"); 
         abrirVistaAjustesInteligente(); 
     } else {
         console.log("⚠️ No se encontró la función para la sección:", idLimpio);
