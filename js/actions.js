@@ -70,7 +70,9 @@ function limpiarFormulario(tipo) {
 
     campos.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = (id.includes('hidden')) ? 0 : "";
+        if (el) { // <--- ESTO ES VITAL: Verifica que el elemento exista
+            el.value = (id.includes('hidden')) ? 0 : "";
+        }
     });
     
     window.editandoId = null;
