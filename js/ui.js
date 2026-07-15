@@ -183,7 +183,8 @@ function actualizarHome() {
                 maintainAspectRatio: false 
             }
         });
-    }     actualizarGraficoDistribucion(ingM, gasM);
+    }     
+    actualizarGraficoDistribucion(ingM, gasM);
 
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
