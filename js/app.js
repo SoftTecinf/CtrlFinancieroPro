@@ -195,16 +195,13 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    // B. CORRECCIÓN: Usamos requestAnimationFrame para asegurar que el DOM 
-    // terminó de procesar los cambios de actualizarHome()
-    // Dentro de tu requestAnimationFrame en app.js:
     requestAnimationFrame(() => {
-        if (document.getElementById('chartHome')) {
-            // AQUÍ USAS TUS VARIABLES DINÁMICAS
-            window.datosGrafico.nuevosIngresos = ingM;
-            window.datosGrafico.nuevosGastos = gasM;
-        }
-    });
+    const canvas = document.getElementById('chartHome');
+    if (canvas) {
+        // Usamos el Estado Global, que ya está disponible y definido
+        actualizarGraficoDistribucion(window.EstadoFinanciero.ingresos, window.EstadoFinanciero.gastos);
+    }
+});
 }
 
 function fMXN(monto) {
