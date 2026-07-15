@@ -4,7 +4,7 @@ async function guardarRegistro(tipo) {
 
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
-    
+
     if (!monto || monto <= 0) {
         alert("Por favor ingresa un monto válido.");
         return;
@@ -29,9 +29,9 @@ async function guardarRegistro(tipo) {
     } else {
         AppState.movimientos.push(nuevaData);
     }
-    
+
     localStorage.setItem("financiero_state", JSON.stringify(AppState));
-    refrescarVistaActual(); 
+    refrescarVistaActual();
 
     const textoOriginal = btn.innerText;
     btn.disabled = true;
@@ -44,7 +44,7 @@ async function guardarRegistro(tipo) {
 
         if (esEdicion) window.editandoId = null;
         alert("Proceso éxitoso.");
-        limpiarFormulario(tipo); 
+        limpiarFormulario(tipo);
     } catch (error) {
         console.error("Error:", error);
         AppState.movimientos = JSON.parse(estadoAnterior);
@@ -60,7 +60,7 @@ async function guardarRegistro(tipo) {
 
 function limpiarFormulario(tipo) {
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
-    
+
     // Lista de campos específicos
     const campos = [`${pref}-categoria`, `${pref}-desc`, `${pref}-monto-mask`, `${pref}-monto-hidden`];
 
@@ -68,9 +68,9 @@ function limpiarFormulario(tipo) {
         const el = document.getElementById(id);
         if (el) el.value = (id.includes('hidden')) ? 0 : "";
     });
-    
+
     window.editandoId = null;
-    
+
     // Limpieza de estados visuales del botón
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn) {
@@ -98,7 +98,7 @@ async function eliminarMovimiento(id) {
         if (!res || !res.success) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
-        
+
         alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
@@ -108,7 +108,7 @@ async function eliminarMovimiento(id) {
         refrescarVistaActual();
         alert("No se pudo eliminar el registro: " + error.message);
     }
-   
+
 }
 
 async function agregarCategoria() {
@@ -174,7 +174,7 @@ function prepararEdicion(id, tipo) {
     const mov = AppState.movimientos.find(m => m.id === id);
     if (!mov) return;
 
-    window.editandoId = id; 
+    window.editandoId = id;
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
     // 1. Fecha
@@ -184,34 +184,34 @@ function prepararEdicion(id, tipo) {
     // 2. Categoría - DECLARAMOS 'selectCat' SOLO UNA VEZ
     // --- NUEVA PRUEBA PARA LA CATEGORÍA ---
     const selectCat = document.getElementById(`${pref}-categoria`);
-    
+
     // Forzamos un pequeño retraso para asegurar que el DOM esté listo
     setTimeout(() => {
         selectCat.value = mov.cat;
-        
+
         // Si sigue sin seleccionarse, el valor no existe en la lista
         if (selectCat.value !== mov.cat) {
             console.warn("¡Cuidado! No se pudo asignar el valor. ¿Está en la lista de opciones?");
-        } 
+        }
     }, 200);
 
     // 3. Descripción y Monto
     document.getElementById(`${pref}-desc`).value = mov.desc;
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
-    
+
     if (mask && hidden) {
         hidden.value = mov.monto;
         mask.value = Number(mov.monto).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
 
     // 4. Feedback
-    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    if (btn) {
-        btn.innerText = "ACTUALIZAR REGISTRO";
-        btn.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+    const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (btn1) {
+        btn1.innerText = "ACTUALIZAR REGISTRO";
+        btn1.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -222,13 +222,12 @@ function actualizarGraficoDistribucion() {
 
     // --- AQUÍ VA EL CÓDIGO DE DESTRUCCIÓN ---
     // Esto es lo que soluciona el error "Canvas is already in use"
-    if (window.myChart instanceof Chart) {
-        window.myChart.destroy();
+    if (window.miGrafico instanceof Chart) {
+        window.miGrafico.destroy();
     }
-    // ----------------------------------------
 
-    // Ahora sí, creas el nuevo gráfico y lo asignas a la variable global
-    window.myChart = new Chart(ctx, {
+    // Ahora sí, crea el gráfico nuevo
+    window.miGrafico = new Chart(document.getElementById('chartHome').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
