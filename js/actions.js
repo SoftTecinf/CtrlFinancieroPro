@@ -218,25 +218,31 @@ function prepararEdicion(id, tipo) {
 function actualizarGraficoDistribucion() {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
 
-    // --- AQUÍ VA EL CÓDIGO DE DESTRUCCIÓN ---
-    // Esto es lo que soluciona el error "Canvas is already in use"
+    // 1. SIEMPRE usamos la misma variable global para guardar la instancia
     if (window.miGrafico instanceof Chart) {
         window.miGrafico.destroy();
+        window.miGrafico = null; // Nos aseguramos de limpiar la referencia
     }
 
-    // Ahora sí, crea el gráfico nuevo
-    window.miGrafico = new Chart(document.getElementById('chartHome').getContext('2d'), {
+    // 2. Usamos el contexto del canvas que ya obtuvimos arriba
+    const ctx = canvas.getContext('2d');
+
+    // 3. Creamos el nuevo gráfico y lo guardamos en la misma variable
+    window.miGrafico = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                data: [/* tus cálculos aquí */],
+                // Asegúrate de que estos valores sean números
+                data: [AppState.totalIngresos || 0, AppState.totalGastos || 0], 
                 backgroundColor: ['#f59e0b', '#ef4444']
             }]
         },
-        options: { responsive: true }
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false // A veces esto ayuda con el parpadeo
+        }
     });
 }
 
