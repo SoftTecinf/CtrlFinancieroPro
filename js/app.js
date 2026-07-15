@@ -15,6 +15,7 @@ const AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
+    setInterval(actualizarGraficoDistribucion, 500);
     // 1. CARGA DE INTERFAZ
     await showSection('home');
 
