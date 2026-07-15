@@ -215,6 +215,38 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function actualizarGraficoDistribucion() {
+    const canvas = document.getElementById('chartHome');
+    
+    // 1. Validar que el elemento exista en el DOM actual
+    if (!canvas) return; 
+
+    // 2. Limpiar el canvas anterior si existe (evita errores de superposición)
+    if (window.miGrafico instanceof Chart) {
+        window.miGrafico.destroy();
+    }
+
+    // 3. Filtrar datos (ejemplo: solo ingresos del mes actual)
+    const datosMes = AppState.movimientos.filter(m => {
+        // Tu lógica de fechas aquí
+        return true; 
+    });
+
+    // 4. Dibujar
+    const ctx = canvas.getContext('2d');
+    window.miGrafico = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [/* calcula tus totales aquí */],
+                backgroundColor: ['#f59e0b', '#ef4444']
+            }]
+        },
+        options: { responsive: true }
+    });
+}
+
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
