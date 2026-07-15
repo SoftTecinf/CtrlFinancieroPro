@@ -3,8 +3,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1
 let editandoId = null;
 let chartH, chartR;
 // En el nivel más alto de app.js
-let ingM = 40800;
-let gasM = 0;
+//let ingM = 40800;
+//let gasM = 0;
 
 const AppState = {
     movimientos: [],
