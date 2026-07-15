@@ -221,7 +221,7 @@ window.datosGrafico = { nuevosIngresos: 0, nuevosGastos: 0, ultimaIngresos: -1, 
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return; // Si no hay canvas, salimos silenciosamente
+    if (!canvas) return;
 
     // Solo redibujamos si los datos realmente cambiaron
     if (window.datosGrafico.ultimaIngresos === window.datosGrafico.nuevosIngresos && 
@@ -251,8 +251,10 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
     });
 }
 
-// 3. Inicializamos el observador de seguridad de forma segura
-setInterval(asegurarGrafico, 500);
+// Inicialización segura: usamos el evento 'DOMContentLoaded'
+window.addEventListener('DOMContentLoaded', () => {
+    setInterval(asegurarGrafico, 500);
+});
 
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
