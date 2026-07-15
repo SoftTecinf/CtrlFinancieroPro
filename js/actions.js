@@ -263,28 +263,25 @@ async function descargarArchivo(workbook, nombre) { const buffer = await workboo
 
 function limpiarFormulario(tipo) {
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
+    
+    // Lista de campos a limpiar (hemos quitado la fecha)
     const campos = [
-        `${pref}-fecha`,
         `${pref}-categoria`,
         `${pref}-desc`,
         `${pref}-monto-mask`,
         `${pref}-monto-hidden`
     ];
 
-    // Limpiamos los inputs solo si existen
     campos.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.value = (id.includes('hidden')) ? 0 : "";
-        } else {
-            console.warn(`Elemento no encontrado para limpiar: ${id}`);
         }
     });
     
-    // Resetear el estado de edición
+    // El resto de la función se mantiene igual...
     window.editandoId = null;
     
-    // Resetear el botón
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn) {
         btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
