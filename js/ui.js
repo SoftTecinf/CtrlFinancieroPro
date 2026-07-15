@@ -173,8 +173,8 @@ function actualizarHome() {
     });
 
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
-    window.EstadoApp.ingresos = ingM;
-    window.EstadoApp.gastos = gasM;
+    //window.EstadoFinanciero.ingresos = ingM;
+     //   window.EstadoFinanciero.gastos = gasM;
 
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
@@ -301,34 +301,19 @@ function safeSetHTML(id, htmlContent) {
 
 // --- CONTROLADOR INTELIGENTE DE VISTAS ---
 async function abrirVistaAjustesInteligente() {
-    // 1. Verificamos si NO hay categorías
-    if (!AppState.categorias || AppState.categorias.length === 0) {
-
-        toggleLoading(true);
-
-        try {
-            // AQUÍ PUEDE ESTAR EL ERROR: ¿Tu API espera esto exactamente?
-            const formData = new FormData();
-            formData.append('action', 'obtenerCategorias');
-
-            console.log("3. Enviando petición a la API...");
-            const req = await fetch(API_URL, { method: 'POST', body: formData });
-            const res = await req.json();
-
-            console.log("4. Respuesta recibida de la API:", res);
-
-            if (res.exito) {
-                AppState.categorias = res.datos;
-                console.log("5. Categorías guardadas exitosamente.");
-            } else {
-                console.error("6. Error en la API. Respuesta no exitosa:", res);
-            }
-        } catch (error) {
-            console.error("❌ ERROR CRÍTICO AL DESCARGAR:", error);
-        } finally {
-            toggleLoading(false);
+    toggleLoading(true); // Siempre muestra carga antes de la lógica
+    try {
+        if (!AppState.categorias || AppState.categorias.length === 0) {
+             const formData = new FormData();
+             formData.append('action', 'obtenerCategorias');
+             const req = await fetch(API_URL, { method: 'POST', body: formData });
+             const res = await req.json();
+             if (res.exito) AppState.categorias = res.datos;
         }
+    } catch (error) {
+        console.error("Error al cargar categorías:", error);
+    } finally {
+        toggleLoading(false);
+        renderCategoriasConfig(); // SE EJECUTA SIEMPRE, haya datos o error
     }
-
-    renderCategoriasConfig();
 }
