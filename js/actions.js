@@ -215,28 +215,31 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function actualizarGraficoDistribucion(ing, gas) {
+function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
-
-    // Destrucción segura usando la variable global
-    if (window.chartH instanceof Chart) {
-        window.chartH.destroy();
+    if (!canvas) {
+        console.warn("DEBUG: No se encontró #chartHome en el DOM");
+        return;
     }
 
-    // Creación
-    window.chartH = new Chart(canvas.getContext('2d'), {
+    // DESTRUCCIÓN SEGURA: Usa siempre window.chartH
+    if (window.chartH instanceof Chart) {
+        window.chartH.destroy();
+        window.chartH = null;
+    }
+
+    // CREACIÓN
+    const ctx = canvas.getContext('2d');
+    window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
-            datasets: [{ 
-                data: [ing, gas], 
-                backgroundColor: ['#D6C7B3', '#E5E7EB'] 
+            datasets: [{
+                data: [ingresos || 0, gastos || 0],
+                backgroundColor: ['#f59e0b', '#ef4444']
             }]
         },
         options: { 
-            cutout: '75%', 
-            plugins: { legend: { display: false } },
             responsive: true, 
             maintainAspectRatio: false 
         }
