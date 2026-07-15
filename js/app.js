@@ -206,7 +206,7 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    actualizarGraficoDistribucion();
+    //actualizarGraficoDistribucion();
 }
 
 function fMXN(monto) {
