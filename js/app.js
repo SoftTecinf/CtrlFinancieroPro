@@ -160,7 +160,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
         actualizarFechaHeader();
         // CAMBIO: Quita (ingM, gasM), déjalo vacío. 
         // La función buscará los valores en window.EstadoFinanciero
-        actualizarGraficoDistribucion(); 
+        actualizarGraficoDistribucion();
     }
     else if (idLimpio === 'ingresos') {
         actualizarSelectsCategorias();
@@ -199,12 +199,11 @@ function refrescarVistaActual() {
     }
 
     requestAnimationFrame(() => {
-    const canvas = document.getElementById('chartHome');
-    if (canvas) {
-        // Usamos el Estado Global, que ya está disponible y definido
-        actualizarGraficoDistribucion();
-    }
-});
+        // Solo llamamos a la función global, sin argumentos
+        if (typeof window.actualizarGraficoDistribucion === 'function') {
+            window.actualizarGraficoDistribucion();
+        }
+    });
 }
 
 function fMXN(monto) {
