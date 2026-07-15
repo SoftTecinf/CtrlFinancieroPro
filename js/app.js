@@ -206,11 +206,12 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    // 1. Aquí inyectas tu HTML (donde está el canvas)
-    document.getElementById('contenedor-home').innerHTML = `... <canvas id="chartHome"></canvas> ...`;
-
-    // 2. JUSTO DESPUÉS, llamas a la función que dibuja
-    actualizarGraficoDistribucion();
+  const canvas = document.getElementById('chartHome');
+    if (canvas) {
+        actualizarGraficoDistribucion();
+    } else {
+        console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
+    }
 }
 
 function fMXN(monto) {
