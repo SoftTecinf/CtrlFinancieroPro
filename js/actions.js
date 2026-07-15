@@ -1,4 +1,4 @@
-window.EstadoApp = {
+window.EstadoFinanciero = {
     ingresos: 0,
     gastos: 0,
     ultimaCarga: { i: -1, g: -1 }
