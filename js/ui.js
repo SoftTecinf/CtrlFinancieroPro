@@ -137,10 +137,16 @@ function actualizarHome() {
         if (m.fecha === hoyStr) balD += val;
 
         const mF = new Date(m.fecha + 'T00:00:00');
-        if (!isNaN(mF.getTime())) {
-            if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-                if (m.tipo === 'ingreso') ingM += monto;
-                else gasM += monto;
+        
+        // Combinamos el chequeo de validez con la fecha actual
+        const esFechaValida = !isNaN(mF.getTime());
+        const esMesActual = mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear();
+
+        if (esFechaValida && esMesActual) {
+            if (m.tipo === 'ingreso') {
+                ingM += monto;
+            } else {
+                gasM += monto;
             }
         }
     });
