@@ -216,22 +216,14 @@ function prepararEdicion(id, tipo) {
 }
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
-    console.log("Valores recibidos para el gráfico -> Ingresos:", ingresos, "Gastos:", gastos);
     const canvas = document.getElementById('chartHome');
-    
-    // Si el DOM no ha terminado de cargar el canvas, salimos sin errores
-    if (!canvas) {
-        console.warn("DEBUG: El canvas #chartHome aún no existe en el DOM");
-        return;
-    }
+    if (!canvas) return; 
 
-    // DESTRUCCIÓN SEGURA: Siempre destruye antes de crear
+    // DESTRUCCIÓN: Esto quita el error de "Canvas is already in use"
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
-        window.chartH = null;
     }
 
-    // CREACIÓN
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
