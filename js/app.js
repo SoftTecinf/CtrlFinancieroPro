@@ -205,6 +205,8 @@ function refrescarVistaActual() {
     } else if (seccionId === 'nav-gastos') {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
+
+    actualizarGraficoDistribucion();
 }
 
 function fMXN(monto) {
