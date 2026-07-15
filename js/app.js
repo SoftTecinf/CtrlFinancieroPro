@@ -113,7 +113,22 @@ async function showSection(sectionId) {
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
             // C. Lógica específica por sección
-            if (sectionId === 'ingresos') {
+            if (sectionId === 'home') {
+                // 1. Ejecutamos la lógica de refresco
+                inicializarFuncionesPorSeccion(sectionId);
+
+                // 2. FORZAMOS EL DIBUJO DEL GRÁFICO AQUÍ MISMO
+                // Resetemos la bandera de carga para obligar a dibujar aunque el objeto crea que ya lo hizo
+                window.ultimaCarga = { i: -1, g: -1 };
+
+                setTimeout(() => {
+                    if (typeof actualizarGraficoDistribucion === 'function') {
+                        actualizarGraficoDistribucion();
+                    }
+                }, 200); // 200ms es un tiempo seguro para que el navegador ya haya "pintado" el canvas
+            }
+            else if (sectionId === 'ingresos') {
+                // ... tu código actual de ingresos ...
                 const inputFecha = document.getElementById('in-fecha');
                 if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
 
@@ -160,6 +175,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
         actualizarFechaHeader();
         // CAMBIO: Quita (ingM, gasM), déjalo vacío. 
         // La función buscará los valores en window.EstadoFinanciero
+        window.ultimaCarga = { i: -1, g: -1 };
         actualizarGraficoDistribucion();
     }
     else if (idLimpio === 'ingresos') {
