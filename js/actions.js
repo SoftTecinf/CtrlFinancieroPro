@@ -215,36 +215,28 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function actualizarGraficoDistribucion(ingresoMes, gastoMes) {
+function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) {
-        console.warn("DEBUG: No se encontró #chartHome en el DOM");
-        return;
-    }
+    if (!canvas) return; // Si no hay canvas, no hacemos nada, sin errores.
 
-    // DESTRUCCIÓN SEGURA: Usamos la variable global window.chartH
+    // Destruye el anterior si existe, usando la variable global segura
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
+        window.chartH = null;
     }
 
+    // Crea el nuevo
     const ctx = canvas.getContext('2d');
-    
-    // CREACIÓN
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                data: [ingresoMes || 0, gastoMes || 0],
+                data: [ingresos || 0, gastos || 0],
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            cutout: '75%', 
-            plugins: { legend: { display: false } }
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
