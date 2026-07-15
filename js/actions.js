@@ -216,22 +216,21 @@ function prepararEdicion(id, tipo) {
 }
 
 window.chartH = window.chartH || null;
-// Flag para evitar re-dibujos innecesarios con datos vacíos
-let ultimaSumaValida = 0; 
+window.datosGrafico = { ingresos: 0, gastos: 0 };
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
+    
+    // Si no hay canvas, no intentamos dibujar, solo esperamos
     if (!canvas) return;
 
-    // BLOQUEO: Si nos llegan datos vacíos pero ya tenemos datos válidos pintados, ignoramos
-    const sumaActual = ingresos + gastos;
-    if (sumaActual === 0 && ultimaSumaValida > 0) {
-        console.warn("Ignorando actualización vacía para preservar el gráfico.");
+    // Si el gráfico ya existe y los datos no cambiaron, no hacemos nada
+    // Esto evita el parpadeo
+    if (window.chartH && window.datosGrafico.ingresos === window.datosGrafico.nuevosIngresos && window.datosGrafico.gastos === window.datosGrafico.nuevosGastos) {
         return;
     }
-    ultimaSumaValida = sumaActual;
 
-    // DESTRUCCIÓN SEGURA
+    // Si llegamos aquí, el canvas existe y hay cambios: destruimos y dibujamos
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
@@ -242,16 +241,17 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                data: [ingresos || 0, gastos || 0],
+                data: [window.datosGrafico.nuevosIngresos || 0, window.datosGrafico.nuevosGastos || 0],
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false 
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
+
+// LANZADOR: Ejecuta esto cada 500ms para asegurar que el gráfico "sobrevive"
+// si el DOM se refresca dinámicamente.
+setInterval(asegurarGrafico, 500);
 
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
