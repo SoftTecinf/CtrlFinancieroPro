@@ -113,8 +113,9 @@ function renderCategoriasConfig() {
 
 // Asegúrate de que esta variable sea global en tu archivo
 window.chartH = window.chartH || null;
-
+let renderizadoEnProgreso = false;
 function actualizarHome() {
+    renderizadoEnProgreso = true;
     // 1. LEEMOS Y NORMALIZAMOS DATOS
     let datos = AppState.movimientos || [];
     if (datos && !Array.isArray(datos) && typeof datos === 'object') {
@@ -171,7 +172,8 @@ function actualizarHome() {
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
 
     actualizarGraficoDistribucion(ingM, gasM);
-
+    renderizadoEnProgreso = false;
+    
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
