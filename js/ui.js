@@ -136,12 +136,18 @@ function actualizarHome() {
         balG += val;
         if (m.fecha === hoyStr) balD += val;
 
-        const mF = new Date(m.fecha + 'T00:00:00');
+        const mF = new Date(m.fecha);
+
+        // Y para asegurar que funciona incluso si m.fecha viene como string raro:
+        if (isNaN(mF.getTime())) {
+            console.warn("Fecha inválida encontrada:", m.fecha);
+            return; // Saltamos este movimiento
+        }
         // AGREGA ESTO:
-        console.log("Comparando:", { 
-            movimiento: m.fecha, 
-            mesMov: mF.getMonth(), 
-            mesActual: ahora.getMonth() 
+        console.log("Comparando:", {
+            movimiento: m.fecha,
+            mesMov: mF.getMonth(),
+            mesActual: ahora.getMonth()
         });
         // Combinamos el chequeo de validez con la fecha actual
         const esFechaValida = !isNaN(mF.getTime());
