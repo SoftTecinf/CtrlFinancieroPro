@@ -215,36 +215,36 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// actions.js - Centralizado
+window.chartH = window.chartH || null;
+
 function actualizarGraficoDistribucion(ingresos, gastos) {
-    const canvas = document.getElementById('chartHome');
-    
-    // Si el canvas no existe en el DOM, no hacemos nada todavía
-    if (!canvas) {
-        console.warn("Esperando a que el DOM cargue el canvas...");
-        return;
-    }
-
-    // DESTRUCCIÓN SEGURA: Esto soluciona el error "Canvas is already in use"
-    if (window.chartH instanceof Chart) {
-        window.chartH.destroy();
-        window.chartH = null;
-    }
-
-    // CREACIÓN
-    const ctx = canvas.getContext('2d');
-    window.chartH = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Ingresos', 'Gastos'],
-            datasets: [{
-                data: [ingresos || 0, gastos || 0],
-                backgroundColor: ['#D6C7B3', '#E5E7EB']
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false 
+    // Usamos requestAnimationFrame para asegurar que el DOM existe
+    requestAnimationFrame(() => {
+        const canvas = document.getElementById('chartHome');
+        if (!canvas) {
+            console.warn("DEBUG: Canvas aún no listo, re-intentando en el próximo frame...");
+            return;
         }
+
+        // Destrucción segura
+        if (window.chartH instanceof Chart) {
+            window.chartH.destroy();
+            window.chartH = null;
+        }
+
+        const ctx = canvas.getContext('2d');
+        window.chartH = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{
+                    data: [ingresos || 0, gastos || 0],
+                    backgroundColor: ['#D6C7B3', '#E5E7EB']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
     });
 }
 
