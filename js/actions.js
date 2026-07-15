@@ -218,36 +218,30 @@ function prepararEdicion(id, tipo) {
 function actualizarGraficoDistribucion() {
     const canvas = document.getElementById('chartHome');
     if (!canvas) {
-        console.warn("DEBUG: No se encontró el elemento #chartHome en el DOM");
+        console.warn("DEBUG: No se encontró #chartHome en el DOM");
         return;
     }
-    
-    console.log("DEBUG: Dibujando gráfica con datos:", AppState.totalIngresos, AppState.totalGastos);
 
-    // 1. SIEMPRE usamos la misma variable global para guardar la instancia
+    // DESTRUCCIÓN SEGURA
     if (window.miGrafico instanceof Chart) {
         window.miGrafico.destroy();
-        window.miGrafico = null; // Nos aseguramos de limpiar la referencia
+        window.miGrafico = null;
     }
 
-    // 2. Usamos el contexto del canvas que ya obtuvimos arriba
     const ctx = canvas.getContext('2d');
-
-    // 3. Creamos el nuevo gráfico y lo guardamos en la misma variable
+    
+    // CREACIÓN
     window.miGrafico = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                // Asegúrate de que estos valores sean números
-                data: [AppState.totalIngresos || 0, AppState.totalGastos || 0], 
+                // Asegúrate que AppState tenga datos aquí
+                data: [AppState.totalIngresos || 0, AppState.totalGastos || 0],
                 backgroundColor: ['#f59e0b', '#ef4444']
             }]
         },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false // A veces esto ayuda con el parpadeo
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
