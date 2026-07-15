@@ -158,7 +158,9 @@ function inicializarFuncionesPorSeccion(sectionId) {
     if (idLimpio === 'home') {
         actualizarHome();
         actualizarFechaHeader();
-        actualizarGraficoDistribucion(ingM, gasM);
+        // CAMBIO: Quita (ingM, gasM), déjalo vacío. 
+        // La función buscará los valores en window.EstadoFinanciero
+        actualizarGraficoDistribucion(); 
     }
     else if (idLimpio === 'ingresos') {
         actualizarSelectsCategorias();
@@ -200,7 +202,7 @@ function refrescarVistaActual() {
     const canvas = document.getElementById('chartHome');
     if (canvas) {
         // Usamos el Estado Global, que ya está disponible y definido
-        actualizarGraficoDistribucion(window.EstadoFinanciero.ingresos, window.EstadoFinanciero.gastos);
+        actualizarGraficoDistribucion();
     }
 });
 }
