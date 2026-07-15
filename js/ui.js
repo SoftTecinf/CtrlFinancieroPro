@@ -2,18 +2,18 @@
 function actualizarListadoIndividual(tipo, contId, countId) {
     // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
-    
+
     // 2. Filtramos usando tu lógica segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
-        const mesMov = d.getMonth(); 
+        const mesMov = d.getMonth();
 
-        return m.tipo === tipo && 
-               mesMov === AppState.filtrosActuales.mes && 
-               añoMov === AppState.filtrosActuales.año;
+        return m.tipo === tipo &&
+            mesMov === AppState.filtrosActuales.mes &&
+            añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
     // 3. Renderizamos el conteo
@@ -111,6 +111,7 @@ function renderCategoriasConfig() {
     containerGas.innerHTML = htmlGastos;
 }
 
+let chartH = null;
 function actualizarHome() {
     // 1. LEEMOS Y NORMALIZAMOS
     let datos = AppState.movimientos || [];
@@ -149,6 +150,39 @@ function actualizarHome() {
         if (m.fecha === hoyStr) balD += val;
 
         // 4. Cálculos de mes (Asegurando fecha válida)
+        // 4. Gráfico mejorado
+        const canvas = document.getElementById('chartHome');
+
+        // Si el canvas no existe, no intentamos dibujar, evitamos el error de 'null'
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+
+            // Destrucción segura usando la variable global chartH
+            if (typeof chartH !== 'undefined' && chartH !== null) {
+                chartH.destroy();
+            }
+
+            // Creación del nuevo gráfico
+            chartH = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ingresos', 'Gastos'],
+                    datasets: [{
+                        data: [ingM, gasM],
+                        backgroundColor: ['#D6C7B3', '#E5E7EB']
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    plugins: { legend: { display: false } },
+                    responsive: true, // Importante para que no desaparezca
+                    maintainAspectRatio: false
+                }
+            });
+        } else {
+            console.warn("El canvas #chartHome no se encontró en el DOM actual.");
+        }
+
         const mF = new Date(m.fecha + 'T00:00:00');
         // Verificamos que la fecha sea válida antes de comparar
         if (!isNaN(mF.getTime())) {
@@ -315,18 +349,18 @@ function safeSetHTML(id, htmlContent) {
 async function abrirVistaAjustesInteligente() {
     // 1. Verificamos si NO hay categorías
     if (!AppState.categorias || AppState.categorias.length === 0) {
-        
+
         toggleLoading(true);
-        
+
         try {
             // AQUÍ PUEDE ESTAR EL ERROR: ¿Tu API espera esto exactamente?
             const formData = new FormData();
-            formData.append('action', 'obtenerCategorias'); 
-            
+            formData.append('action', 'obtenerCategorias');
+
             console.log("3. Enviando petición a la API...");
             const req = await fetch(API_URL, { method: 'POST', body: formData });
             const res = await req.json();
-            
+
             console.log("4. Respuesta recibida de la API:", res);
 
             if (res.exito) {
@@ -340,7 +374,7 @@ async function abrirVistaAjustesInteligente() {
         } finally {
             toggleLoading(false);
         }
-    } 
+    }
 
     renderCategoriasConfig();
 }
