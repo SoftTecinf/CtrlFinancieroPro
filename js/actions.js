@@ -47,7 +47,19 @@ async function guardarRegistro(tipo) {
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
 
-        if (!res.success) throw new Error(res.message);
+       if (res.success) {
+            // Si fue edición, limpiamos el estado visual de edición
+            if (esEdicion) {
+                window.editandoId = null;
+                // --- AQUÍ ESTÁ EL CAMBIO ---
+                btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+                btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
+            }
+
+            limpiarFormulario(tipo); 
+            // Restauramos el texto original explícitamente si por alguna razón no lo hizo arriba
+            btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+        }
 
         if (esEdicion) {
             window.editandoId = null;
