@@ -122,105 +122,107 @@ async function showSection(sectionId) {
                 }
 
                 container.innerHTML = html;
-
                 // D. SINCRONIZACIÓN DE DATOS
-                setTimeout(() => {
-                    // Primero, asegura que los datos existan
-                    const faltanMovimientos = AppState.movimientos.length === 0;
+                // Verificamos si nos faltan los movimientos O las categorías
+                const faltanMovimientos = (!AppState.movimientos || AppState.movimientos.length === 0);
+                const faltanCategorias = (!AppState.categorias || AppState.categorias.length === 0);
 
-                    if (faltanMovimientos && !AppState.cargado) {
-                        inicializarSincronizacion().then(() => {
-                            AppState.cargado = true;
-                            inicializarFuncionesPorSeccion(sectionId);
-                        });
-                    } else {
+                // Si nos falta cualquiera de los dos y no hemos cargado antes:
+                if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
+                    inicializarSincronizacion().then(() => {
+                        AppState.cargado = true;
+                        // Ahora que SÍ tenemos ambos, renderizamos la sección
                         inicializarFuncionesPorSeccion(sectionId);
-                    }
-
-                    if (typeof toggleLoading === 'function') toggleLoading(false);
-                }, 150); // Aumentado a 150ms para asegurar que el DOM esté listo
-            });
-
-            if (sectionId === 'ingresos') {
-                const inputFecha = document.getElementById('in-fecha');
-                if (inputFecha) {
-                    inputFecha.value = new Date().toISOString().split('T')[0];
+                    });
+                } else {
+                    // Ya tenemos datos, renderizamos directo
+                    inicializarFuncionesPorSeccion(sectionId);
                 }
-            }
 
-        } catch (error) {
-            if (loadId === currentLoadId) {
-                console.error("Error al cargar la sección:", error);
                 if (typeof toggleLoading === 'function') toggleLoading(false);
+            }, 150);
+        });
+
+        if (sectionId === 'ingresos') {
+            const inputFecha = document.getElementById('in-fecha');
+            if (inputFecha) {
+                inputFecha.value = new Date().toISOString().split('T')[0];
             }
         }
+
+    } catch (error) {
+        if (loadId === currentLoadId) {
+            console.error("Error al cargar la sección:", error);
+            if (typeof toggleLoading === 'function') toggleLoading(false);
+        }
     }
+}
 
 // --- 3. LÓGICA DE VISTAS (EN APP.JS) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-        const idLimpio = sectionId.replace('nav-', '');
+    const idLimpio = sectionId.replace('nav-', '');
 
-        if (idLimpio === 'home') {
-            actualizarHome();
-            actualizarFechaHeader();
-        }
-        else if (idLimpio === 'ingresos') {
-            actualizarSelectsCategorias();
-            actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-        }
-        else if (idLimpio === 'gastos') {
-            actualizarSelectsCategorias();
-            actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
-        }
-        else if (idLimpio === 'analisis') {
-            actualizarResumen();
-        }
-        // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
-        else if (idLimpio === 'config') {
-            abrirVistaAjustesInteligente();
-        } else {
-            console.log("⚠️ No se encontró la función para la sección:", idLimpio);
-        }
+    if (idLimpio === 'home') {
+        actualizarHome();
+        actualizarFechaHeader();
+    }
+    else if (idLimpio === 'ingresos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+    }
+    else if (idLimpio === 'gastos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
+    }
+    else if (idLimpio === 'analisis') {
+        actualizarResumen();
+    }
+    // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
+    else if (idLimpio === 'config') {
+        abrirVistaAjustesInteligente();
+    } else {
+        console.log("⚠️ No se encontró la función para la sección:", idLimpio);
+    }
+}
+
+function refrescarVistaActual() {
+    const activeBtn = document.querySelector('.nav-active');
+    if (!activeBtn) return;
+
+    const seccionId = activeBtn.id;
+
+    // Sincronizar filtros primero
+    const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
+    const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
+    if (mesSel?.value) AppState.filtrosActuales.mes = parseInt(mesSel.value);
+    if (añoSel?.value) AppState.filtrosActuales.año = parseInt(añoSel.value);
+
+    // Pintar según la sección
+    if (seccionId === 'nav-home') {
+        actualizarHome();
+    } else if (seccionId === 'nav-ingresos') {
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
+    } else if (seccionId === 'nav-gastos') {
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    function refrescarVistaActual() {
-        const activeBtn = document.querySelector('.nav-active');
-        if (!activeBtn) return;
+    console.log("Buscando elemento en el DOM:", document.getElementById('tu-id-aqui'));
+    const canvas = document.getElementById('chartHome');
+    if (canvas) {
+        actualizarGraficoDistribucion();
+    } else {
+        console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
+    }
+}
 
-        const seccionId = activeBtn.id;
+function fMXN(monto) {
+    // Convertimos a número, si no es válido, usamos 0
+    const valor = parseFloat(monto);
 
-        // Sincronizar filtros primero
-        const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
-        const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
-        if (mesSel?.value) AppState.filtrosActuales.mes = parseInt(mesSel.value);
-        if (añoSel?.value) AppState.filtrosActuales.año = parseInt(añoSel.value);
-
-        // Pintar según la sección
-        if (seccionId === 'nav-home') {
-            actualizarHome();
-        } else if (seccionId === 'nav-ingresos') {
-            actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-        } else if (seccionId === 'nav-gastos') {
-            actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-        }
-
-        console.log("Buscando elemento en el DOM:", document.getElementById('tu-id-aqui'));
-        const canvas = document.getElementById('chartHome');
-        if (canvas) {
-            actualizarGraficoDistribucion();
-        } else {
-            console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
-        }
+    if (isNaN(valor)) {
+        console.warn("Valor inválido detectado para formato:", monto);
+        return "$0.00";
     }
 
-    function fMXN(monto) {
-        // Convertimos a número, si no es válido, usamos 0
-        const valor = parseFloat(monto);
-
-        if (isNaN(valor)) {
-            console.warn("Valor inválido detectado para formato:", monto);
-            return "$0.00";
-        }
-
-        return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-    }
+    return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
