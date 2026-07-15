@@ -215,16 +215,23 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// actions.js - Centralizado
 window.chartH = window.chartH || null;
-// actions.js
+// Flag para evitar re-dibujos innecesarios con datos vacíos
+let ultimaSumaValida = 0; 
+
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // DEBUG: ¿Qué valores estamos intentando graficar?
-    console.log("DEBUG - Valores finales:", { ingresos, gastos });
+    // BLOQUEO: Si nos llegan datos vacíos pero ya tenemos datos válidos pintados, ignoramos
+    const sumaActual = ingresos + gastos;
+    if (sumaActual === 0 && ultimaSumaValida > 0) {
+        console.warn("Ignorando actualización vacía para preservar el gráfico.");
+        return;
+    }
+    ultimaSumaValida = sumaActual;
 
+    // DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
@@ -245,6 +252,7 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
         }
     });
 }
+
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
