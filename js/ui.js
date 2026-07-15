@@ -111,80 +111,32 @@ function renderCategoriasConfig() {
     containerGas.innerHTML = htmlGastos;
 }
 
+// Asegúrate de que esta variable sea global en tu archivo
 let chartH = null;
-function actualizarHome() {
-    // 1. LEEMOS Y NORMALIZAMOS
-    let datos = AppState.movimientos || [];
 
-    // Si datos es un objeto con una propiedad que contiene la lista, extráela
+function actualizarHome() {
+    // 1. LEEMOS Y NORMALIZAMOS DATOS
+    let datos = AppState.movimientos || [];
     if (datos && !Array.isArray(datos) && typeof datos === 'object') {
-        // Busca si tiene una propiedad llamada 'movimientos' o similares
         datos = datos.movimientos || Object.values(datos);
     }
+    if (!Array.isArray(datos)) datos = [];
 
-    // Si sigue sin ser array, forzamos array vacío
-    if (!Array.isArray(datos)) {
-        // console.error("Los datos recibidos no son un array:", datos);
-        datos = [];
-    }
-
-    // 2. Cálculos (ahora seguros)
+    // 2. CÁLCULOS (FUERA DEL BUCLE DE DIBUJO)
     const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    // console.log("Estructura de datos recibida:", datos);
     datos.forEach(m => {
-        // 1. VALIDACIÓN DE SEGURIDAD: Si el registro no tiene datos mínimos, saltamos
-        if (!m || typeof m.monto === 'undefined') {
-            // console.warn("Registro ignorado por falta de datos:", m);
-            return;
-        }
+        if (!m || typeof m.monto === 'undefined') return;
 
-        // 2. Normalización del monto (asegurar que sea número)
         const monto = parseFloat(m.monto) || 0;
         const val = m.tipo === 'ingreso' ? monto : -monto;
 
-        // 3. Cálculos de balance
         balG += val;
         if (m.fecha === hoyStr) balD += val;
 
-        // 4. Cálculos de mes (Asegurando fecha válida)
-        // 4. Gráfico mejorado
-        const canvas = document.getElementById('chartHome');
-
-        // Si el canvas no existe, no intentamos dibujar, evitamos el error de 'null'
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-
-            // Destrucción segura usando la variable global chartH
-            if (typeof chartH !== 'undefined' && chartH !== null) {
-                chartH.destroy();
-            }
-
-            // Creación del nuevo gráfico
-            chartH = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ingresos', 'Gastos'],
-                    datasets: [{
-                        data: [ingM, gasM],
-                        backgroundColor: ['#D6C7B3', '#E5E7EB']
-                    }]
-                },
-                options: {
-                    cutout: '75%',
-                    plugins: { legend: { display: false } },
-                    responsive: true, // Importante para que no desaparezca
-                    maintainAspectRatio: false
-                }
-            });
-        } else {
-            console.warn("El canvas #chartHome no se encontró en el DOM actual.");
-        }
-
         const mF = new Date(m.fecha + 'T00:00:00');
-        // Verificamos que la fecha sea válida antes de comparar
         if (!isNaN(mF.getTime())) {
             if (mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
                 if (m.tipo === 'ingreso') ingM += monto;
@@ -193,39 +145,50 @@ function actualizarHome() {
         }
     });
 
-    // 3. Actualización de texto
+    // 3. ACTUALIZACIÓN DE TEXTOS (DOM)
     const updates = [
         { id: 'balance-general', val: fMXN(balG) },
         { id: 'balance-dia', val: fMXN(balD) },
         { id: 'home-ingresos', val: fMXN(ingM) },
         { id: 'home-gastos', val: fMXN(gasM) }
     ];
-
     updates.forEach(item => {
         const el = document.getElementById(item.id);
         if (el) el.innerText = item.val;
     });
 
-    // 4. Gráfico
+    // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
     const canvas = document.getElementById('chartHome');
     if (canvas) {
         const ctx = canvas.getContext('2d');
-        if (chartH) chartH.destroy();
+        
+        // Destrucción segura antes de crear el nuevo
+        if (chartH instanceof Chart) {
+            chartH.destroy();
+        }
+
         chartH = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: ['Ingresos', 'Gastos'],
-                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }]
+                datasets: [{ 
+                    data: [ingM, gasM], 
+                    backgroundColor: ['#D6C7B3', '#E5E7EB'] 
+                }]
             },
-            options: { cutout: '75%', plugins: { legend: { display: false } } }
+            options: { 
+                cutout: '75%', 
+                plugins: { legend: { display: false } },
+                responsive: true,
+                maintainAspectRatio: false 
+            }
         });
     }
 
-    // 5. Lista reciente (usamos 'datos' en lugar de 'movimientos')
+    // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
         listaH.innerHTML = '';
-        // Usamos .slice() para no modificar el array original y mostramos los últimos 10
         [...datos].reverse().slice(0, 10).forEach(m => {
             listaH.innerHTML += `
                 <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
