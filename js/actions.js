@@ -228,11 +228,12 @@ window.chartH = window.chartH || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 function actualizarGraficoDistribucion() {
-    // 2. PROTECCIÓN: Si el objeto no existe, no hacemos nada
-    if (!window.datosGrafico) return;
+    const canvas = document.getElementById('chartHome');
+    if (!canvas) return;
 
-    const ingresos = window.datosGrafico.nuevosIngresos || 0;
-    const gastos = window.datosGrafico.nuevosGastos || 0;
+    // Leemos directamente del estado global
+    const ingresos = window.EstadoFinanciero.ingresos;
+    const gastos = window.EstadoFinanciero.gastos;
 
     // 3. FILTRO: No redibujar si no hay cambios
     if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
