@@ -21,19 +21,19 @@ async function guardarRegistro(tipo) {
         monto
     };
 
-    // 3. ACTUALIZACIÓN OPTIMISTA: Modificamos AppState inmediatamente
+    // 3. ACTUALIZACIÓN OPTIMISTA
     const esEdicion = !!window.editandoId;
-    const estadoAnterior = [...AppState.movimientos]; // Guardamos copia por si falla
+    const estadoAnterior = JSON.stringify(AppState.movimientos); // Clon profundo seguro
 
     if (esEdicion) {
-        const idx = AppState.movimientos.findIndex(m => m.id === idMovi);
+        const idx = AppState.movimientos.findIndex(m => m.id == idMovi);
         if (idx !== -1) AppState.movimientos[idx] = nuevaData;
     } else {
         AppState.movimientos.push(nuevaData);
     }
     
-    // Renderizamos al instante
-    limpiarFormulario();
+    // Guardamos en localStorage para persistencia
+    localStorage.setItem("financiero_state", JSON.stringify(AppState));
     refrescarVistaActual(); 
 
     // 4. Petición en segundo plano
@@ -43,24 +43,23 @@ async function guardarRegistro(tipo) {
 
         if (!res.success) throw new Error(res.message);
 
-        // Si fue éxito y era edición, limpiamos el estado de edición
+        // Si es edición, quitamos el modo edición tras éxito
         if (esEdicion) {
             window.editandoId = null;
             btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
             btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
         }
 
-        // Limpieza de campos
-        document.getElementById(`${pref}-monto-mask`).value = "";
-        document.getElementById(`${pref}-monto-hidden`).value = 0;
-        document.getElementById(`${pref}-desc`).value = "";
+        // LIMPIEZA FINAL (Pasando el tipo para que detecte bien los inputs)
+        limpiarFormulario(tipo); 
 
     } catch (error) {
-        // 5. REVERSIÓN SI FALLA
         console.error("Error al guardar en servidor:", error);
-        AppState.movimientos = estadoAnterior;
+        // REVERSIÓN TOTAL
+        AppState.movimientos = JSON.parse(estadoAnterior);
+        localStorage.setItem("financiero_state", JSON.stringify(AppState));
         refrescarVistaActual();
-        alert("No se pudo guardar el registro: " + error.message);
+        alert("No se pudo guardar: " + error.message);
     } finally {
         btn.disabled = false;
     }
