@@ -158,32 +158,7 @@ function actualizarHome() {
     });
 
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
-    const canvas = document.getElementById('chartHome');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        
-        // Destrucción segura antes de crear el nuevo
-        if (chartH instanceof Chart) {
-            chartH.destroy();
-        }
-
-        chartH = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ingresos', 'Gastos'],
-                datasets: [{ 
-                    data: [ingM, gasM], 
-                    backgroundColor: ['#D6C7B3', '#E5E7EB'] 
-                }]
-            },
-            options: { 
-                cutout: '75%', 
-                plugins: { legend: { display: false } },
-                responsive: true,
-                maintainAspectRatio: false 
-            }
-        });
-    }     
+     
     actualizarGraficoDistribucion(ingM, gasM);
 
     // 5. LISTA RECIENTE
