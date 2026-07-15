@@ -215,27 +215,30 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-window.chartH = window.chartH || null;
-// Flag para evitar re-dibujos innecesarios con datos vacíos
-let ultimaSumaValida = 0; 
+// 1. Inicializamos con valores que NUNCA coincidirán con una suma real (como -1)
+window.ultimosDatosGrafico = { ingresos: -1, gastos: -1 }; 
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // BLOQUEO: Si nos llegan datos vacíos pero ya tenemos datos válidos pintados, ignoramos
-    const sumaActual = ingresos + gastos;
-    if (sumaActual === 0 && ultimaSumaValida > 0) {
-        console.warn("Ignorando actualización vacía para preservar el gráfico.");
-        return;
+    // 2. COMPARACIÓN ESTRICTA:
+    // Si los datos son idénticos a los últimos dibujados, salimos inmediatamente.
+    // Esto evita que el gráfico se redibuje y parpadee.
+    if (window.ultimosDatosGrafico.ingresos === ingresos && 
+        window.ultimosDatosGrafico.gastos === gastos) {
+        return; 
     }
-    ultimaSumaValida = sumaActual;
 
-    // DESTRUCCIÓN SEGURA
+    // 3. ACTUALIZAMOS EL ESTADO antes de dibujar
+    window.ultimosDatosGrafico = { ingresos, gastos };
+
+    // 4. DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
+    // 5. CREACIÓN
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
