@@ -32,11 +32,14 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     // 5. Si sí hay datos, acumulamos el HTML y lo insertamos una sola vez
     let htmlAcumulado = '';
     filtrados.forEach(m => {
+        // AQUÍ ESTÁ EL CAMBIO: Usamos la nueva función
+        const fechaLegible = formatearFechaMX(m.fecha);
+
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
                 <div class="flex-1">
                     <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
-                    <p class="text-[9px] opacity-40 uppercase font-bold">${m.fecha.split('T')[0]} | ${m.cat || 'General'}</p>
+                    <p class="text-[9px] opacity-40 uppercase font-bold">${fechaLegible} | ${m.cat || 'General'}</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
