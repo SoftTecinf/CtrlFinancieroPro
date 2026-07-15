@@ -93,3 +93,10 @@ button[onclick^="guardarRegistro"]:active {
     cursor: wait !important;
     background-color: var(--brand-sand) !important;
 }
+
+/* Agrega esto a tu CSS */
+.chart-container {
+    position: relative;
+    height: 300px; /* Asegura un alto mínimo */
+    width: 100%;
+}
