@@ -61,27 +61,22 @@ async function guardarRegistro(tipo) {
 function limpiarFormulario(tipo) {
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     
-    const campos = [
-        `${pref}-categoria`,
-        `${pref}-desc`,
-        `${pref}-monto-mask`,
-        `${pref}-monto-hidden`
-    ];
+    // Lista de campos específicos
+    const campos = [`${pref}-categoria`, `${pref}-desc`, `${pref}-monto-mask`, `${pref}-monto-hidden`];
 
     campos.forEach(id => {
         const el = document.getElementById(id);
-        if (el) { // <--- ESTO ES VITAL: Verifica que el elemento exista
-            el.value = (id.includes('hidden')) ? 0 : "";
-        }
+        if (el) el.value = (id.includes('hidden')) ? 0 : "";
     });
     
     window.editandoId = null;
     
-    // Aquí usamos la variable directamente sin redeclarar
-    let btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    // Limpieza de estados visuales del botón
+    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn) {
         btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
-        btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
+        btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600', 'opacity-70');
+        btn.disabled = false;
     }
 }
 
