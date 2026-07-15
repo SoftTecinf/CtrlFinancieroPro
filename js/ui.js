@@ -58,27 +58,27 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 }
 
 function actualizarSelectsCategorias() {
-    // 1. Usamos la variable que definiste arriba
     const listaCategorias = AppState.categorias || [];
 
-    const inSel = document.getElementById('in-categoria');
-    const exSel = document.getElementById('ex-categoria');
+    // Función auxiliar para llenar el select y evitar repetir código
+    const llenarSelect = (id, tipo) => {
+        const select = document.getElementById(id);
+        if (!select) return;
 
-    if (inSel) {
-        inSel.innerHTML = '<option value="">Selecciona una categoría</option>';
-        // 2. Usamos 'listaCategorias' en lugar de la variable global 'categorias'
-        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => {
-            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-        });
-    }
+        // Limpiamos y creamos el primer option de una vez
+        select.innerHTML = '<option value="">Selecciona una categoría</option>';
+        
+        // Usamos map y join para mayor rendimiento que hacer += en un bucle
+        const opciones = listaCategorias
+            .filter(c => c && c.tipo === tipo) // Verificamos que 'c' exista
+            .map(c => `<option value="${c.nombre}">${c.nombre}</option>`)
+            .join('');
+            
+        select.innerHTML += opciones;
+    };
 
-    if (exSel) {
-        exSel.innerHTML = '<option value="">Selecciona una categoría</option>';
-        // 2. Usamos 'listaCategorias' aquí también
-        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => {
-            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-        });
-    }
+    llenarSelect('in-categoria', 'ingreso');
+    llenarSelect('ex-categoria', 'gasto');
 }
 
 function renderCategoriasConfig() {
