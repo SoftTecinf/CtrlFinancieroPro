@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (savedState) {
         const parsed = JSON.parse(savedState);
         // CAMBIO AQUÍ: Usamos AppState.movimientos consistentemente
-        AppState.movimientos = parsed.movimientos || []; 
-        
+        AppState.movimientos = parsed.movimientos || [];
+
         if (parsed.filtros) {
             AppState.filtrosActuales = parsed.filtros;
         }
@@ -160,26 +160,26 @@ async function showSection(sectionId) {
 
 // --- 3. LÓGICA DE VISTAS (EN APP.JS) ---
 function inicializarFuncionesPorSeccion(sectionId) {
-    const idLimpio = sectionId.replace('nav-', ''); 
+    const idLimpio = sectionId.replace('nav-', '');
 
-    if (idLimpio === 'home') { 
-        actualizarHome(); 
-        actualizarFechaHeader(); 
+    if (idLimpio === 'home') {
+        actualizarHome();
+        actualizarFechaHeader();
     }
-    else if (idLimpio === 'ingresos') { 
-        actualizarSelectsCategorias(); 
-        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in'); 
+    else if (idLimpio === 'ingresos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     }
-    else if (idLimpio === 'gastos') { 
-        actualizarSelectsCategorias(); 
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos'); 
+    else if (idLimpio === 'gastos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
     }
-    else if (idLimpio === 'analisis') { 
-        actualizarResumen(); 
+    else if (idLimpio === 'analisis') {
+        actualizarResumen();
     }
     // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
-    else if (idLimpio === 'config') { 
-        abrirVistaAjustesInteligente(); 
+    else if (idLimpio === 'config') {
+        abrirVistaAjustesInteligente();
     } else {
         console.log("⚠️ No se encontró la función para la sección:", idLimpio);
     }
@@ -190,7 +190,7 @@ function refrescarVistaActual() {
     if (!activeBtn) return;
 
     const seccionId = activeBtn.id;
-    
+
     // Sincronizar filtros primero
     const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
     const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
@@ -199,14 +199,18 @@ function refrescarVistaActual() {
 
     // Pintar según la sección
     if (seccionId === 'nav-home') {
-        actualizarHome(); 
+        actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    //actualizarGraficoDistribucion();
+    // 1. Aquí inyectas tu HTML (donde está el canvas)
+    document.getElementById('contenedor-home').innerHTML = `... <canvas id="chartHome"></canvas> ...`;
+
+    // 2. JUSTO DESPUÉS, llamas a la función que dibuja
+    actualizarGraficoDistribucion();
 }
 
 function fMXN(monto) {
