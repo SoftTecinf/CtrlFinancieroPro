@@ -252,7 +252,7 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
 }
 
 // 3. Inicializamos el observador de seguridad de forma segura
-//setInterval(asegurarGrafico, 500);
+setInterval(asegurarGrafico, 500);
 
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
