@@ -119,6 +119,7 @@ async function showSection(sectionId) {
                     mesSel.value = new Date().getMonth();
                     AppState.filtrosActuales.mes = parseInt(mesSel.value);
                 }
+                inicializarFuncionesPorSeccion(sectionId);
             }
 
             // D. SINCRONIZACIÓN DE DATOS (Con pequeña espera para estabilizar el DOM)
@@ -154,6 +155,7 @@ function inicializarFuncionesPorSeccion(sectionId) {
     if (idLimpio === 'home') {
         actualizarHome();
         actualizarFechaHeader();
+        actualizarGraficoDistribucion(ingM, gasM);
     }
     else if (idLimpio === 'ingresos') {
         actualizarSelectsCategorias();
