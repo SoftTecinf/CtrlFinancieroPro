@@ -283,6 +283,8 @@ function UtiNeta(ws, tit, monto, utilidad, fila) { const cell = ws.getCell(`A${f
 async function descargarArchivo(workbook, nombre) { const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${nombre}.xlsx`; link.click(); }
 
 function limpiarFormulario(tipo) {
+    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    console.log("Botón detectado para limpiar:", btn); // ¿Qué sale aquí?
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     
     // Lista de campos a limpiar (hemos quitado la fecha)
