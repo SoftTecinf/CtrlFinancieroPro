@@ -102,7 +102,7 @@ async function showSection(sectionId) {
         // 5. Renderizado final
         // Usamos requestAnimationFrame para asegurar que el navegador procesó el DOM
         requestAnimationFrame(() => {
-            
+
             // A. Recuperar nombre de usuario
             const userDisplayEl = document.getElementById('user-display');
             if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
@@ -199,7 +199,8 @@ function refrescarVistaActual() {
     // terminó de procesar los cambios de actualizarHome()
     requestAnimationFrame(() => {
         if (document.getElementById('chartHome')) {
-            actualizarGraficoDistribucion(ingM, gasM);
+            window.datosGrafico.nuevosIngresos = 40800; // O tu variable ingM
+            window.datosGrafico.nuevosGastos = 0;       // O tu variable gasM
         }
     });
 }
