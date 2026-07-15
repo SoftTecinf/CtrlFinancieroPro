@@ -253,7 +253,7 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
 
 // Inicialización segura: usamos el evento 'DOMContentLoaded'
 window.addEventListener('DOMContentLoaded', () => {
-    setInterval(asegurarGrafico, 500);
+    setInterval(actualizarGraficoDistribucion, 500);
 });
 
 // --- CONTROL DE SESIÓN ---
