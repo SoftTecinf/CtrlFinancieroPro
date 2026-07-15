@@ -1,18 +1,16 @@
-// --- ACCIONES CON SHEETS ---
 async function guardarRegistro(tipo) {
-    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    // Declaración única del botón
+    let btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (!btn) return;
 
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
     
-    // 1. Validaciones
     if (!monto || monto <= 0) {
         alert("Por favor ingresa un monto válido.");
         return;
     }
 
-    // 2. Preparamos el objeto
     const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
@@ -23,10 +21,10 @@ async function guardarRegistro(tipo) {
         monto
     };
 
-    // 3. ACTUALIZACIÓN OPTIMISTA
     const esEdicion = !!window.editandoId;
-    const estadoAnterior = JSON.stringify(AppState.movimientos); 
+    const estadoAnterior = JSON.stringify(AppState.movimientos);
 
+    // Actualización optimista
     if (esEdicion) {
         const idx = AppState.movimientos.findIndex(m => m.id == idMovi);
         if (idx !== -1) AppState.movimientos[idx] = nuevaData;
@@ -37,52 +35,34 @@ async function guardarRegistro(tipo) {
     localStorage.setItem("financiero_state", JSON.stringify(AppState));
     refrescarVistaActual(); 
 
-    // --- INICIO DE FEEDBACK VISUAL ---
+    // Feedback visual
     const textoOriginal = btn.innerText;
     btn.disabled = true;
     btn.innerText = "PROCESANDO...";
-    btn.classList.add('btn-loading'); // Usa tu clase de estilo
+    btn.classList.add('opacity-70');
 
-    // 4. Petición en segundo plano
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
+        if (!res.success) throw new Error(res.message);
 
-       if (res.success) {
-            // Si fue edición, limpiamos el estado visual de edición
-            if (esEdicion) {
-                window.editandoId = null;
-                // --- AQUÍ ESTÁ EL CAMBIO ---
-                btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
-                btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
-            }
-
-            limpiarFormulario(tipo); 
-            // Restauramos el texto original explícitamente si por alguna razón no lo hizo arriba
-            btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
-        }
-
+        // Si fue éxito y era edición, limpiamos el estado de edición
         if (esEdicion) {
             window.editandoId = null;
-            btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
             btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
         }
-
+        
         limpiarFormulario(tipo); 
-        // Restauramos el texto original tras el éxito
-        btn.innerText = textoOriginal;
-
+        btn.innerText = textoOriginal; // Restauramos texto
     } catch (error) {
-        console.error("Error al guardar en servidor:", error);
+        console.error("Error:", error);
         AppState.movimientos = JSON.parse(estadoAnterior);
         localStorage.setItem("financiero_state", JSON.stringify(AppState));
         refrescarVistaActual();
         alert("No se pudo guardar: " + error.message);
+        btn.innerText = textoOriginal;
     } finally {
-        // --- FINAL DE FEEDBACK VISUAL ---
         btn.disabled = false;
-        btn.classList.remove('btn-loading');
-        // Aseguramos que el botón recupere su estado visual si no hubo edición
-        if (!esEdicion) btn.innerText = textoOriginal;
+        btn.classList.remove('opacity-70');
     }
 }
 
