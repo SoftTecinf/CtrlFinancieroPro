@@ -94,11 +94,13 @@ async function showSection(sectionId) {
         // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
 
-        // 4. Inyectamos el esqueleto (HTML)
+        // 4. Inyectamos el esqueleto (HTML) UNA SOLA VEZ
         container.innerHTML = html;
 
         // 5. Renderizado final
+        // Usamos requestAnimationFrame para asegurar que el navegador procesó el DOM
         requestAnimationFrame(() => {
+            
             // A. Recuperar nombre de usuario
             const userDisplayEl = document.getElementById('user-display');
             if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
@@ -107,48 +109,35 @@ async function showSection(sectionId) {
             if (typeof inicializarFiltros === 'function') inicializarFiltros();
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
-            setTimeout(() => {
-                // C. FORZAR FECHA EN INPUTS (Aquí sí existe el DOM)
-                if (sectionId === 'ingresos') {
-                    const inputFecha = document.getElementById('in-fecha');
-                    if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+            // C. Lógica específica por sección
+            if (sectionId === 'ingresos') {
+                const inputFecha = document.getElementById('in-fecha');
+                if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
 
-                    // 🔥 FORZAR FILTRO A JULIO (Para que no inicie en Enero)
-                    const mesSel = document.getElementById('in-mes');
-                    if (mesSel) {
-                        mesSel.value = new Date().getMonth(); // 6
-                        AppState.filtrosActuales.mes = parseInt(mesSel.value);
-                    }
+                const mesSel = document.getElementById('in-mes');
+                if (mesSel) {
+                    mesSel.value = new Date().getMonth();
+                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
                 }
+            }
 
-                container.innerHTML = html;
-                // D. SINCRONIZACIÓN DE DATOS
-                // Verificamos si nos faltan los movimientos O las categorías
+            // D. SINCRONIZACIÓN DE DATOS (Con pequeña espera para estabilizar el DOM)
+            setTimeout(() => {
                 const faltanMovimientos = (!AppState.movimientos || AppState.movimientos.length === 0);
                 const faltanCategorias = (!AppState.categorias || AppState.categorias.length === 0);
 
-                // Si nos falta cualquiera de los dos y no hemos cargado antes:
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
-                        // Ahora que SÍ tenemos ambos, renderizamos la sección
                         inicializarFuncionesPorSeccion(sectionId);
+                        if (typeof toggleLoading === 'function') toggleLoading(false);
                     });
                 } else {
-                    // Ya tenemos datos, renderizamos directo
                     inicializarFuncionesPorSeccion(sectionId);
+                    if (typeof toggleLoading === 'function') toggleLoading(false);
                 }
-
-                if (typeof toggleLoading === 'function') toggleLoading(false);
             }, 150);
         });
-
-        if (sectionId === 'ingresos') {
-            const inputFecha = document.getElementById('in-fecha');
-            if (inputFecha) {
-                inputFecha.value = new Date().toISOString().split('T')[0];
-            }
-        }
 
     } catch (error) {
         if (loadId === currentLoadId) {
