@@ -173,8 +173,8 @@ function actualizarHome() {
     });
 
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
-    //window.EstadoFinanciero.ingresos = ingM;
-     //   window.EstadoFinanciero.gastos = gasM;
+    window.EstadoFinanciero.ingresos = ingM;
+    window.EstadoFinanciero.gastos = gasM;
 
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
@@ -304,11 +304,11 @@ async function abrirVistaAjustesInteligente() {
     toggleLoading(true); // Siempre muestra carga antes de la lógica
     try {
         if (!AppState.categorias || AppState.categorias.length === 0) {
-             const formData = new FormData();
-             formData.append('action', 'obtenerCategorias');
-             const req = await fetch(API_URL, { method: 'POST', body: formData });
-             const res = await req.json();
-             if (res.exito) AppState.categorias = res.datos;
+            const formData = new FormData();
+            formData.append('action', 'obtenerCategorias');
+            const req = await fetch(API_URL, { method: 'POST', body: formData });
+            const res = await req.json();
+            if (res.exito) AppState.categorias = res.datos;
         }
     } catch (error) {
         console.error("Error al cargar categorías:", error);
