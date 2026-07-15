@@ -216,24 +216,23 @@ function prepararEdicion(id, tipo) {
 }
 
 window.chartH = window.chartH || null;
-// Variable global para guardar los últimos datos graficados
+// 1. Inicializamos con valores que NUNCA coincidirán con una suma real (como -1)
 window.ultimosDatosGrafico = { ingresos: -1, gastos: -1 }; 
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // 1. COMPARACIÓN INTELIGENTE:
-    // Si los datos son idénticos a los que ya están graficados, ¡no hagas nada!
-    if (window.ultimosDatosGrafico.ingresos === ingresos && 
+    // 2. SOLO comparamos si ya tenemos datos previos (distintos a -1)
+    if (window.ultimosDatosGrafico.ingresos !== -1 && 
+        window.ultimosDatosGrafico.ingresos === ingresos && 
         window.ultimosDatosGrafico.gastos === gastos) {
-        return; // Salimos de la función sin tocar el DOM
+        return; // Ya está dibujado y no cambió nada
     }
 
-    // 2. ACTUALIZAMOS EL ESTADO
+    // 3. Si llega aquí, es porque es la primera vez o los datos cambiaron
     window.ultimosDatosGrafico = { ingresos, gastos };
 
-    // 3. DESTRUCCIÓN Y DIBUJO (Solo ocurre si los datos cambiaron)
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
