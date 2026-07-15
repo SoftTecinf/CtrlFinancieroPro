@@ -220,16 +220,13 @@ window.chartH = window.chartH || null;
 // actions.js
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) {
-        console.warn("DEBUG: Canvas #chartHome no encontrado.");
-        return;
-    }
+    if (!canvas) return;
 
-    // DESTRUCCIÓN SEGURA: Esto es lo más importante
-    // Si ya existe un gráfico previo, lo eliminamos antes de crear el nuevo
+    // DEBUG: ¿Qué valores estamos intentando graficar?
+    console.log("DEBUG - Valores finales:", { ingresos, gastos });
+
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
-        window.chartH = null;
     }
 
     const ctx = canvas.getContext('2d');
