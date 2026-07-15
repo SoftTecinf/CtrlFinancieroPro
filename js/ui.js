@@ -155,7 +155,10 @@ function actualizarHome() {
                 gasM += monto;
             }
         }
-        
+        window.datosGrafico.nuevosIngresos = ingM;
+        window.datosGrafico.nuevosGastos = gasM;
+
+        console.log("Datos enviados al gráfico:", ingM, gasM);
     });
 
     // 3. ACTUALIZACIÓN DE TEXTOS (DOM)
