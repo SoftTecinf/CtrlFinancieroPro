@@ -217,15 +217,20 @@ function prepararEdicion(id, tipo) {
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return; // Si no hay canvas, salimos para evitar errores de null
-
-    // DESTRUCCIÓN SEGURA
-    if (window.chartH instanceof Chart) {
-        window.chartH.destroy();
+    if (!canvas) {
+        console.warn("DEBUG: No se encontró #chartHome en el DOM");
+        return;
     }
 
-    // CREACIÓN
+    // DESTRUCCIÓN SEGURA: Siempre destruye antes de crear
+    if (window.chartH instanceof Chart) {
+        window.chartH.destroy();
+        window.chartH = null;
+    }
+
     const ctx = canvas.getContext('2d');
+    
+    // CREACIÓN
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -235,7 +240,10 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false 
+        }
     });
 }
 
