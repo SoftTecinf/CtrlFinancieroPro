@@ -155,7 +155,7 @@ function actualizarHome() {
                 gasM += monto;
             }
         }
-        
+
         window.EstadoFinanciero.ingresos = ingM;
         window.EstadoFinanciero.gastos = gasM;
     });
@@ -173,9 +173,8 @@ function actualizarHome() {
     });
 
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
-
-    actualizarGraficoDistribucion(ingM, gasM);
-    renderizadoEnProgreso = false;
+    window.EstadoApp.ingresos = ingM;
+    window.EstadoApp.gastos = gasM;
 
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
