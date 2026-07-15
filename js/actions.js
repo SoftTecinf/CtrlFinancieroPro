@@ -216,23 +216,22 @@ function prepararEdicion(id, tipo) {
 }
 
 window.chartH = window.chartH || null;
-// 1. Inicializamos con valores que NUNCA coincidirán con una suma real (como -1)
-window.ultimosDatosGrafico = { ingresos: -1, gastos: -1 }; 
+// Flag para evitar re-dibujos innecesarios con datos vacíos
+let ultimaSumaValida = 0; 
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // 2. SOLO comparamos si ya tenemos datos previos (distintos a -1)
-    if (window.ultimosDatosGrafico.ingresos !== -1 && 
-        window.ultimosDatosGrafico.ingresos === ingresos && 
-        window.ultimosDatosGrafico.gastos === gastos) {
-        return; // Ya está dibujado y no cambió nada
+    // BLOQUEO: Si nos llegan datos vacíos pero ya tenemos datos válidos pintados, ignoramos
+    const sumaActual = ingresos + gastos;
+    if (sumaActual === 0 && ultimaSumaValida > 0) {
+        console.warn("Ignorando actualización vacía para preservar el gráfico.");
+        return;
     }
+    ultimaSumaValida = sumaActual;
 
-    // 3. Si llega aquí, es porque es la primera vez o los datos cambiaron
-    window.ultimosDatosGrafico = { ingresos, gastos };
-
+    // DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
