@@ -217,15 +217,11 @@ function prepararEdicion(id, tipo) {
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) {
-        console.warn("DEBUG: No se encontró #chartHome en el DOM");
-        return;
-    }
+    if (!canvas) return; // Si no hay canvas, salimos para evitar errores de null
 
-    // DESTRUCCIÓN SEGURA: Usa siempre window.chartH
+    // DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
-        window.chartH = null;
     }
 
     // CREACIÓN
@@ -236,13 +232,10 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
                 data: [ingresos || 0, gastos || 0],
-                backgroundColor: ['#f59e0b', '#ef4444']
+                backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false 
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
