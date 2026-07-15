@@ -216,42 +216,50 @@ function prepararEdicion(id, tipo) {
 }
 
 // 1. Inicializamos con valores que NUNCA coincidirán con una suma real (como -1)
+window.chartH = window.chartH || null;
 window.ultimosDatosGrafico = { ingresos: -1, gastos: -1 }; 
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
-
-    // 2. COMPARACIÓN ESTRICTA:
-    // Si los datos son idénticos a los últimos dibujados, salimos inmediatamente.
-    // Esto evita que el gráfico se redibuje y parpadee.
-    if (window.ultimosDatosGrafico.ingresos === ingresos && 
-        window.ultimosDatosGrafico.gastos === gastos) {
-        return; 
+    
+    // 1. SI NO HAY CANVAS, NO HACEMOS NADA
+    if (!canvas) {
+        console.warn("El canvas no está en el DOM. ¿Estás en la sección correcta?");
+        return;
     }
 
-    // 3. ACTUALIZAMOS EL ESTADO antes de dibujar
+    // 2. CORRECCIÓN DE ESTADO: Forzamos el redibujado si es la primera carga
+    const esPrimeraCarga = window.ultimosDatosGrafico.ingresos === -1;
+    const datosCambiaron = (window.ultimosDatosGrafico.ingresos !== ingresos || window.ultimosDatosGrafico.gastos !== gastos);
+
+    if (!esPrimeraCarga && !datosCambiaron) {
+        return; // Nada cambió, no parpadeamos
+    }
+
     window.ultimosDatosGrafico = { ingresos, gastos };
 
-    // 4. DESTRUCCIÓN SEGURA
+    // 3. DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
-    // 5. CREACIÓN
+    // 4. DIBUJO CON CONTROL DE TAMAÑO
     const ctx = canvas.getContext('2d');
+    
+    // Si los ingresos y gastos son 0, dibujamos un gráfico vacío pero existente
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
                 data: [ingresos || 0, gastos || 0],
-                backgroundColor: ['#D6C7B3', '#E5E7EB']
+                backgroundColor: (ingresos === 0 && gastos === 0) ? ['#E5E7EB', '#E5E7EB'] : ['#D6C7B3', '#E5E7EB']
             }]
         },
         options: { 
             responsive: true, 
-            maintainAspectRatio: false 
+            maintainAspectRatio: false,
+            animation: { duration: esPrimeraCarga ? 1000 : 0 } // Solo anima al cargar
         }
     });
 }
