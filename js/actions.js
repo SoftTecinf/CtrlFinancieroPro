@@ -222,7 +222,7 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
     // Destrucción segura: si el gráfico ya existe, se elimina antes de crear el nuevo
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
-        //window.chartH = null;
+        window.chartH = null;
     }
 
     // Creación
