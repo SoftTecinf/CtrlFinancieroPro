@@ -158,7 +158,6 @@ function inicializarFuncionesPorSeccion(sectionId) {
         actualizarHome();
         actualizarFechaHeader();
         actualizarGraficoDistribucion(ingM, gasM);
-        console.warn("2 "+ingM +"+"+ gasM);
     }
     else if (idLimpio === 'ingresos') {
         actualizarSelectsCategorias();
