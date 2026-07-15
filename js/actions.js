@@ -84,13 +84,34 @@ function limpiarFormulario(tipo) {
 }
 
 async function eliminarMovimiento(id) {
-    if (confirm("¿Deseas eliminar este registro en la nube de forma permanente?")) {
+    if (!confirm("¿Deseas eliminar este registro de forma permanente?")) return;
+
+    // 1. Guardamos estado previo para revertir si algo falla
+    const estadoAnterior = JSON.stringify(AppState.movimientos);
+
+    // 2. ACTUALIZACIÓN OPTIMISTA: Borramos de la memoria inmediatamente
+    AppState.movimientos = AppState.movimientos.filter(m => m.id !== id);
+    localStorage.setItem("financiero_state", JSON.stringify(AppState));
+    refrescarVistaActual(); // La UI se limpia al instante
+
+    try {
+        // 3. Petición al servidor
         const res = await FetchAPI("eliminarMovimiento", { id });
-        if (res.success) {
-            movimientos = movimientos.filter(m => m.id !== id);
-            refrescarVistaActual();
+
+        if (!res || !res.success) {
+            throw new Error(res?.message || "Error al conectar con el servidor");
         }
+        
+        console.log("Eliminado con éxito de la nube.");
+    } catch (error) {
+        // 4. REVERSIÓN SI FALLA
+        console.error("Error al eliminar:", error);
+        AppState.movimientos = JSON.parse(estadoAnterior);
+        localStorage.setItem("financiero_state", JSON.stringify(AppState));
+        refrescarVistaActual();
+        alert("No se pudo eliminar el registro: " + error.message);
     }
+}   }
 }
 
 async function agregarCategoria() {
