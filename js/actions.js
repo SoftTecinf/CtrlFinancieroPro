@@ -43,7 +43,7 @@ async function guardarRegistro(tipo) {
         if (!res.success) throw new Error(res.message);
 
         if (esEdicion) window.editandoId = null;
-        
+        alert("Proceso éxitoso.");
         limpiarFormulario(tipo); 
     } catch (error) {
         console.error("Error:", error);
@@ -99,7 +99,7 @@ async function eliminarMovimiento(id) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
         
-        console.log("Eliminado con éxito de la nube.");
+        alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
         console.error("Error al eliminar:", error);
