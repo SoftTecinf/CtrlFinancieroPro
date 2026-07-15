@@ -1,3 +1,8 @@
+window.EstadoFinanciero = {
+    ingresos: 0,
+    gastos: 0
+};
+
 async function guardarRegistro(tipo) {
     let btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (!btn) return;
@@ -215,35 +220,40 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// --- CONFIGURACIÓN GLOBAL DEL GRÁFICO ---
-window.chartH = window.chartH || null;
-window.datosGrafico = { nuevosIngresos: 0, nuevosGastos: 0, ultimaIngresos: -1, ultimaGastos: -1 };
+// actions.js
 
-function actualizarGraficoDistribucion(ingresos, gastos) {
+window.chartH = window.chartH || null;
+// Mantenemos solo un estado de "última vez dibujado" para no duplicar lógica
+window.ultimaCarga = { i: -1, g: -1 };
+
+function actualizarGraficoDistribucion() {
+    // 1. OBTENEMOS LOS DATOS GLOBALES
+    const ingresos = window.datosGrafico.nuevosIngresos;
+    const gastos = window.datosGrafico.nuevosGastos;
+
+    // 2. FILTRO DE NO-CAMBIO: Si es igual a la última vez, salimos
+    if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
+
+    // 3. VERIFICACIÓN DE DOM
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // Solo redibujamos si los datos realmente cambiaron
-    if (window.datosGrafico.ultimaIngresos === window.datosGrafico.nuevosIngresos && 
-        window.datosGrafico.ultimaGastos === window.datosGrafico.nuevosGastos) {
-        return;
-    }
+    // 4. ACTUALIZAMOS EL ESTADO DE COMPARACIÓN
+    window.ultimaCarga = { i: ingresos, g: gastos };
 
-    // Actualizamos el estado de comparación
-    window.datosGrafico.ultimaIngresos = window.datosGrafico.nuevosIngresos;
-    window.datosGrafico.ultimaGastos = window.datosGrafico.nuevosGastos;
-
+    // 5. DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
+    // 6. DIBUJO
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                data: [window.datosGrafico.nuevosIngresos || 0, window.datosGrafico.nuevosGastos || 0],
+                data: [ingresos || 0, gastos || 0],
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
@@ -251,8 +261,9 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
     });
 }
 
-// Inicialización segura: usamos el evento 'DOMContentLoaded'
+// 7. INICIALIZACIÓN
 window.addEventListener('DOMContentLoaded', () => {
+    // Pasamos la función como referencia, sin paréntesis
     setInterval(actualizarGraficoDistribucion, 500);
 });
 
