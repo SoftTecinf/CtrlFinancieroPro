@@ -215,26 +215,33 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// --- CONFIGURACIÓN GLOBAL DEL GRÁFICO ---
 window.chartH = window.chartH || null;
-window.datosGrafico = { ingresos: 0, gastos: 0 };
+window.datosGrafico = { nuevosIngresos: 0, nuevosGastos: 0 };
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
     
-    // Si no hay canvas, no intentamos dibujar, solo esperamos
+    // Si no existe el elemento, simplemente no hacemos nada (evita errores)
     if (!canvas) return;
 
-    // Si el gráfico ya existe y los datos no cambiaron, no hacemos nada
-    // Esto evita el parpadeo
-    if (window.chartH && window.datosGrafico.ingresos === window.datosGrafico.nuevosIngresos && window.datosGrafico.gastos === window.datosGrafico.nuevosGastos) {
+    // Si los datos no han cambiado, no destruimos ni recreamos nada
+    // Esto evita el parpadeo y la desaparición
+    if (window.chartH && window.datosGrafico.ultimaIngresos === window.datosGrafico.nuevosIngresos && 
+        window.datosGrafico.ultimaGastos === window.datosGrafico.nuevosGastos) {
         return;
     }
 
-    // Si llegamos aquí, el canvas existe y hay cambios: destruimos y dibujamos
+    // Actualizamos el estado de comparación
+    window.datosGrafico.ultimaIngresos = window.datosGrafico.nuevosIngresos;
+    window.datosGrafico.ultimaGastos = window.datosGrafico.nuevosGastos;
+
+    // Destrucción segura
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
+    // Dibujo
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
@@ -245,12 +252,14 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false 
+        }
     });
 }
 
-// LANZADOR: Ejecuta esto cada 500ms para asegurar que el gráfico "sobrevive"
-// si el DOM se refresca dinámicamente.
+// Inicializamos el observador de seguridad
 setInterval(asegurarGrafico, 500);
 
 // --- CONTROL DE SESIÓN ---
