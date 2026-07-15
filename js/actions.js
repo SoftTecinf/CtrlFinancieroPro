@@ -217,22 +217,34 @@ function prepararEdicion(id, tipo) {
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
+    
+    // Si el canvas no existe en el DOM, no hacemos nada todavía
     if (!canvas) {
-        console.log("Buscando elemento en el DOM: null");
+        console.warn("Esperando a que el DOM cargue el canvas...");
         return;
     }
 
-    // Si ya existe una instancia de Chart, destrúyela antes de recrearla
+    // DESTRUCCIÓN SEGURA: Esto soluciona el error "Canvas is already in use"
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
         window.chartH = null;
     }
 
+    // CREACIÓN
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
-        data: { /* tus datos */ },
-        options: { /* tus opciones */ }
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [ingresos || 0, gastos || 0],
+                backgroundColor: ['#D6C7B3', '#E5E7EB']
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false 
+        }
     });
 }
 
