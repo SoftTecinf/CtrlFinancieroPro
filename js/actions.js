@@ -1,5 +1,4 @@
 async function guardarRegistro(tipo) {
-    // Declaración única del botón
     let btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (!btn) return;
 
@@ -24,7 +23,6 @@ async function guardarRegistro(tipo) {
     const esEdicion = !!window.editandoId;
     const estadoAnterior = JSON.stringify(AppState.movimientos);
 
-    // Actualización optimista
     if (esEdicion) {
         const idx = AppState.movimientos.findIndex(m => m.id == idMovi);
         if (idx !== -1) AppState.movimientos[idx] = nuevaData;
@@ -35,7 +33,6 @@ async function guardarRegistro(tipo) {
     localStorage.setItem("financiero_state", JSON.stringify(AppState));
     refrescarVistaActual(); 
 
-    // Feedback visual
     const textoOriginal = btn.innerText;
     btn.disabled = true;
     btn.innerText = "PROCESANDO...";
@@ -45,14 +42,9 @@ async function guardarRegistro(tipo) {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
         if (!res.success) throw new Error(res.message);
 
-        // Si fue éxito y era edición, limpiamos el estado de edición
-        if (esEdicion) {
-            window.editandoId = null;
-            btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
-        }
+        if (esEdicion) window.editandoId = null;
         
         limpiarFormulario(tipo); 
-        btn.innerText = textoOriginal; // Restauramos texto
     } catch (error) {
         console.error("Error:", error);
         AppState.movimientos = JSON.parse(estadoAnterior);
@@ -63,6 +55,31 @@ async function guardarRegistro(tipo) {
     } finally {
         btn.disabled = false;
         btn.classList.remove('opacity-70');
+    }
+}
+
+function limpiarFormulario(tipo) {
+    const pref = tipo === 'ingreso' ? 'in' : 'ex';
+    
+    const campos = [
+        `${pref}-categoria`,
+        `${pref}-desc`,
+        `${pref}-monto-mask`,
+        `${pref}-monto-hidden`
+    ];
+
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = (id.includes('hidden')) ? 0 : "";
+    });
+    
+    window.editandoId = null;
+    
+    // Aquí usamos la variable directamente sin redeclarar
+    let btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (btn) {
+        btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
+        btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
 }
 
@@ -261,33 +278,3 @@ function TitRepCont(ws, tit, monto, fila) { const cell = ws.getCell(`A${fila}`);
 function DatoRepCont(ws, cat, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = cat.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
 function UtiNeta(ws, tit, monto, utilidad, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = utilidad; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
 async function descargarArchivo(workbook, nombre) { const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${nombre}.xlsx`; link.click(); }
-
-function limpiarFormulario(tipo) {
-    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    console.log("Botón detectado para limpiar:", btn); // ¿Qué sale aquí?
-    const pref = tipo === 'ingreso' ? 'in' : 'ex';
-    
-    // Lista de campos a limpiar (hemos quitado la fecha)
-    const campos = [
-        `${pref}-categoria`,
-        `${pref}-desc`,
-        `${pref}-monto-mask`,
-        `${pref}-monto-hidden`
-    ];
-
-    campos.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = (id.includes('hidden')) ? 0 : "";
-        }
-    });
-    
-    // El resto de la función se mantiene igual...
-    window.editandoId = null;
-    
-    const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
-    if (btn) {
-        btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
-        btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
-    }
-}
