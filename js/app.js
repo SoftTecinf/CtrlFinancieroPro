@@ -197,10 +197,12 @@ function refrescarVistaActual() {
 
     // B. CORRECCIÓN: Usamos requestAnimationFrame para asegurar que el DOM 
     // terminó de procesar los cambios de actualizarHome()
+    // Dentro de tu requestAnimationFrame en app.js:
     requestAnimationFrame(() => {
         if (document.getElementById('chartHome')) {
-            window.datosGrafico.nuevosIngresos = 40800; // O tu variable ingM
-            window.datosGrafico.nuevosGastos = 0;       // O tu variable gasM
+            // AQUÍ USAS TUS VARIABLES DINÁMICAS
+            window.datosGrafico.nuevosIngresos = ingM;
+            window.datosGrafico.nuevosGastos = gasM;
         }
     });
 }
