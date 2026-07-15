@@ -148,43 +148,32 @@ async function showSection(sectionId) {
     }
 }
 
-// actions.js
+// --- 3. LÓGICA DE VISTAS (EN APP.JS) ---
+function inicializarFuncionesPorSeccion(sectionId) {
+    const idLimpio = sectionId.replace('nav-', '');
 
-// 1. Declaración global única (si no existe, la inicializa como null)
-window.chartH = window.chartH || null;
-
-// 2. Función única de dibujo
-function actualizarGraficoDistribucion(ingresos, gastos) {
-    const canvas = document.getElementById('chartHome');
-    
-    if (!canvas) {
-        console.warn("Esperando a que el DOM cargue el canvas...");
-        return;
+    if (idLimpio === 'home') {
+        actualizarHome();
+        actualizarFechaHeader();
+        actualizarGraficoDistribucion(ingM, gasM);
     }
-
-    // Destrucción segura
-    if (window.chartH instanceof Chart) {
-        window.chartH.destroy();
-        window.chartH = null;
+    else if (idLimpio === 'ingresos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     }
-
-    // Creación
-    const ctx = canvas.getContext('2d');
-    window.chartH = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Ingresos', 'Gastos'],
-            datasets: [{
-                data: [ingresos || 0, gastos || 0],
-                backgroundColor: ['#D6C7B3', '#E5E7EB']
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-        }
-    });
+    else if (idLimpio === 'gastos') {
+        actualizarSelectsCategorias();
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
+    }
+    else if (idLimpio === 'analisis') {
+        actualizarResumen();
+    }
+    // 🔴 CAMBIO AQUÍ: Cambiamos 'ajustes' por 'config'
+    else if (idLimpio === 'config') {
+        abrirVistaAjustesInteligente();
+    } else {
+        console.log("⚠️ No se encontró la función para la sección:", idLimpio);
+    }
 }
 
 function refrescarVistaActual() {
