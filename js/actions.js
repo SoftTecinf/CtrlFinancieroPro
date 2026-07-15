@@ -217,37 +217,37 @@ function prepararEdicion(id, tipo) {
 
 // actions.js - Centralizado
 window.chartH = window.chartH || null;
-
+// actions.js
 function actualizarGraficoDistribucion(ingresos, gastos) {
-    // Usamos requestAnimationFrame para asegurar que el DOM existe
-    requestAnimationFrame(() => {
-        const canvas = document.getElementById('chartHome');
-        if (!canvas) {
-            console.warn("DEBUG: Canvas aún no listo, re-intentando en el próximo frame...");
-            return;
-        }
+    const canvas = document.getElementById('chartHome');
+    if (!canvas) {
+        console.warn("DEBUG: Canvas #chartHome no encontrado.");
+        return;
+    }
 
-        // Destrucción segura
-        if (window.chartH instanceof Chart) {
-            window.chartH.destroy();
-            window.chartH = null;
-        }
+    // DESTRUCCIÓN SEGURA: Esto es lo más importante
+    // Si ya existe un gráfico previo, lo eliminamos antes de crear el nuevo
+    if (window.chartH instanceof Chart) {
+        window.chartH.destroy();
+        window.chartH = null;
+    }
 
-        const ctx = canvas.getContext('2d');
-        window.chartH = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ingresos', 'Gastos'],
-                datasets: [{
-                    data: [ingresos || 0, gastos || 0],
-                    backgroundColor: ['#D6C7B3', '#E5E7EB']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+    const ctx = canvas.getContext('2d');
+    window.chartH = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [ingresos || 0, gastos || 0],
+                backgroundColor: ['#D6C7B3', '#E5E7EB']
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false 
+        }
     });
 }
-
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
