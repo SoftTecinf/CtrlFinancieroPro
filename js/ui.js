@@ -112,7 +112,7 @@ function renderCategoriasConfig() {
 }
 
 // Asegúrate de que esta variable sea global en tu archivo
-window.chartH = null;
+window.chartH = window.chartH || null;
 
 function actualizarHome() {
     // 1. LEEMOS Y NORMALIZAMOS DATOS
@@ -183,8 +183,7 @@ function actualizarHome() {
                 maintainAspectRatio: false 
             }
         });
-    }
-    actualizarGraficoDistribucion(ingM, gasM);
+    }     actualizarGraficoDistribucion(ingM, gasM);
 
     // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
