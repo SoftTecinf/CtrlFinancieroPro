@@ -217,17 +217,14 @@ function prepararEdicion(id, tipo) {
 
 // --- CONFIGURACIÓN GLOBAL DEL GRÁFICO ---
 window.chartH = window.chartH || null;
-window.datosGrafico = { nuevosIngresos: 0, nuevosGastos: 0 };
+window.datosGrafico = { nuevosIngresos: 0, nuevosGastos: 0, ultimaIngresos: -1, ultimaGastos: -1 };
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    
-    // Si no existe el elemento, simplemente no hacemos nada (evita errores)
-    if (!canvas) return;
+    if (!canvas) return; // Si no hay canvas, salimos silenciosamente
 
-    // Si los datos no han cambiado, no destruimos ni recreamos nada
-    // Esto evita el parpadeo y la desaparición
-    if (window.chartH && window.datosGrafico.ultimaIngresos === window.datosGrafico.nuevosIngresos && 
+    // Solo redibujamos si los datos realmente cambiaron
+    if (window.datosGrafico.ultimaIngresos === window.datosGrafico.nuevosIngresos && 
         window.datosGrafico.ultimaGastos === window.datosGrafico.nuevosGastos) {
         return;
     }
@@ -236,12 +233,10 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
     window.datosGrafico.ultimaIngresos = window.datosGrafico.nuevosIngresos;
     window.datosGrafico.ultimaGastos = window.datosGrafico.nuevosGastos;
 
-    // Destrucción segura
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
-    // Dibujo
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
@@ -252,14 +247,11 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false 
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
-// Inicializamos el observador de seguridad
+// 3. Inicializamos el observador de seguridad de forma segura
 setInterval(asegurarGrafico, 500);
 
 // --- CONTROL DE SESIÓN ---
