@@ -206,7 +206,8 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-  const canvas = document.getElementById('chartHome');
+    console.log("Buscando elemento en el DOM:", document.getElementById('tu-id-aqui'));
+    const canvas = document.getElementById('chartHome');
     if (canvas) {
         actualizarGraficoDistribucion();
     } else {
