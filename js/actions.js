@@ -217,20 +217,16 @@ function prepararEdicion(id, tipo) {
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) {
-        console.warn("DEBUG: No se encontró #chartHome en el DOM");
-        return;
-    }
+    if (!canvas) return; // Si el canvas no existe, no hacemos nada, sin errores.
 
-    // DESTRUCCIÓN SEGURA: Siempre destruye antes de crear
+    // Destrucción segura: si el gráfico ya existe, se elimina antes de crear el nuevo
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
         window.chartH = null;
     }
 
+    // Creación
     const ctx = canvas.getContext('2d');
-    
-    // CREACIÓN
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -241,6 +237,8 @@ function actualizarGraficoDistribucion(ingresos, gastos) {
             }]
         },
         options: { 
+            cutout: '75%', 
+            plugins: { legend: { display: false } },
             responsive: true, 
             maintainAspectRatio: false 
         }
