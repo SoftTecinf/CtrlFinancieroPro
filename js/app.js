@@ -2,7 +2,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 let editandoId = null;
 let chartH, chartR;
-//const fMXN = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+// En el nivel más alto de app.js
+let ingM = 0;
+let gasM = 0;
 
 const AppState = {
     movimientos: [],
@@ -196,14 +198,8 @@ function refrescarVistaActual() {
     // B. CORRECCIÓN: Usamos requestAnimationFrame para asegurar que el DOM 
     // terminó de procesar los cambios de actualizarHome()
     requestAnimationFrame(() => {
-        const canvas = document.getElementById('chartHome');
-        
-        if (canvas) {
-            // Pasamos los datos calculados de tu estado global
-            // Asegúrate de tener los valores disponibles aquí
-            actualizarGraficoDistribucion(AppState.ingM, AppState.gasM);
-        } else {
-            console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
+        if (document.getElementById('chartHome')) {
+            actualizarGraficoDistribucion(ingM, gasM);
         }
     });
 }
