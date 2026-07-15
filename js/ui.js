@@ -67,13 +67,13 @@ function actualizarSelectsCategorias() {
 
         // Limpiamos y creamos el primer option de una vez
         select.innerHTML = '<option value="">Selecciona una categoría</option>';
-        
+
         // Usamos map y join para mayor rendimiento que hacer += en un bucle
         const opciones = listaCategorias
             .filter(c => c && c.tipo === tipo) // Verificamos que 'c' exista
             .map(c => `<option value="${c.nombre}">${c.nombre}</option>`)
             .join('');
-            
+
         select.innerHTML += opciones;
     };
 
@@ -158,7 +158,7 @@ function actualizarHome() {
     });
 
     // 4. GRÁFICO (SE EJECUTA UNA SOLA VEZ, DESPUÉS DE LOS CÁLCULOS)
-     
+
     actualizarGraficoDistribucion(ingM, gasM);
 
     // 5. LISTA RECIENTE
