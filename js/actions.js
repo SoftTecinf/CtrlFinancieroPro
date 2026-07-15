@@ -221,35 +221,32 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// actions.js
-
-// 1. ANCLA GLOBAL: Definimos el objeto inmediatamente al cargar el script
-window.datosGrafico = window.datosGrafico || { nuevosIngresos: 0, nuevosGastos: 0 };
+// 1. ANCLA GLOBAL: Definimos el estado si no existe
+window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
 window.chartH = window.chartH || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 function actualizarGraficoDistribucion() {
+    // 2. BUSCAR CANVAS
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
+    if (!canvas) return; // Si no hay canvas, salimos sin errores
 
-    // Leemos directamente del estado global
-    const ingresos = window.EstadoFinanciero.ingresos;
-    const gastos = window.EstadoFinanciero.gastos;
+    // 3. LEER ESTADO (Usa optional chaining por seguridad)
+    const ingresos = window.EstadoFinanciero?.ingresos || 0;
+    const gastos = window.EstadoFinanciero?.gastos || 0;
 
-    // 3. FILTRO: No redibujar si no hay cambios
+    // 4. FILTRO DE CAMBIOS: No redibujar si los datos son idénticos
     if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
-
-    const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
-
+    
+    // Actualizamos el registro de carga
     window.ultimaCarga = { i: ingresos, g: gastos };
 
-    // 4. DESTRUCCIÓN SEGURA
-    if (window.chartH instanceof Chart) {
+    // 5. DESTRUCCIÓN SEGURA
+    if (window.chartH && typeof window.chartH.destroy === 'function') {
         window.chartH.destroy();
     }
 
-    // 5. DIBUJO
+    // 6. DIBUJO DEL GRÁFICO
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
@@ -268,9 +265,12 @@ function actualizarGraficoDistribucion() {
     });
 }
 
-// 6. INICIALIZACIÓN
-window.addEventListener('DOMContentLoaded', () => {
-    setInterval(actualizarGraficoDistribucion, 500);
+// 7. INICIALIZACIÓN MÁS SEGURA
+// Usamos un intervalo, pero verificamos que Chart exista
+window.addEventListener('load', () => {
+    if (typeof Chart !== 'undefined') {
+        setInterval(actualizarGraficoDistribucion, 500);
+    }
 });
 
 // --- CONTROL DE SESIÓN ---
