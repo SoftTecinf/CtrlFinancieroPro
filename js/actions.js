@@ -184,7 +184,6 @@ function prepararEdicion(id, tipo) {
     // 2. Categoría - DECLARAMOS 'selectCat' SOLO UNA VEZ
     // --- NUEVA PRUEBA PARA LA CATEGORÍA ---
     const selectCat = document.getElementById(`${pref}-categoria`);
-    console.log("Valor intentando asignar:", mov.cat);
     
     // Forzamos un pequeño retraso para asegurar que el DOM esté listo
     setTimeout(() => {
@@ -193,9 +192,7 @@ function prepararEdicion(id, tipo) {
         // Si sigue sin seleccionarse, el valor no existe en la lista
         if (selectCat.value !== mov.cat) {
             console.warn("¡Cuidado! No se pudo asignar el valor. ¿Está en la lista de opciones?");
-        } else {
-            console.log("¡Éxito! Categoría seleccionada correctamente.");
-        }
+        } 
     }, 200);
 
     // 3. Descripción y Monto
