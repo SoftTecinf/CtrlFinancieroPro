@@ -1,6 +1,7 @@
-window.EstadoFinanciero = {
+window.EstadoApp = {
     ingresos: 0,
-    gastos: 0
+    gastos: 0,
+    ultimaCarga: { i: -1, g: -1 }
 };
 
 async function guardarRegistro(tipo) {
