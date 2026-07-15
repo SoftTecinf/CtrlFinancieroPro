@@ -216,10 +216,16 @@ function prepararEdicion(id, tipo) {
 }
 
 function actualizarGraficoDistribucion(ingresos, gastos) {
+    console.log("Valores recibidos para el gráfico -> Ingresos:", ingresos, "Gastos:", gastos);
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
+    
+    // Si el DOM no ha terminado de cargar el canvas, salimos sin errores
+    if (!canvas) {
+        console.warn("DEBUG: El canvas #chartHome aún no existe en el DOM");
+        return;
+    }
 
-    // DESTRUCCIÓN SEGURA: Esto quita el error "Canvas is already in use"
+    // DESTRUCCIÓN SEGURA: Siempre destruye antes de crear
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
         window.chartH = null;
