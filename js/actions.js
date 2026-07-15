@@ -222,48 +222,52 @@ function prepararEdicion(id, tipo) {
 
 // actions.js
 
+// 1. ANCLA GLOBAL: Definimos el objeto inmediatamente al cargar el script
+window.datosGrafico = window.datosGrafico || { nuevosIngresos: 0, nuevosGastos: 0 };
 window.chartH = window.chartH || null;
-// Mantenemos solo un estado de "última vez dibujado" para no duplicar lógica
 window.ultimaCarga = { i: -1, g: -1 };
 
 function actualizarGraficoDistribucion() {
-    // 1. OBTENEMOS LOS DATOS GLOBALES
-    const ingresos = window.datosGrafico.nuevosIngresos;
-    const gastos = window.datosGrafico.nuevosGastos;
+    // 2. PROTECCIÓN: Si el objeto no existe, no hacemos nada
+    if (!window.datosGrafico) return;
 
-    // 2. FILTRO DE NO-CAMBIO: Si es igual a la última vez, salimos
+    const ingresos = window.datosGrafico.nuevosIngresos || 0;
+    const gastos = window.datosGrafico.nuevosGastos || 0;
+
+    // 3. FILTRO: No redibujar si no hay cambios
     if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
 
-    // 3. VERIFICACIÓN DE DOM
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // 4. ACTUALIZAMOS EL ESTADO DE COMPARACIÓN
     window.ultimaCarga = { i: ingresos, g: gastos };
 
-    // 5. DESTRUCCIÓN SEGURA
+    // 4. DESTRUCCIÓN SEGURA
     if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
-    // 6. DIBUJO
+    // 5. DIBUJO
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Ingresos', 'Gastos'],
             datasets: [{
-                data: [ingresos || 0, gastos || 0],
+                data: [ingresos, gastos],
                 backgroundColor: ['#D6C7B3', '#E5E7EB']
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true } }
+        }
     });
 }
 
-// 7. INICIALIZACIÓN
+// 6. INICIALIZACIÓN
 window.addEventListener('DOMContentLoaded', () => {
-    // Pasamos la función como referencia, sin paréntesis
     setInterval(actualizarGraficoDistribucion, 500);
 });
 
