@@ -1,6 +1,8 @@
 // --- ACCIONES CON SHEETS ---
 async function guardarRegistro(tipo) {
     const btn = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (!btn) return;
+
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
     const monto = parseFloat(document.getElementById(`${pref}-monto-hidden`).value);
     
@@ -23,7 +25,7 @@ async function guardarRegistro(tipo) {
 
     // 3. ACTUALIZACIÓN OPTIMISTA
     const esEdicion = !!window.editandoId;
-    const estadoAnterior = JSON.stringify(AppState.movimientos); // Clon profundo seguro
+    const estadoAnterior = JSON.stringify(AppState.movimientos); 
 
     if (esEdicion) {
         const idx = AppState.movimientos.findIndex(m => m.id == idMovi);
@@ -32,36 +34,43 @@ async function guardarRegistro(tipo) {
         AppState.movimientos.push(nuevaData);
     }
     
-    // Guardamos en localStorage para persistencia
     localStorage.setItem("financiero_state", JSON.stringify(AppState));
     refrescarVistaActual(); 
 
-    // 4. Petición en segundo plano
+    // --- INICIO DE FEEDBACK VISUAL ---
+    const textoOriginal = btn.innerText;
     btn.disabled = true;
+    btn.innerText = "PROCESANDO...";
+    btn.classList.add('btn-loading'); // Usa tu clase de estilo
+
+    // 4. Petición en segundo plano
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
 
         if (!res.success) throw new Error(res.message);
 
-        // Si es edición, quitamos el modo edición tras éxito
         if (esEdicion) {
             window.editandoId = null;
             btn.innerText = tipo === 'ingreso' ? "GUARDAR REGISTRO" : "REGISTRAR EGRESO";
             btn.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
         }
 
-        // LIMPIEZA FINAL (Pasando el tipo para que detecte bien los inputs)
         limpiarFormulario(tipo); 
+        // Restauramos el texto original tras el éxito
+        btn.innerText = textoOriginal;
 
     } catch (error) {
         console.error("Error al guardar en servidor:", error);
-        // REVERSIÓN TOTAL
         AppState.movimientos = JSON.parse(estadoAnterior);
         localStorage.setItem("financiero_state", JSON.stringify(AppState));
         refrescarVistaActual();
         alert("No se pudo guardar: " + error.message);
     } finally {
+        // --- FINAL DE FEEDBACK VISUAL ---
         btn.disabled = false;
+        btn.classList.remove('btn-loading');
+        // Aseguramos que el botón recupere su estado visual si no hubo edición
+        if (!esEdicion) btn.innerText = textoOriginal;
     }
 }
 
