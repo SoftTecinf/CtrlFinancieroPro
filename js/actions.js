@@ -111,7 +111,7 @@ async function eliminarMovimiento(id) {
         refrescarVistaActual();
         alert("No se pudo eliminar el registro: " + error.message);
     }
-}   }
+   
 }
 
 async function agregarCategoria() {
