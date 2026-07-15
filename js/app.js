@@ -204,7 +204,7 @@ function refrescarVistaActual() {
             window.datosGrafico.nuevosIngresos = ingM;
             window.datosGrafico.nuevosGastos = gasM;
         }
-    });
+    });console.warn("2 "+ingM +"+"+ gasM);
 }
 
 function fMXN(monto) {
