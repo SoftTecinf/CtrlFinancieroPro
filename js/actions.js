@@ -217,7 +217,12 @@ function prepararEdicion(id, tipo) {
 
 function actualizarGraficoDistribucion() {
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return;
+    if (!canvas) {
+        console.warn("DEBUG: No se encontró el elemento #chartHome en el DOM");
+        return;
+    }
+    
+    console.log("DEBUG: Dibujando gráfica con datos:", AppState.totalIngresos, AppState.totalGastos);
 
     // 1. SIEMPRE usamos la misma variable global para guardar la instancia
     if (window.miGrafico instanceof Chart) {
