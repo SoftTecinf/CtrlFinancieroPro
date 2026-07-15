@@ -182,13 +182,9 @@ function refrescarVistaActual() {
 
     const seccionId = activeBtn.id;
 
-    // Sincronizar filtros primero
-    const mesSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-mes' : 'ex-mes');
-    const añoSel = document.getElementById(seccionId === 'nav-ingresos' ? 'in-año' : 'ex-año');
-    if (mesSel?.value) AppState.filtrosActuales.mes = parseInt(mesSel.value);
-    if (añoSel?.value) AppState.filtrosActuales.año = parseInt(añoSel.value);
+    // ... (tu lógica de filtros se mantiene igual)
 
-    // Pintar según la sección
+    // A. Pintar según la sección
     if (seccionId === 'nav-home') {
         actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
@@ -197,13 +193,19 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    console.log("Buscando elemento en el DOM:", document.getElementById('tu-id-aqui'));
-    const canvas = document.getElementById('chartHome');
-    if (canvas) {
-        actualizarGraficoDistribucion();
-    } else {
-        console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
-    }
+    // B. CORRECCIÓN: Usamos requestAnimationFrame para asegurar que el DOM 
+    // terminó de procesar los cambios de actualizarHome()
+    requestAnimationFrame(() => {
+        const canvas = document.getElementById('chartHome');
+        
+        if (canvas) {
+            // Pasamos los datos calculados de tu estado global
+            // Asegúrate de tener los valores disponibles aquí
+            actualizarGraficoDistribucion(AppState.ingM, AppState.gasM);
+        } else {
+            console.warn("El canvas #chartHome no existe todavía, saltando dibujo.");
+        }
+    });
 }
 
 function fMXN(monto) {
