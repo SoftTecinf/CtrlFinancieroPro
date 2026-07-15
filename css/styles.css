@@ -76,3 +76,20 @@ body {
 .hidden-section {
     display: none !important;
 }
+
+/* Animación física para todos los botones principales */
+button[onclick^="guardarRegistro"] {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(1);
+}
+
+button[onclick^="guardarRegistro"]:active {
+    transform: scale(0.96); /* Un sutil encogimiento */
+}
+
+/* Estilo para cuando está en modo "cargando" */
+.btn-loading {
+    opacity: 0.7;
+    cursor: wait !important;
+    background-color: var(--brand-sand) !important;
+}
