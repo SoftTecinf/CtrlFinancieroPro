@@ -230,23 +230,15 @@ window.actualizarGraficoDistribucion = function() {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // LEEMOS ESTADO
+    // DESTRUCCIÓN SEGURA
+    if (window.chartH && typeof window.chartH.destroy === 'function') {
+        window.chartH.destroy();
+        window.chartH = null; // Liberamos la referencia explícitamente
+    }
+
     const ingresos = window.EstadoFinanciero?.ingresos || 0;
     const gastos = window.EstadoFinanciero?.gastos || 0;
 
-    // --- EL CERROJO ---
-    // Si ya tenemos una instancia y los valores no han cambiado, NO HACEMOS NADA
-    if (window.chartH && window.ultimaCarga?.i === ingresos && window.ultimaCarga?.g === gastos) {
-        return; 
-    }
-    // ------------------
-
-    // DESTRUCCIÓN
-    if (window.chartH) {
-        window.chartH.destroy();
-    }
-
-    // DIBUJO
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
@@ -259,9 +251,6 @@ window.actualizarGraficoDistribucion = function() {
         },
         options: { responsive: true, maintainAspectRatio: false }
     });
-
-    // GUARDAMOS ESTADO PARA EL CERROJO
-    window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
 // 7. INICIALIZACIÓN MÁS SEGURA
@@ -274,25 +263,6 @@ window.addEventListener('load', () => {
             window.actualizarGraficoDistribucion();
         }
     }, 500);
-});
-
-// 1. Defínela en tu app.js para que sea accesible
-window.alRecibirDatosNuevos = function() {
-    console.log("Datos recibidos: actualizando interfaz...");
-    actualizarHome();
-    actualizarGraficoDistribucion();
-};
-
-// 2. Busca donde obtienes tus datos y llámala ahí
-// Ejemplo:
-inicializarSincronizacion().then(() => {
-    AppState.cargado = true;
-    
-    // --- AQUÍ LLAMAS A TU NUEVA FUNCIÓN ---
-    window.alRecibirDatosNuevos(); 
-    // --------------------------------------
-    
-    if (typeof toggleLoading === 'function') toggleLoading(false);
 });
 
 // --- CONTROL DE SESIÓN ---
