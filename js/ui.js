@@ -196,23 +196,49 @@ function actualizarHome() {
 }
 
 function actualizarResumen() {
-    const filtrados = obtenerMovimientosFiltrados();
-    let ing = 0, gas = 0;
-    const contLista = document.getElementById('lista-resumen-periodo');
-    contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
+    const mes = parseInt(document.getElementById('res-mes').value);
+    const año = parseInt(document.getElementById('res-año').value);
 
-    filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-        if (m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-        div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div><span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
-        contLista.appendChild(div);
+    // 1. Filtrar movimientos del periodo seleccionado
+    const movsPeriodo = window.AppState.movimientos.filter(m => {
+        const d = new Date(m.fecha);
+        return d.getMonth() === mes && d.getFullYear() === año;
     });
 
-    document.getElementById('resumen-balance-total').innerText = fMXN(ing - gas);
-    const ctx = document.getElementById('chartResumen').getContext('2d');
-    if (chartR) chartR.destroy();
-    chartR = new Chart(ctx, { type: 'bar', data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+    // 2. Calcular Utilidad (Ingresos - Gastos)
+    const ingresos = movsPeriodo.filter(m => m.tipo === 'ingreso').reduce((acc, m) => acc + Number(m.monto), 0);
+    const gastos = movsPeriodo.filter(m => m.tipo === 'gasto').reduce((acc, m) => acc + Number(m.monto), 0);
+    const utilidad = ingresos - gastos;
+
+    // 3. Actualizar UI
+    const elBalance = document.getElementById('resumen-balance-total');
+    if (elBalance) {
+        elBalance.innerText = fMXN(utilidad);
+        elBalance.classList.toggle('text-rose-500', utilidad < 0);
+        elBalance.classList.toggle('text-stone-700', utilidad >= 0);
+    }
+
+    // 4. Renderizar Cronología (la lista)
+    const lista = document.getElementById('lista-resumen-periodo');
+    let html = '';
+    movsPeriodo.forEach(m => {
+        html += `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div>
+                    <p class="text-xs font-bold">${m.desc}</p>
+                    <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
+                </div>
+                <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
+                    ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                </span>
+            </div>`;
+    });
+    lista.innerHTML = html || '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
+
+    // 5. Actualizar Gráfico (si tu función global lo permite)
+    if (typeof window.actualizarGraficoResumen === 'function') {
+        window.actualizarGraficoResumen(movsPeriodo);
+    }
 }
 
 function actualizarFechaHeader() {
