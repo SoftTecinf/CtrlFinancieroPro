@@ -3,15 +3,17 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1
 let editandoId = null;
 let chartH, chartR;
 
-// --- ANCLAJE GLOBAL SEGURO ---
-window.AppState = window.AppState || {
+// app.js
+window.AppState = {
     movimientos: [],
     categorias: [],
     filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
     cargado: false
 };
 
-window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
+// Variable global que UI.js está buscando y que causa tu error actual
+window.gastos = 0; 
+window.ingresos = 0;
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
