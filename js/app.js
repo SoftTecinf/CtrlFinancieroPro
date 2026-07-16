@@ -153,16 +153,15 @@ async function showSection(sectionId) {
 
             // D. SINCRONIZACIÓN DE DATOS (Con pequeña espera para estabilizar el DOM)
             setTimeout(() => {
-                const faltanMovimientos = (!AppState.movimientos || AppState.movimientos.length === 0);
-                const faltanCategorias = (!AppState.categorias || AppState.categorias.length === 0);
-
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
+                        // Solo renderizamos UNA VEZ cuando ya tenemos los datos frescos
                         inicializarFuncionesPorSeccion(sectionId);
                         if (typeof toggleLoading === 'function') toggleLoading(false);
                     });
                 } else {
+                    // Si ya estaban cargados, renderizamos normal
                     inicializarFuncionesPorSeccion(sectionId);
                     if (typeof toggleLoading === 'function') toggleLoading(false);
                 }
