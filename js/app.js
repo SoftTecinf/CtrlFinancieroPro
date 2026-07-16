@@ -47,8 +47,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.AppState.filtrosActuales.año = ahora.getFullYear();
     }
 
+
     // 3. UI
-    await showSection('home');
+    // --- NUEVA LÓGICA DE NAVEGACIÓN PERSISTENTE ---
+    const ultimaSeccion = localStorage.getItem('ultima_seccion') || 'home';
+    await showSection(ultimaSeccion);
+
+    const btn = document.getElementById(`nav-${ultimaSeccion}`);
+    if (btn) {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
+        btn.classList.add('nav-active');
+    }
     refrescarVistaActual();
 
     // Forzamos el estado a la fecha actual del sistema
@@ -87,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Variable global fuera de la función
 let currentLoadId = 0;
 async function showSection(sectionId) {
+    localStorage.setItem('ultima_seccion', sectionId);
     const container = document.getElementById('app-container');
     if (!container) return;
 
