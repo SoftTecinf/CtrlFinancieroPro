@@ -1,39 +1,40 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    // 1. Obtén los movimientos del AppState centralizado
     const todosLosMovimientos = AppState.movimientos || [];
+    
+    // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
+    const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // 2. Filtramos usando tu lógica segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-
+        
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth();
+        const tipoMov = (m.tipo || '').toLowerCase().trim();
 
-        return m.tipo === tipo &&
+        return tipoMov === tipoNormalizado &&
             mesMov === AppState.filtrosActuales.mes &&
             añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
-    // 3. Renderizamos el conteo
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
     const cont = document.getElementById(contId);
-    if (!cont) return; // Si no existe el contenedor, salimos de la función
+    if (!cont) return;
 
-    // 4. Validamos si está vacío de forma definitiva
     if (filtrados.length === 0) {
         cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
-        return; // Detenemos la ejecución aquí ya que no hay nada que recorrer
+        return;
     }
 
-    // 5. Si sí hay datos, acumulamos el HTML y lo insertamos una sola vez
     let htmlAcumulado = '';
     filtrados.forEach(m => {
-        // AQUÍ ESTÁ EL CAMBIO: Usamos la nueva función
-        const fechaLegible = formatearFechaMX(m.fecha);
+        // Aseguramos que formatearFechaMX sea global (window.formatearFechaMX)
+        const fechaLegible = (typeof window.formatearFechaMX === 'function') 
+                             ? window.formatearFechaMX(m.fecha) 
+                             : m.fecha.split('T')[0];
 
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
@@ -42,8 +43,8 @@ function actualizarListadoIndividual(tipo, contId, countId) {
                     <p class="text-[9px] opacity-40 uppercase font-bold">${fechaLegible} | ${m.cat || 'General'}</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <p class="text-sm font-bold ${tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    <p class="text-sm font-bold ${tipoNormalizado === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${tipoNormalizado === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
                     </p>
                     <div class="flex gap-1">
                         <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
