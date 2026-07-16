@@ -276,24 +276,6 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// 1. Defínela en tu app.js para que sea accesible
-window.alRecibirDatosNuevos = function() {
-    console.log("Datos recibidos: actualizando interfaz...");
-    actualizarHome();
-    actualizarGraficoDistribucion();
-};
-
-// 2. Busca donde obtienes tus datos y llámala ahí
-// Ejemplo:
-inicializarSincronizacion().then(() => {
-    AppState.cargado = true;
-    
-    // --- AQUÍ LLAMAS A TU NUEVA FUNCIÓN ---
-    window.alRecibirDatosNuevos(); 
-    // --------------------------------------
-    
-    if (typeof toggleLoading === 'function') toggleLoading(false);
-});
 
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
