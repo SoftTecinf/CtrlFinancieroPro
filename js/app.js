@@ -253,13 +253,9 @@ function fMXN(monto) {
     return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
-// Debes ponerle "window." para que sea global y visible desde cualquier script
+// app.js (al principio de todo el archivo)
 window.formatearFechaMX = function(fechaString) {
     if (!fechaString) return "";
     const fecha = new Date(fechaString.includes('T') ? fechaString : `${fechaString}T00:00:00`);
-    return fecha.toLocaleDateString('es-MX', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
