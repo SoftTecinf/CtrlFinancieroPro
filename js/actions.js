@@ -49,6 +49,14 @@ async function guardarRegistro(tipo) {
         if (!res.success) throw new Error(res.message);
 
         if (esEdicion) window.editandoId = null;
+        
+        // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
+        // 1. Sincronizamos con el servidor para obtener los datos más recientes
+        await inicializarSincronizacion(); 
+        // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
+        refrescarVistaActual();
+        // ---------------------------------------
+
         alert("Proceso éxitoso.");
         limpiarFormulario(tipo);
     } catch (error) {
