@@ -6,15 +6,15 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-// app.js - ESTADO LIMPIO
+// app.js
 window.AppState = {
     movimientos: [],
     categorias: [],
     filtrosActuales: { 
         busqueda: '', 
         categoria: 'todos', 
-        mes: null, // Dejamos esto vacío para que el código lo determine
-        año: null 
+        mes: new Date().getMonth(), // Usamos la fecha actual solo si no hay nada guardado
+        año: new Date().getFullYear() 
     },
     cargado: false
 };
