@@ -226,51 +226,60 @@ window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
 window.chartH = window.chartH || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
-function actualizarGraficoDistribucion() {
-    // 2. BUSCAR CANVAS
+window.actualizarGraficoDistribucion = function() {
+    // 1. BUSCAR CANVAS
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return; // Si no hay canvas, salimos sin errores
+    if (!canvas) return; // Si no estamos en Home, no hacemos nada.
 
-    // 3. LEER ESTADO (Usa optional chaining por seguridad)
+    // 2. LEER ESTADO
     const ingresos = window.EstadoFinanciero?.ingresos || 0;
     const gastos = window.EstadoFinanciero?.gastos || 0;
 
-    // 4. FILTRO DE CAMBIOS: No redibujar si los datos son idénticos
+    // 3. FILTRO DE CAMBIOS
     if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
     
-    // Actualizamos el registro de carga
-    window.ultimaCarga = { i: ingresos, g: gastos };
-
-    // 5. DESTRUCCIÓN SEGURA
-    if (window.chartH && typeof window.chartH.destroy === 'function') {
+    // 4. DESTRUCCIÓN SEGURA
+    if (window.chartH instanceof Chart) {
         window.chartH.destroy();
     }
 
-    // 6. DIBUJO DEL GRÁFICO
-    const ctx = canvas.getContext('2d');
-    window.chartH = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Ingresos', 'Gastos'],
-            datasets: [{
-                data: [ingresos, gastos],
-                backgroundColor: ['#D6C7B3', '#E5E7EB']
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: { legend: { display: true } }
-        }
+    // 5. DIBUJO DEL GRÁFICO CON TIMEOUT DE SEGURIDAD
+    // Usamos requestAnimationFrame para asegurar que el DOM está listo y calculado
+    requestAnimationFrame(() => {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        window.chartH = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{
+                    data: [ingresos, gastos],
+                    backgroundColor: ['#D6C7B3', '#E5E7EB']
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true } }
+            }
+        });
+        
+        // Actualizamos el registro DESPUÉS de dibujar
+        window.ultimaCarga = { i: ingresos, g: gastos };
     });
-}
+};
 
 // 7. INICIALIZACIÓN MÁS SEGURA
 // Usamos un intervalo, pero verificamos que Chart exista
 window.addEventListener('load', () => {
-    if (typeof Chart !== 'undefined') {
-        setInterval(actualizarGraficoDistribucion, 500);
-    }
+    // Definimos un intervalo de seguridad
+    setInterval(() => {
+        // Solo intentamos ejecutar si Chart existe Y la función ha sido cargada
+        if (typeof Chart !== 'undefined' && typeof window.actualizarGraficoDistribucion === 'function') {
+            window.actualizarGraficoDistribucion();
+        }
+    }, 500);
 });
 
 // --- CONTROL DE SESIÓN ---
