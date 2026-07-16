@@ -129,10 +129,13 @@ async function showSection(sectionId) {
             }
             else if (sectionId === 'ingresos') {
                 // ... tu código actual de ingresos ...
-                const inputFecha = document.getElementById('in-fecha');
+                inicializarFuncionesPorSeccion(sectionId);
+            }
+            else if (sectionId === 'gastos') { // <--- AGREGA ESTO
+                const inputFecha = document.getElementById('ex-fecha');
                 if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
 
-                const mesSel = document.getElementById('in-mes');
+                const mesSel = document.getElementById('ex-mes');
                 if (mesSel) {
                     mesSel.value = new Date().getMonth();
                     AppState.filtrosActuales.mes = parseInt(mesSel.value);
@@ -183,8 +186,8 @@ function inicializarFuncionesPorSeccion(sectionId) {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     }
     else if (idLimpio === 'gastos') {
-        actualizarSelectsCategorias();
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'cont-gastos');
+        actualizarSelectsCategorias(); // Asegura que las categorías se carguen
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex'); // Usa 'count-ex' como en tu HTML
     }
     else if (idLimpio === 'analisis') {
         actualizarResumen();
@@ -237,7 +240,7 @@ function fMXN(monto) {
 function formatearFechaMX(fechaString) {
     const fecha = new Date(fechaString);
     if (isNaN(fecha.getTime())) return "Fecha inválida";
-    
+
     // Usamos 'es-MX' para asegurar el formato DD/MM/AAAA
     return fecha.toLocaleDateString('es-MX', {
         day: '2-digit',
