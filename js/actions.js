@@ -315,6 +315,7 @@ function obtenerMovimientosFiltrados() {
 }
 
 async function generarLibroContable() {
+    alert("Generando reporte financiero... (Esta función requiere la lógica de exportación a PDF o Excel)");
     const { mes, año } = obtenerPeriodoActual();
     const filtrados = obtenerMovimientosFiltrados();
     const workbook = new ExcelJS.Workbook();
