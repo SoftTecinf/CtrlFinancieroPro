@@ -6,11 +6,17 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-const AppState = {
+// app.js - ESTADO LIMPIO
+window.AppState = {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
-    cargado: false // <--- NUEVA GUARDIA
+    filtrosActuales: { 
+        busqueda: '', 
+        categoria: 'todos', 
+        mes: null, // Dejamos esto vacío para que el código lo determine
+        año: null 
+    },
+    cargado: false
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
