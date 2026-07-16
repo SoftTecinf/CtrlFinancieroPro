@@ -128,10 +128,18 @@ async function showSection(sectionId) {
                 }, 200); // 200ms es un tiempo seguro para que el navegador ya haya "pintado" el canvas
             }
             else if (sectionId === 'ingresos') {
-                // ... tu código actual de ingresos ...
+                const inputFecha = document.getElementById('in-fecha');
+                if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+
+                const mesSel = document.getElementById('in-mes');
+                if (mesSel) {
+                    mesSel.value = new Date().getMonth();
+                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                }
                 inicializarFuncionesPorSeccion(sectionId);
             }
-            else if (sectionId === 'gastos') { // <--- AGREGA ESTO
+            else if (sectionId === 'gastos') {
+                // ESTE BLOQUE ES PARA GASTOS
                 const inputFecha = document.getElementById('ex-fecha');
                 if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
 
