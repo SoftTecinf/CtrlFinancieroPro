@@ -1,19 +1,21 @@
 // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
 const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 let editandoId = null;
-let chartH, chartR;
-
-// app.js
-window.AppState = {
+// --- CONFIGURACIÓN Y ESTADO GLOBAL (Al tope absoluto) ---
+window.AppState = window.AppState || {
     movimientos: [],
     categorias: [],
     filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
     cargado: false
 };
 
-// Variable global que UI.js está buscando y que causa tu error actual
-window.gastos = 0; 
+// Definimos las variables que ui.js está buscando desesperadamente
 window.ingresos = 0;
+window.gastos = 0;
+
+window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
+window.chartH = window.chartH || null;
+window.ultimaCarga = { i: -1, g: -1 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
