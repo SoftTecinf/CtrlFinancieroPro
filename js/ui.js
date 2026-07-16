@@ -178,6 +178,7 @@ function actualizarHome() {
         let nuevoHtml = '';
         ultimosMovs.forEach(m => {
             console.log("Descripción encontrada:", m.desc);
+            
             nuevoHtml += `
                 <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
                     <div>
