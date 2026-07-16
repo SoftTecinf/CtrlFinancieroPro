@@ -6,11 +6,11 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-const AppState = {
+window.AppState = window.AppState || {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
-    cargado: false // <--- NUEVA GUARDIA
+   filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
+    cargado: false
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
