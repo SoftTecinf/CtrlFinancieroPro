@@ -264,6 +264,19 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
+// 7. INICIALIZACIÓN MÁS SEGURA
+// Usamos un intervalo, pero verificamos que Chart exista
+window.addEventListener('load', () => {
+    // Definimos un intervalo de seguridad
+    setInterval(() => {
+        // Solo intentamos ejecutar si Chart existe Y la función ha sido cargada
+        if (typeof Chart !== 'undefined' && typeof window.actualizarGraficoDistribucion === 'function') {
+            window.actualizarGraficoDistribucion();
+        }
+    }, 500);
+});
+
+
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
