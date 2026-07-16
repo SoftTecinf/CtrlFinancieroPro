@@ -6,11 +6,12 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-const AppState = {
+// Al puro principio de tu archivo principal (app.js)
+window.AppState = window.AppState || {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
-    cargado: false // <--- NUEVA GUARDIA
+    filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
+    cargado: false
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
@@ -151,8 +152,16 @@ async function showSection(sectionId) {
                 inicializarFuncionesPorSeccion(sectionId);
             }
 
-            // D. SINCRONIZACIÓN DE DATOS (Con pequeña espera para estabilizar el DOM)
+            // D. SINCRONIZACIÓN DE DATOS
+            // Definimos las variables AQUÍ, en el mismo nivel que el resto de la función showSection
+            const movs = AppState.movimientos || [];
+            const cats = AppState.categorias || [];
+
+            const faltanMovimientos = (movs.length === 0);
+            const faltanCategorias = (cats.length === 0);
+
             setTimeout(() => {
+                // Usamos las variables que ya declaramos arriba de forma segura
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
@@ -245,14 +254,9 @@ function fMXN(monto) {
     return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
-function formatearFechaMX(fechaString) {
-    const fecha = new Date(fechaString);
-    if (isNaN(fecha.getTime())) return "Fecha inválida";
-
-    // Usamos 'es-MX' para asegurar el formato DD/MM/AAAA
-    return fecha.toLocaleDateString('es-MX', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-}
+// app.js (al principio de todo el archivo)
+window.formatearFechaMX = function(fechaString) {
+    if (!fechaString) return "";
+    const fecha = new Date(fechaString.includes('T') ? fechaString : `${fechaString}T00:00:00`);
+    return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
