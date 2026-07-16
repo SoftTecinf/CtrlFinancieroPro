@@ -10,11 +10,11 @@ let chartH, chartR;
 window.AppState = {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { 
-        busqueda: '', 
-        categoria: 'todos', 
+    filtrosActuales: {
+        busqueda: '',
+        categoria: 'todos',
         mes: new Date().getMonth(), // Usamos la fecha actual solo si no hay nada guardado
-        año: new Date().getFullYear() 
+        año: new Date().getFullYear()
     },
     cargado: false
 };
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. INTENTAR RECUPERAR
     const ahora = new Date();
     const savedState = localStorage.getItem('financiero_state');
-    
+
 
     if (savedState) {
         try {
@@ -64,23 +64,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     AppState.filtrosActuales.mes = ahora.getMonth();
     AppState.filtrosActuales.año = ahora.getFullYear();
 
-    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
+    // 5. SINCRONIZAR UI CON ESTADO
+    const state = window.AppState; // Acceso seguro al estado global
     const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
     const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
 
+    // Sincronizar meses
     selectoresMes.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = AppState.filtrosActuales.mes;
+        if (el) el.value = state.filtrosActuales.mes;
     });
 
+    // Sincronizar años
     selectoresAnio.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = AppState.filtrosActuales.año;
+        if (el) el.value = state.filtrosActuales.año;
     });
 
+    // Sincronizar input de fecha (Hoy por defecto)
     const inputFecha = document.getElementById('in-fecha');
     if (inputFecha) {
-        // Formato YYYY-MM-DD necesario para el input type="date"
+        // Usamos 'ahora' que definimos al inicio de DOMContentLoaded
+        // para asegurar que sea la misma fecha en todo el proceso
         inputFecha.value = new Date().toISOString().split('T')[0];
     }
 
@@ -256,9 +261,11 @@ function refrescarVistaActual() {
         const a = document.getElementById('ex-año');
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
-        
+
         // ¡Importante! Aseguramos que la lista de gastos se actualice
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+    } else if (seccionId === 'nav-resumen') { // Asegúrate de que este ID coincida con tu botón
+        actualizarResumen();
     }
 
     // 3. Gráficos
@@ -282,7 +289,7 @@ function fMXN(monto) {
 }
 
 // app.js (al principio de todo el archivo)
-window.formatearFechaMX = function(fechaString) {
+window.formatearFechaMX = function (fechaString) {
     if (!fechaString) return "";
     const fecha = new Date(fechaString.includes('T') ? fechaString : `${fechaString}T00:00:00`);
     return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
