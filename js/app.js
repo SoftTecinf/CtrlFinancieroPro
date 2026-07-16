@@ -222,7 +222,6 @@ function inicializarFuncionesPorSeccion(sectionId) {
     else if (idLimpio === 'config') {
         abrirVistaAjustesInteligente();
     } else {
-        console.log("⚠️ No se encontró la función para la sección:", idLimpio);
     }
 }
 
