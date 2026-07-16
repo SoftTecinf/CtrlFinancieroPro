@@ -227,46 +227,29 @@ window.chartH = window.chartH || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 window.actualizarGraficoDistribucion = function() {
-    // 1. BUSCAR CANVAS
     const canvas = document.getElementById('chartHome');
-    if (!canvas) return; // Si no estamos en Home, no hacemos nada.
+    if (!canvas) return;
 
-    // 2. LEER ESTADO
+    // DESTRUCCIÓN SEGURA
+    if (window.chartH && typeof window.chartH.destroy === 'function') {
+        window.chartH.destroy();
+        window.chartH = null; // Liberamos la referencia explícitamente
+    }
+
     const ingresos = window.EstadoFinanciero?.ingresos || 0;
     const gastos = window.EstadoFinanciero?.gastos || 0;
 
-    // 3. FILTRO DE CAMBIOS
-    if (window.ultimaCarga.i === ingresos && window.ultimaCarga.g === gastos) return;
-    
-    // 4. DESTRUCCIÓN SEGURA
-    if (window.chartH instanceof Chart) {
-        window.chartH.destroy();
-    }
-
-    // 5. DIBUJO DEL GRÁFICO CON TIMEOUT DE SEGURIDAD
-    // Usamos requestAnimationFrame para asegurar que el DOM está listo y calculado
-    requestAnimationFrame(() => {
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        window.chartH = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ingresos', 'Gastos'],
-                datasets: [{
-                    data: [ingresos, gastos],
-                    backgroundColor: ['#D6C7B3', '#E5E7EB']
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: true } }
-            }
-        });
-        
-        // Actualizamos el registro DESPUÉS de dibujar
-        window.ultimaCarga = { i: ingresos, g: gastos };
+    const ctx = canvas.getContext('2d');
+    window.chartH = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [ingresos, gastos],
+                backgroundColor: ['#D6C7B3', '#E5E7EB']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 };
 
