@@ -2,17 +2,16 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 let editandoId = null;
 let chartH, chartR;
-// En el nivel más alto de app.js
-//let ingM = 40800;
-//let gasM = 0;
 
-// Al puro principio de tu archivo principal (app.js)
+// --- ANCLAJE GLOBAL SEGURO ---
 window.AppState = window.AppState || {
     movimientos: [],
     categorias: [],
     filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
     cargado: false
 };
+
+window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
