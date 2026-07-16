@@ -21,26 +21,32 @@ window.AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. CARGA DE INTERFAZ
-    await showSection('home');
-
-    // 2. RECUPERAR ESTADO
+    // 1. INTENTAR RECUPERAR
     const savedState = localStorage.getItem('financiero_state');
     const ahora = new Date();
 
     if (savedState) {
-        const parsed = JSON.parse(savedState);
-        // CAMBIO AQUÍ: Usamos AppState.movimientos consistentemente
-        AppState.movimientos = parsed.movimientos || [];
-
-        if (parsed.filtros) {
-            AppState.filtrosActuales = parsed.filtros;
+        try {
+            const parsed = JSON.parse(savedState);
+            // Restauramos lo guardado
+            Object.assign(window.AppState, parsed);
+        } catch (e) {
+            console.error("Error al recuperar estado:", e);
         }
     }
 
-    // 3. CONFIGURACIÓN INICIAL
-    const userDisplayEl = document.getElementById('user-display');
-    if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
+    // 2. APLICAR VALORES POR DEFECTO SOLO SI NO EXISTEN
+    // Si después de intentar recuperar, el mes sigue siendo null, entonces sí, usamos 'ahora'
+    if (window.AppState.filtrosActuales.mes === null) {
+        window.AppState.filtrosActuales.mes = ahora.getMonth();
+    }
+    if (window.AppState.filtrosActuales.año === null) {
+        window.AppState.filtrosActuales.año = ahora.getFullYear();
+    }
+
+    // 3. UI
+    await showSection('home');
+    refrescarVistaActual();
 
     // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
     inicializarFiltros();
