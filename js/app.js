@@ -6,12 +6,11 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-// Al puro principio de tu archivo principal (app.js)
-window.AppState = window.AppState || {
+const AppState = {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
-    cargado: false
+    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
+    cargado: false // <--- NUEVA GUARDIA
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
