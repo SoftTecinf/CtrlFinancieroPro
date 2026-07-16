@@ -219,22 +219,26 @@ function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    const seccionId = activeBtn.id; // ej: 'nav-gastos'
+    const seccionId = activeBtn.id; // ej: 'nav-home'
 
-    // A. Pintar según la sección
+    // A. Pintar según la sección activa
     if (seccionId === 'nav-home') {
         actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
+        // Tu lógica de filtros específica para gastos
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
         if (m) AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) AppState.filtrosActuales.año = parseInt(a.value);
+        
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
+    // B. ACTUALIZACIÓN DEL GRÁFICO (Centralizada y Segura)
+    // Usamos requestAnimationFrame para asegurar que el DOM esté listo
     requestAnimationFrame(() => {
-        // Solo llamamos a la función global, sin argumentos
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
