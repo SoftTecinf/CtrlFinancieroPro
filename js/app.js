@@ -233,3 +233,15 @@ function fMXN(monto) {
 
     return valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
+
+function formatearFechaMX(fechaString) {
+    const fecha = new Date(fechaString);
+    if (isNaN(fecha.getTime())) return "Fecha inválida";
+    
+    // Usamos 'es-MX' para asegurar el formato DD/MM/AAAA
+    return fecha.toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
