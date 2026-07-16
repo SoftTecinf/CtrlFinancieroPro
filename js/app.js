@@ -1,21 +1,17 @@
 // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
 const API_URL = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 let editandoId = null;
-// --- CONFIGURACIÓN Y ESTADO GLOBAL (Al tope absoluto) ---
-window.AppState = window.AppState || {
+let chartH, chartR;
+// En el nivel más alto de app.js
+//let ingM = 40800;
+//let gasM = 0;
+
+const AppState = {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
-    cargado: false
+    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
+    cargado: false // <--- NUEVA GUARDIA
 };
-
-// Definimos las variables que ui.js está buscando desesperadamente
-window.ingresos = 0;
-window.gastos = 0;
-
-window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
-window.chartH = window.chartH || null;
-window.ultimaCarga = { i: -1, g: -1 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -223,26 +219,22 @@ function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    const seccionId = activeBtn.id; // ej: 'nav-home'
+    const seccionId = activeBtn.id; // ej: 'nav-gastos'
 
-    // A. Pintar según la sección activa
+    // A. Pintar según la sección
     if (seccionId === 'nav-home') {
         actualizarHome();
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
-        // Tu lógica de filtros específica para gastos
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
         if (m) AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) AppState.filtrosActuales.año = parseInt(a.value);
-        
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
-    // B. ACTUALIZACIÓN DEL GRÁFICO (Centralizada y Segura)
-    // Usamos requestAnimationFrame para asegurar que el DOM esté listo
     requestAnimationFrame(() => {
+        // Solo llamamos a la función global, sin argumentos
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
