@@ -10,11 +10,11 @@ let chartH, chartR;
 window.AppState = {
     movimientos: [],
     categorias: [],
-    filtrosActuales: { 
-        busqueda: '', 
-        categoria: 'todos', 
+    filtrosActuales: {
+        busqueda: '',
+        categoria: 'todos',
         mes: new Date().getMonth(), // Usamos la fecha actual solo si no hay nada guardado
-        año: new Date().getFullYear() 
+        año: new Date().getFullYear()
     },
     cargado: false
 };
@@ -22,44 +22,44 @@ window.AppState = {
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. INTENTAR RECUPERAR
-    const savedState = localStorage.getItem('financiero_state');
-    //const ahora = new Date();
+    document.addEventListener('DOMContentLoaded', async () => {
+        const ahora = new Date();
+        const savedState = localStorage.getItem('financiero_state');
 
-    if (savedState) {
-        try {
-            const parsed = JSON.parse(savedState);
-            // Solo sobrescribimos si el localStorage tiene datos válidos
-            if (parsed.movimientos) window.AppState.movimientos = parsed.movimientos;
-            if (parsed.filtrosActuales) window.AppState.filtrosActuales = parsed.filtrosActuales;
-            // ¡IMPORTANTE! No tocamos los filtros si no están en el guardado
-        } catch (e) {
-            console.error("Error al recuperar estado:", e);
+        // 1. RECUPERAR ESTADO
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                if (parsed.movimientos) window.AppState.movimientos = parsed.movimientos;
+                if (parsed.filtrosActuales) window.AppState.filtrosActuales = parsed.filtrosActuales;
+            } catch (e) { console.error("Error al recuperar:", e); }
         }
-    }
 
-    // 2. APLICAR VALORES POR DEFECTO SOLO SI NO EXISTEN
-    // Si después de intentar recuperar, el mes sigue siendo null, entonces sí, usamos 'ahora'
-    if (window.AppState.filtrosActuales.mes === null) {
-        window.AppState.filtrosActuales.mes = ahora.getMonth();
-    }
-    if (window.AppState.filtrosActuales.año === null) {
-        window.AppState.filtrosActuales.año = ahora.getFullYear();
-    }
+        // 2. ASIGNAR DEFAULT SOLO SI NO EXISTE NADA GUARDADO
+        if (window.AppState.filtrosActuales.mes === null || window.AppState.filtrosActuales.mes === undefined) {
+            window.AppState.filtrosActuales.mes = ahora.getMonth();
+        }
+        if (!window.AppState.filtrosActuales.año) {
+            window.AppState.filtrosActuales.año = ahora.getFullYear();
+        }
 
-    // 3. UI
-    await showSection('home');
-    refrescarVistaActual();
+        // 3. CARGA DE UI
+        await showSection('home');
 
-    // 4. INICIALIZAR Y FORZAR FECHA ACTUAL (Julio 2026)
-    inicializarFiltros();
+        // 4. SINCRONIZAR UI CON ESTADO (Usando los valores ya cargados)
+        const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
+        selectoresMes.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = window.AppState.filtrosActuales.mes;
+        });
+        // ... repetir para años ...
 
-    // Forzamos el estado a la fecha actual del sistema
-    AppState.filtrosActuales.mes = ahora.getMonth();
-    AppState.filtrosActuales.año = ahora.getFullYear();
-
-    // 5. SINCRONIZAR UI CON ESTADO (Modifica esta parte así)
-    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
-    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
+        // 5. REFRESCO Y SINCRONIZACIÓN
+        refrescarVistaActual();
+        inicializarSincronizacion().then(() => {
+            refrescarVistaActual();
+        });
+    });
 
     selectoresMes.forEach(id => {
         const el = document.getElementById(id);
@@ -267,7 +267,7 @@ function fMXN(monto) {
 }
 
 // app.js (al principio de todo el archivo)
-window.formatearFechaMX = function(fechaString) {
+window.formatearFechaMX = function (fechaString) {
     if (!fechaString) return "";
     const fecha = new Date(fechaString.includes('T') ? fechaString : `${fechaString}T00:00:00`);
     return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
