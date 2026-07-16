@@ -204,9 +204,7 @@ function refrescarVistaActual() {
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    const seccionId = activeBtn.id;
-
-    // ... (tu lógica de filtros se mantiene igual)
+    const seccionId = activeBtn.id; // ej: 'nav-gastos'
 
     // A. Pintar según la sección
     if (seccionId === 'nav-home') {
@@ -214,7 +212,10 @@ function refrescarVistaActual() {
     } else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
-        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
+        const m = document.getElementById('ex-mes');
+        const a = document.getElementById('ex-año');
+        if (m) AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) AppState.filtrosActuales.año = parseInt(a.value);
     }
 
     requestAnimationFrame(() => {
