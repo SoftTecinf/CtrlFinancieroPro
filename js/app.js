@@ -227,25 +227,33 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
+    // 1. SIEMPRE actualizar los indicadores globales (Home, Hoy, Ingresos/Gastos Mes)
+    // Esto asegura que donde sea que estés, los valores estén correctos
+    if (typeof actualizarHome === 'function') {
+        actualizarHome();
+    }
+
+    // 2. Lógica específica por sección
     const activeBtn = document.querySelector('.nav-active');
     if (!activeBtn) return;
 
-    const seccionId = activeBtn.id; // ej: 'nav-gastos'
+    const seccionId = activeBtn.id;
 
-    // A. Pintar según la sección
-    if (seccionId === 'nav-home') {
-        actualizarHome();
-    } else if (seccionId === 'nav-ingresos') {
+    if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     } else if (seccionId === 'nav-gastos') {
+        // Actualizamos filtros de estado si existen los selects
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
-        if (m) AppState.filtrosActuales.mes = parseInt(m.value);
-        if (a) AppState.filtrosActuales.año = parseInt(a.value);
+        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
+        
+        // ¡Importante! Aseguramos que la lista de gastos se actualice
+        actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
 
+    // 3. Gráficos
     requestAnimationFrame(() => {
-        // Solo llamamos a la función global, sin argumentos
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
