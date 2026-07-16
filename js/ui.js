@@ -1,13 +1,13 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-    
+
     // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
     const tipoNormalizado = tipo.toLowerCase().trim();
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-        
+
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth();
@@ -32,9 +32,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     let htmlAcumulado = '';
     filtrados.forEach(m => {
         // Aseguramos que formatearFechaMX sea global (window.formatearFechaMX)
-        const fechaLegible = (typeof window.formatearFechaMX === 'function') 
-                             ? window.formatearFechaMX(m.fecha) 
-                             : m.fecha.split('T')[0];
+        const fechaLegible = (typeof window.formatearFechaMX === 'function')
+            ? window.formatearFechaMX(m.fecha)
+            : m.fecha.split('T')[0];
 
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
@@ -134,7 +134,7 @@ function actualizarHome() {
 
     datos.forEach(m => {
         if (!m || typeof m.monto === 'undefined') return;
-        
+
         const monto = parseFloat(m.monto) || 0;
         const val = m.tipo === 'ingreso' ? monto : -monto;
         balG += val;
@@ -142,7 +142,7 @@ function actualizarHome() {
         // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
         // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
         const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
-        
+
         if (fechaMov === hoyStr) {
             balD += val;
         }
@@ -162,7 +162,7 @@ function actualizarHome() {
         { id: 'home-ingresos', val: fMXN(ingM) },
         { id: 'home-gastos', val: fMXN(gasM) }
     ];
-    
+
     updates.forEach(item => {
         const el = document.getElementById(item.id);
         if (el && el.innerText !== item.val) el.innerText = item.val;
@@ -178,17 +178,17 @@ function actualizarHome() {
         let nuevoHtml = '';
         ultimosMovs.forEach(m => {
             nuevoHtml += `
-                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
-                    <div>
-                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                        <p class="text-[8px] opacity-40 uppercase">${m.fecha}</p>
-                    </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                    </span>
-                </div>`;
+            <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
+                <div>
+                    <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                    <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)}</p>
+                </div>
+                <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                    ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                </span>
+            </div>`;
         });
-        
+
         if (listaH.innerHTML !== nuevoHtml) {
             listaH.innerHTML = nuevoHtml;
         }
