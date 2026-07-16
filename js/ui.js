@@ -125,21 +125,29 @@ function actualizarHome() {
     }
     if (!Array.isArray(datos)) datos = [];
 
-    // Si no hay datos, solo limpiamos y salimos para evitar errores, pero no reseteamos todo bruscamente
     if (datos.length === 0) return;
 
     // 2. CÁLCULOS
-    const hoyStr = new Date().toISOString().split('T')[0];
+    const hoyStr = new Date().toISOString().split('T')[0]; // "2026-07-16"
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
     datos.forEach(m => {
         if (!m || typeof m.monto === 'undefined') return;
+        
         const monto = parseFloat(m.monto) || 0;
         const val = m.tipo === 'ingreso' ? monto : -monto;
         balG += val;
-        if (m.fecha === hoyStr) balD += val;
 
+        // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
+        // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
+        const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
+        
+        if (fechaMov === hoyStr) {
+            balD += val;
+        }
+
+        // --- CÁLCULO MES ACTUAL ---
         const mF = new Date(m.fecha);
         if (!isNaN(mF.getTime()) && mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
             if (m.tipo === 'ingreso') ingM += monto;
@@ -147,13 +155,14 @@ function actualizarHome() {
         }
     });
 
-    // 3. ACTUALIZACIÓN INTELIGENTE DE TEXTOS (Sin borrar, solo actualizar si cambió)
+    // 3. ACTUALIZACIÓN INTELIGENTE DE TEXTOS
     const updates = [
         { id: 'balance-general', val: fMXN(balG) },
-        { id: 'balance-dia', val: fMXN(balD) },
+        { id: 'balance-dia', val: fMXN(balD) }, // Ahora balD debería sumar correctamente
         { id: 'home-ingresos', val: fMXN(ingM) },
         { id: 'home-gastos', val: fMXN(gasM) }
     ];
+    
     updates.forEach(item => {
         const el = document.getElementById(item.id);
         if (el && el.innerText !== item.val) el.innerText = item.val;
@@ -162,7 +171,7 @@ function actualizarHome() {
     // 4. ACTUALIZAR ESTADO GLOBAL
     window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
-    // 5. LISTA RECIENTE (Solo redibujar si el contenido es distinto al actual)
+    // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
         const ultimosMovs = [...datos].reverse().slice(0, 10);
@@ -180,7 +189,6 @@ function actualizarHome() {
                 </div>`;
         });
         
-        // Evitamos el parpadeo comparando el HTML generado con el actual
         if (listaH.innerHTML !== nuevoHtml) {
             listaH.innerHTML = nuevoHtml;
         }
