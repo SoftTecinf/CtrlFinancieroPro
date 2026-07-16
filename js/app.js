@@ -9,8 +9,8 @@ let chartH, chartR;
 const AppState = {
     movimientos: [],
     categorias: [],
-   filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
-    cargado: false
+    filtrosActuales: { busqueda: '', categoria: 'todos', mes: 6, año: 2026 },
+    cargado: false // <--- NUEVA GUARDIA
 };
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
