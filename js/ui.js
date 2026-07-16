@@ -181,12 +181,13 @@ function actualizarHome() {
                 <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
                     <div>
                         <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                        
                     <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)}</p>
                     </div>
                     <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
                         ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
                     </span>
-                </div>`;
+                </div>`;alert(m.desc);
         });
         
         if (listaH.innerHTML !== nuevoHtml) {
