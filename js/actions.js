@@ -51,10 +51,9 @@ async function guardarRegistro(tipo) {
         // 1. Sincronizamos con el servidor para obtener los datos más recientes
         await inicializarSincronizacion(); 
         // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
+        alert("Proceso éxitoso.");
         refrescarVistaActual();
         // ---------------------------------------
-
-        alert("Proceso éxitoso.");
         limpiarFormulario(tipo);
     } catch (error) {
         console.error("Error:", error);
