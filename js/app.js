@@ -6,7 +6,7 @@ let chartH, chartR;
 //let ingM = 40800;
 //let gasM = 0;
 
-window.AppState = window.AppState || {
+const AppState = {
     movimientos: [],
     categorias: [],
    filtrosActuales: { mes: new Date().getMonth(), año: new Date().getFullYear() },
