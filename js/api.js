@@ -36,16 +36,28 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
+    // Usar window.AppState para garantizar acceso global
+    const state = window.AppState; 
+
+    // PROTECCIÓN: Si por algún motivo no existe, inicialízalo vacío
+    if (!state) {
+        console.error("AppState no está inicializado.");
+        return;
+    }
+
     // 1. CARGA INICIAL (Rápida desde LocalStorage)
-    if (AppState.movimientos.length > 0 && AppState.categorias.length > 0 && AppState.cargado) {
+    if (state.movimientos.length > 0 && state.categorias.length > 0 && state.cargado) {
         return; 
     }
+    
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
         try {
             const cache = JSON.parse(guardado);
-            Object.assign(AppState, cache);
-            // Renderizamos inmediato para que el usuario vea algo al abrir
+            // Asignación explícita para evitar errores de referencia
+            state.movimientos = cache.movimientos || [];
+            state.categorias = cache.categorias || [];
+            
             if (typeof actualizarHome === 'function') actualizarHome();
         } catch (e) { console.error("Error al leer caché:", e); }
     }
@@ -57,12 +69,12 @@ async function inicializarSincronizacion() {
 
         if (!data || typeof data !== 'object') return;
 
-        // Actualizamos estado
-        if (data.movimientos) AppState.movimientos = data.movimientos;
-        if (data.categorias) AppState.categorias = data.categorias;
+        // Actualizamos estado global
+        if (data.movimientos) state.movimientos = data.movimientos;
+        if (data.categorias) state.categorias = data.categorias;
+        state.cargado = true; // Marcamos como cargado
 
-        // Guardamos nuevo estado
-        localStorage.setItem('financiero_state', JSON.stringify(AppState));
+        localStorage.setItem('financiero_state', JSON.stringify(state));
         
         // 3. ACTUALIZACIÓN FINAL DE UI
         if (typeof actualizarHome === 'function') actualizarHome();
