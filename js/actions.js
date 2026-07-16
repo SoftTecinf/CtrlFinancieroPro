@@ -277,7 +277,6 @@ window.addEventListener('load', () => {
 });
 
 
-
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
