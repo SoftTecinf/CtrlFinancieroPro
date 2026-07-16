@@ -177,10 +177,11 @@ function actualizarHome() {
         const ultimosMovs = [...datos].reverse().slice(0, 10);
         let nuevoHtml = '';
         ultimosMovs.forEach(m => {
+            console.log("Descripción encontrada:", m.desc);
             nuevoHtml += `
                 <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
                     <div>
-                        <p class="text-xs font-semibold uppercase">${m.desc || m.descripcion || m.concepto || 'SIN NOMBRE'}</p>
+                        <p>${m.desc}</p>
                         <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)}</p>
                     </div>
                     <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
