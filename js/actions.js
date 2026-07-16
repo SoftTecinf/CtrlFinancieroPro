@@ -46,10 +46,7 @@ async function guardarRegistro(tipo) {
 
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-        if (!res.success) throw new Error(res.message);
-
-        if (esEdicion) window.editandoId = null;
-        
+        if (!res.success) throw new Error(res.message);        
         // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
         // 1. Sincronizamos con el servidor para obtener los datos más recientes
         await inicializarSincronizacion(); 
