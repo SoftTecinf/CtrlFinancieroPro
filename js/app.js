@@ -23,13 +23,15 @@ window.AppState = {
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. INTENTAR RECUPERAR
     const savedState = localStorage.getItem('financiero_state');
-    const ahora = new Date();
+    //const ahora = new Date();
 
     if (savedState) {
         try {
             const parsed = JSON.parse(savedState);
-            // Restauramos lo guardado
-            Object.assign(window.AppState, parsed);
+            // Solo sobrescribimos si el localStorage tiene datos válidos
+            if (parsed.movimientos) window.AppState.movimientos = parsed.movimientos;
+            if (parsed.filtrosActuales) window.AppState.filtrosActuales = parsed.filtrosActuales;
+            // ¡IMPORTANTE! No tocamos los filtros si no están en el guardado
         } catch (e) {
             console.error("Error al recuperar estado:", e);
         }
