@@ -109,7 +109,7 @@ async function eliminarMovimiento(id) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
 
-        alert("Eliminado con éxito.");
+       // alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
         console.error("Error al eliminar:", error);
