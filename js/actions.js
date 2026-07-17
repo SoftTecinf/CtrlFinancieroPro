@@ -1,3 +1,12 @@
+// 🔥 INYECTOR GLOBAL DE EMERGENCIA para evitar el ReferenceError
+Object.defineProperty(window, 'seccionActual', {
+    get: function() {
+        // Lee dinámicamente la sección activa que guardamos en showSection
+        return localStorage.getItem('ultima_seccion') || 'home';
+    },
+    configurable: true
+});
+
 window.EstadoFinanciero = {
     ingresos: 0,
     gastos: 0,
