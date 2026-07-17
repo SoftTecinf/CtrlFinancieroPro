@@ -62,81 +62,57 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 }
 
 function actualizarSelectsCategorias() {
-    const inSel = document.getElementById('in-categoria');
-    const exSel = document.getElementById('ex-categoria');
-    const listaCategorias = window.AppState?.categorias || [];
-    
-    if (inSel) {
-        inSel.innerHTML = '';
-        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => { 
-            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
-        });
-    }
-    if (exSel) {
-        exSel.innerHTML = '';
-        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => { 
-            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
-        });
-    }
+    const listaCategorias = AppState.categorias || [];
+
+    // Función auxiliar para llenar el select y evitar repetir código
+    const llenarSelect = (id, tipo) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        // Limpiamos y creamos el primer option de una vez
+        select.innerHTML = '<option value="">Selecciona una categoría</option>';
+
+        // Usamos map y join para mayor rendimiento que hacer += en un bucle
+        const opciones = listaCategorias
+            .filter(c => c && c.tipo === tipo) // Verificamos que 'c' exista
+            .map(c => `<option value="${c.nombre}">${c.nombre}</option>`)
+            .join('');
+
+        select.innerHTML += opciones;
+    };
+
+    llenarSelect('in-categoria', 'ingreso');
+    llenarSelect('ex-categoria', 'gasto');
 }
 
 function renderCategoriasConfig() {
-    const contIng = document.getElementById('lista-cats-ingreso');
-    const contGas = document.getElementById('lista-cats-gasto');
-    if (!contIng || !contGas) return;
+    const listaCategorias = AppState.categorias || [];
+    const containerIng = document.getElementById('lista-cats-ingreso');
+    const containerGas = document.getElementById('lista-cats-gasto');
 
-    contIng.innerHTML = '';
-    contGas.innerHTML = '';
-    
-    const listaCategorias = window.AppState?.categorias || [];
+    if (!containerIng || !containerGas) return;
+
+    // Variables temporales para acumular el HTML
+    let htmlIngresos = '';
+    let htmlGastos = '';
 
     listaCategorias.forEach(c => {
         const itemHtml = `
-            <div class="group bg-stone-50 rounded-xl border border-stone-100 p-3 transition hover:shadow-sm">
-                <div id="view-${c.id}" class="flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase text-stone-700">${c.nombre}</span>
-                    <div class="flex gap-3 opacity-0 group-hover:opacity-100 transition">
-                        <button onclick="editMode(${c.id}, true)" class="text-[10px] font-bold text-stone-400 hover:text-stone-800 tracking-wider">EDITAR</button>
-                        <button onclick="eliminarCategoria(${c.id})" class="text-[10px] font-bold text-rose-300 hover:text-rose-600">X</button>
-                    </div>
-                </div>
-                <div id="edit-${c.id}" class="hidden flex gap-2">
-                    <input type="text" id="input-${c.id}" value="${c.nombre}" class="flex-1 text-xs p-2 rounded-lg border border-stone-200 outline-none uppercase font-semibold text-stone-700">
-                    <button onclick="saveEdit(${c.id})" class="bg-stone-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">OK</button>
-                </div>
+            <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
+                <button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button>
             </div>`;
-            
-        if (c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
-        else contGas.innerHTML += itemHtml;
+
+        if (c.tipo === 'ingreso') {
+            htmlIngresos += itemHtml; // Acumulamos en texto
+        } else {
+            htmlGastos += itemHtml;   // Acumulamos en texto
+        }
     });
-}
 
-function editMode(id, active) {
-    const viewEl = document.getElementById(`view-${id}`);
-    const editEl = document.getElementById(`edit-${id}`);
-    if (viewEl && editEl) {
-        viewEl.classList.toggle('hidden', active);
-        editEl.classList.toggle('hidden', !active);
-        if (active) {
-            const input = document.getElementById(`input-${id}`);
-            if (input) input.focus();
-        }
-    }
-}
-
-function saveEdit(id) {
-    const inputEl = document.getElementById(`input-${id}`);
-    if (!inputEl) return;
-    
-    const nuevoNombre = inputEl.value.trim().toUpperCase();
-    if (nuevoNombre && window.AppState) {
-        const index = window.AppState.categorias.findIndex(c => c.id === id);
-        if (index !== -1) {
-            window.AppState.categorias[index].nombre = nuevoNombre;
-            localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
-            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-        }
-    }
+    // Modificamos el DOM una sola vez al final
+    containerIng.innerHTML = htmlIngresos;
+    containerGas.innerHTML = htmlGastos;
 }
 
 // Asegúrate de que esta variable sea global en tu archivo
