@@ -21,79 +21,74 @@ window.AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. INTENTAR RECUPERAR
+    // 1. DEFINICIÓN DE TIEMPO
     const ahora = new Date();
+
+    // 2. RECUPERAR ESTADO (Cache Primero)
     const savedState = localStorage.getItem('financiero_state');
-
-
     if (savedState) {
         try {
             const parsed = JSON.parse(savedState);
-            // Solo sobrescribimos si el localStorage tiene datos válidos
             if (parsed.movimientos) window.AppState.movimientos = parsed.movimientos;
             if (parsed.filtrosActuales) window.AppState.filtrosActuales = parsed.filtrosActuales;
-            // ¡IMPORTANTE! No tocamos los filtros si no están en el guardado
         } catch (e) {
             console.error("Error al recuperar estado:", e);
         }
     }
 
-    // 2. APLICAR VALORES POR DEFECTO SOLO SI NO EXISTEN
-    // Si después de intentar recuperar, el mes sigue siendo null, entonces sí, usamos 'ahora'
-    if (!window.AppState.filtrosActuales.mes) {
+    // 3. APLICAR VALORES POR DEFECTO (Solo si NO existen en el caché)
+    if (window.AppState.filtrosActuales.mes === undefined) {
         window.AppState.filtrosActuales.mes = ahora.getMonth();
     }
-    if (!window.AppState.filtrosActuales.año) {
+    if (window.AppState.filtrosActuales.año === undefined) {
         window.AppState.filtrosActuales.año = ahora.getFullYear();
     }
 
+    // 4. ACTUALIZAR UI (Encabezado y Sección)
+    // Actualizamos la fecha del header (HOLA, SOPORTE, JUEVES 16...)
+    const headerDate = document.getElementById('fecha-header'); // Asegúrate que tu HTML tenga este ID
+    if (headerDate) {
+        const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        headerDate.innerText = ahora.toLocaleDateString('es-MX', opciones).toUpperCase();
+    }
 
-    // 3. UI
-    // --- NUEVA LÓGICA DE NAVEGACIÓN PERSISTENTE ---
+    // Navegación persistente
     const ultimaSeccion = localStorage.getItem('ultima_seccion') || 'home';
     await showSection(ultimaSeccion);
 
+    // Activar botón nav
     const btn = document.getElementById(`nav-${ultimaSeccion}`);
     if (btn) {
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
         btn.classList.add('nav-active');
     }
-    refrescarVistaActual();
 
-    // Forzamos el estado a la fecha actual del sistema
-    AppState.filtrosActuales.mes = ahora.getMonth();
-    AppState.filtrosActuales.año = ahora.getFullYear();
-
-    // 5. SINCRONIZAR UI CON ESTADO
-    const state = window.AppState; // Acceso seguro al estado global
+    // 5. SINCRONIZAR SELECTORES DE UI CON EL ESTADO RECUPERADO
+    const state = window.AppState;
     const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
     const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
 
-    // Sincronizar meses
     selectoresMes.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = state.filtrosActuales.mes;
     });
 
-    // Sincronizar años
     selectoresAnio.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = state.filtrosActuales.año;
     });
 
-    // Sincronizar input de fecha (Hoy por defecto)
     const inputFecha = document.getElementById('in-fecha');
     if (inputFecha) {
-        // Usamos 'ahora' que definimos al inicio de DOMContentLoaded
-        // para asegurar que sea la misma fecha en todo el proceso
-        inputFecha.value = new Date().toISOString().split('T')[0];
+        inputFecha.value = ahora.toISOString().split('T')[0];
     }
 
-    // 6. EJECUTAR REFRESCO FINAL
+    // 6. EJECUTAR REFRESCO INICIAL (Con datos de caché)
     refrescarVistaActual();
 
-    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO
+    // 7. SINCRONIZACIÓN EN SEGUNDO PLANO (Datos reales)
     inicializarSincronizacion().then(() => {
+        // Al terminar la carga real, refrescamos una vez más para asegurar datos frescos
         refrescarVistaActual();
     });
 });
