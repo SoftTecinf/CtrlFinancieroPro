@@ -36,43 +36,35 @@ async function FetchAPI(action, extraData = {}) {
 }
 
 async function inicializarSincronizacion() {
-    // Usar window.AppState para garantizar acceso global
-    const state = window.AppState; 
+const state = window.AppState; 
 
-    // PROTECCIÓN: Si por algún motivo no existe, inicialízalo vacío
-    if (!state) {
-        console.error("AppState no está inicializado.");
-        return;
-    }
+    if (!state) return;
 
-    // 1. CARGA INICIAL (Rápida desde LocalStorage)
-    if (state.movimientos.length > 0 && state.categorias.length > 0 && state.cargado) {
-        return; 
-    }
-    
+    // 1. CARGA INICIAL (Caché)
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
         try {
             const cache = JSON.parse(guardado);
-            // Asignación explícita para evitar errores de referencia
             state.movimientos = cache.movimientos || [];
             state.categorias = cache.categorias || [];
-            
-            if (typeof actualizarHome === 'function') actualizarHome();
         } catch (e) { console.error("Error al leer caché:", e); }
     }
 
-    // 2. SINCRONIZACIÓN (Fresca desde la red)
+    // 2. SINCRONIZACIÓN (Red)
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
 
-        if (!data || typeof data !== 'object') return;
-
-        // Actualizamos estado global
-        if (data.movimientos) state.movimientos = data.movimientos;
-        if (data.categorias) state.categorias = data.categorias;
-        state.cargado = true; // Marcamos como cargado
+        if (data && typeof data === 'object') {
+            if (data.movimientos) state.movimientos = data.movimientos;
+            if (data.categorias) state.categorias = data.categorias;
+            state.cargado = true;
+            localStorage.setItem('financiero_state', JSON.stringify(state));
+        }
+    } catch (err) {
+        console.error("Error al sincronizar con red:", err);
+        // Aquí podrías lanzar un aviso al usuario si la red falla
+    }
 
         localStorage.setItem('financiero_state', JSON.stringify(state));
         
