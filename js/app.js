@@ -238,16 +238,42 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
-    // 🔥 ACTUALIZAR FECHA DE LA CABECERA (Evita que desaparezca con F5 en Análisis)
-    // Nota: Busca en tu HTML el ID exacto del span/p que acompaña al texto "HOLA, SOPORTE"
-    const contenedorFecha = document.getElementById('header-fecha') || 
-                            document.getElementById('fecha-actual') || 
-                            document.getElementById('txt-fecha');
-    
-    if (contenedorFecha) {
-        const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        contenedorFecha.innerText = new Date().toLocaleDateString('es-MX', opciones).toUpperCase();
+    // 🔥 RASTREADOR DINÁMICO DE FECHA (Busca el saludo "HOLA," en el HTML)
+    try {
+        // 1. Intentamos buscar por IDs comunes primero
+        let contenedorFecha = document.getElementById('header-fecha') || 
+                              document.getElementById('fecha-actual') || 
+                              document.getElementById('txt-fecha') ||
+                              document.getElementById('fecha-sistema');
+        
+        // 2. Si no se halla por ID, rastreamos el texto "HOLA," visible en pantalla
+        if (!contenedorFecha) {
+            const todosLosElementos = document.querySelectorAll('p, span, div, small, h4');
+            const saludoUser = Array.from(todosLosElementos).find(el => el.innerText && el.innerText.toUpperCase().includes('HOLA,'));
+            
+            if (saludoUser) {
+                // Si la fecha es la etiqueta hermana que está justo al lado
+                if (saludoUser.nextElementSibling) {
+                    contenedorFecha = saludoUser.nextElementSibling;
+                } else {
+                    // Si la fecha está metida en un <span> dentro del saludo
+                    contenedorFecha = saludoUser.querySelector('span');
+                }
+            }
+        }
+
+        // 3. Si el rastreador localizó el contenedor, le clavamos la fecha de hoy
+        if (contenedorFecha) {
+            const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            contenedorFecha.innerText = new Date().toLocaleDateString('es-MX', opciones).toUpperCase();
+        }
+    } catch (error) {
+        console.warn("⚠️ No se pudo auto-detectar el contenedor de la fecha:", error);
     }
+
+    // ========================================================
+    // TU LÓGICA ORIGINAL CONTINÚA AQUÍ ABAJO IMPECABLE:
+    // ========================================================
 
     // 1. SIEMPRE actualizar los indicadores globales (Home, Hoy, Ingresos/Gastos Mes)
     if (typeof actualizarHome === 'function') {
@@ -278,17 +304,15 @@ function refrescarVistaActual() {
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
-        actualizarResumen(); // Esta función procesa tus textos y datos numéricos
+        actualizarResumen(); 
     }
 
     // 3. Gráficos dentro de refrescarVistaActual
     requestAnimationFrame(() => {
-        // Mantiene el bucle del home si existe
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
 
-        // LADO DE ANÁLISIS: Llama a tu formato original de barras
         if (seccionId === 'resumen' || seccionId === 'analisis' || seccionId === 'nav-resumen') {
             if (typeof window.actualizarResumen === 'function') {
                 window.actualizarResumen();
