@@ -1,8 +1,15 @@
-// 🔥 INYECTOR GLOBAL DE EMERGENCIA para evitar el ReferenceError
+// 🔥 INYECTORES GLOBALES DE EMERGENCIA (Deben ir en la línea 1 de actions.js)
 Object.defineProperty(window, 'seccionActual', {
-    get: function() {
-        // Lee dinámicamente la sección activa que guardamos en showSection
+    get: function () {
         return localStorage.getItem('ultima_seccion') || 'home';
+    },
+    configurable: true
+});
+
+Object.defineProperty(window, 'movimientos', {
+    get: function() {
+        // Devuelve los movimientos reales desde el estado global seguro
+        return window.AppState?.movimientos || [];
     },
     configurable: true
 });
