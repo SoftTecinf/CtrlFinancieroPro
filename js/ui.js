@@ -279,7 +279,7 @@ function actualizarHome() {
         
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
-        // Renderizado del gráfico Donut corregido
+        // Renderizado del gráfico Donut corregido con colores en orden correcto
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
             const ctx = canvasH.getContext('2d');
@@ -288,21 +288,31 @@ function actualizarHome() {
                 window.chartH = null;
             }
             
-            // Si el mes no tiene transacciones todavía, dibuja un círculo gris neutral, de lo contrario tus colores estéticos
-            const dataDonut = (ingM === 0 && gasM === 0) ? [1, 0] : [ingM, gasM];
-            const colorsDonut = (ingM === 0 && gasM === 0) ? ['#E5E7EB', '#E5E7EB'] : ['#D6C7B3', '#45423E'];
+            // Si el mes está totalmente en ceros, muestra una dona gris neutral
+            const hayDatos = (ingM > 0 || gasM > 0);
+            const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
+            const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
             window.chartH = new Chart(ctx, { 
                 type: 'doughnut', 
                 data: { 
                     labels: ['Ingresos', 'Gastos'], 
-                    datasets: [{ data: dataDonut, backgroundColor: colorsDonut }] 
+                    datasets: [{ 
+                        data: dataDonut, 
+                        backgroundColor: colorsDonut,
+                        borderWidth: 0 // Quita bordes extraños para que se vea más limpio
+                    }] 
                 }, 
                 options: { 
                     cutout: '75%', 
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } } 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: hayDatos // Desactiva el tooltip si está en gris sin datos
+                        }
+                    } 
                 } 
             });
         }
