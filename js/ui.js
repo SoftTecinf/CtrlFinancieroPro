@@ -62,27 +62,22 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 }
 
 function actualizarSelectsCategorias() {
-    const listaCategorias = AppState.categorias || [];
-
-    // Función auxiliar para llenar el select y evitar repetir código
-    const llenarSelect = (id, tipo) => {
-        const select = document.getElementById(id);
-        if (!select) return;
-
-        // Limpiamos y creamos el primer option de una vez
-        select.innerHTML = '<option value="">Selecciona una categoría</option>';
-
-        // Usamos map y join para mayor rendimiento que hacer += en un bucle
-        const opciones = listaCategorias
-            .filter(c => c && c.tipo === tipo) // Verificamos que 'c' exista
-            .map(c => `<option value="${c.nombre}">${c.nombre}</option>`)
-            .join('');
-
-        select.innerHTML += opciones;
-    };
-
-    llenarSelect('in-categoria', 'ingreso');
-    llenarSelect('ex-categoria', 'gasto');
+    const inSel = document.getElementById('in-categoria');
+    const exSel = document.getElementById('ex-categoria');
+    const listaCategorias = window.AppState?.categorias || [];
+    
+    if (inSel) {
+        inSel.innerHTML = '';
+        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => { 
+            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
+        });
+    }
+    if (exSel) {
+        exSel.innerHTML = '';
+        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => { 
+            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
+        });
+    }
 }
 
 function renderCategoriasConfig() {
