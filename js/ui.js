@@ -1,13 +1,13 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-    
+
     // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
     const tipoNormalizado = tipo.toLowerCase().trim();
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-        
+
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth();
@@ -32,9 +32,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     let htmlAcumulado = '';
     filtrados.forEach(m => {
         // Aseguramos que formatearFechaMX sea global (window.formatearFechaMX)
-        const fechaLegible = (typeof window.formatearFechaMX === 'function') 
-                             ? window.formatearFechaMX(m.fecha) 
-                             : m.fecha.split('T')[0];
+        const fechaLegible = (typeof window.formatearFechaMX === 'function')
+            ? window.formatearFechaMX(m.fecha)
+            : m.fecha.split('T')[0];
 
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
@@ -134,7 +134,7 @@ function actualizarHome() {
 
     datos.forEach(m => {
         if (!m || typeof m.monto === 'undefined') return;
-        
+
         const monto = parseFloat(m.monto) || 0;
         const val = m.tipo === 'ingreso' ? monto : -monto;
         balG += val;
@@ -142,7 +142,7 @@ function actualizarHome() {
         // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
         // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
         const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
-        
+
         if (fechaMov === hoyStr) {
             balD += val;
         }
@@ -162,7 +162,7 @@ function actualizarHome() {
         { id: 'home-ingresos', val: fMXN(ingM) },
         { id: 'home-gastos', val: fMXN(gasM) }
     ];
-    
+
     updates.forEach(item => {
         const el = document.getElementById(item.id);
         if (el && el.innerText !== item.val) el.innerText = item.val;
@@ -188,7 +188,7 @@ function actualizarHome() {
                     </span>
                 </div>`;
         });
-        
+
         if (listaH.innerHTML !== nuevoHtml) {
             listaH.innerHTML = nuevoHtml;
         }
@@ -201,20 +201,18 @@ function actualizarResumen() {
     const elAnio = document.getElementById('res-año');
 
     // Validación de seguridad: si no existen, no hacemos nada (evita el crash)
-    if (!elMes || !elAnio) return; 
+    if (!elMes || !elAnio) return;
 
     // Extraemos valores
-    const mesSeleccionado = parseInt(elMes.value); // Asumiendo que 1 es Enero, 2 Febrero...
+    const mesSeleccionado = parseInt(elMes.value); // El valor real del select
     const añoSeleccionado = parseInt(elAnio.value);
 
-    // ¡OJO AQUÍ! En JS los meses van de 0 a 11. 
-    // Si tu <select> tiene valores 1-12, debes restar 1 para que coincida con getMonth().
-    const mesJS = mesSeleccionado - 1; 
-
-    // 2. Filtrar movimientos
+    // Filtro robusto: compara sin hacer cálculos matemáticos extras
     const movsPeriodo = window.AppState.movimientos.filter(m => {
         const d = new Date(m.fecha);
-        return d.getMonth() === mesJS && d.getFullYear() === añoSeleccionado;
+        // Si tu fecha está en formato 'YYYY-MM-DD', cuidado con la zona horaria.
+        // Usar .getUTCMonth() o .getMonth() depende de cómo guardaste la fecha.
+        return d.getMonth() === mesSeleccionado && d.getFullYear() === añoSeleccionado;
     });
 
     // 3. Calcular Utilidad
