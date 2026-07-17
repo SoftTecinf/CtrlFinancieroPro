@@ -81,33 +81,34 @@ function actualizarSelectsCategorias() {
 }
 
 function renderCategoriasConfig() {
-    const listaCategorias = AppState.categorias || [];
-    const containerIng = document.getElementById('lista-cats-ingreso');
-    const containerGas = document.getElementById('lista-cats-gasto');
+    const contIng = document.getElementById('lista-cats-ingreso');
+    const contGas = document.getElementById('lista-cats-gasto');
+    if (!contIng || !contGas) return;
 
-    if (!containerIng || !containerGas) return;
-
-    // Variables temporales para acumular el HTML
-    let htmlIngresos = '';
-    let htmlGastos = '';
+    contIng.innerHTML = '';
+    contGas.innerHTML = '';
+    
+    const listaCategorias = window.AppState?.categorias || [];
 
     listaCategorias.forEach(c => {
         const itemHtml = `
-            <div class="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
-                <span class="text-xs font-bold uppercase text-stone-600">${c.nombre}</span>
-                <button onclick="eliminarCategoria(${c.id})" class="text-rose-500 font-bold text-xs">X</button>
+            <div class="group bg-stone-50 rounded-xl border border-stone-100 p-3 transition hover:shadow-sm">
+                <div id="view-${c.id}" class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase text-stone-700">${c.nombre}</span>
+                    <div class="flex gap-3 opacity-0 group-hover:opacity-100 transition">
+                        <button onclick="editMode(${c.id}, true)" class="text-[10px] font-bold text-stone-400 hover:text-stone-800 tracking-wider">EDITAR</button>
+                        <button onclick="eliminarCategoria(${c.id})" class="text-[10px] font-bold text-rose-300 hover:text-rose-600">X</button>
+                    </div>
+                </div>
+                <div id="edit-${c.id}" class="hidden flex gap-2">
+                    <input type="text" id="input-${c.id}" value="${c.nombre}" class="flex-1 text-xs p-2 rounded-lg border border-stone-200 outline-none uppercase font-semibold text-stone-700">
+                    <button onclick="saveEdit(${c.id})" class="bg-stone-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">OK</button>
+                </div>
             </div>`;
-
-        if (c.tipo === 'ingreso') {
-            htmlIngresos += itemHtml; // Acumulamos en texto
-        } else {
-            htmlGastos += itemHtml;   // Acumulamos en texto
-        }
+            
+        if (c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
+        else contGas.innerHTML += itemHtml;
     });
-
-    // Modificamos el DOM una sola vez al final
-    containerIng.innerHTML = htmlIngresos;
-    containerGas.innerHTML = htmlGastos;
 }
 
 // Asegúrate de que esta variable sea global en tu archivo
