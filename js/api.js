@@ -35,10 +35,15 @@ async function FetchAPI(action, extraData = {}) {
     }
 }
 
-async function inicializarSincronizacion() {
-const state = window.AppState; 
+// Agregamos 'actualizarUI = true' por defecto. 
+// Como por defecto es true, todas tus llamadas actuales seguirán funcionando IGUAL.
+async function inicializarSincronizacion(actualizarUI = true) {
+    const state = window.AppState; 
 
-    if (!state) return;
+    if (!state) {
+        console.error("AppState no está inicializado.");
+        return;
+    }
 
     // 1. CARGA INICIAL (Caché)
     const guardado = localStorage.getItem('financiero_state');
@@ -47,6 +52,9 @@ const state = window.AppState;
             const cache = JSON.parse(guardado);
             state.movimientos = cache.movimientos || [];
             state.categorias = cache.categorias || [];
+            
+            // Solo actualiza si se permite actualizar UI
+            if (actualizarUI && typeof actualizarHome === 'function') actualizarHome();
         } catch (e) { console.error("Error al leer caché:", e); }
     }
 
@@ -55,22 +63,19 @@ const state = window.AppState;
         const response = await fetch(API_URL);
         const data = await response.json();
 
-        if (data && typeof data === 'object') {
-            if (data.movimientos) state.movimientos = data.movimientos;
-            if (data.categorias) state.categorias = data.categorias;
-            state.cargado = true;
-            localStorage.setItem('financiero_state', JSON.stringify(state));
-        }
-    } catch (err) {
-        console.error("Error al sincronizar con red:", err);
-        // Aquí podrías lanzar un aviso al usuario si la red falla
-    }
+        if (!data || typeof data !== 'object') return;
+
+        if (data.movimientos) state.movimientos = data.movimientos;
+        if (data.categorias) state.categorias = data.categorias;
+        state.cargado = true;
 
         localStorage.setItem('financiero_state', JSON.stringify(state));
         
-        // 3. ACTUALIZACIÓN FINAL DE UI
-        if (typeof actualizarHome === 'function') actualizarHome();
-        if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
+        // 3. ACTUALIZACIÓN FINAL DE UI (Solo si el parámetro lo permite)
+        if (actualizarUI) {
+            if (typeof actualizarHome === 'function') actualizarHome();
+            if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
+        }
         
     } catch (err) {
         console.error("Error al sincronizar con red:", err);
