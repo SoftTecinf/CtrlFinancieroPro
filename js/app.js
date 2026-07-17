@@ -122,7 +122,7 @@ async function showSection(sectionId) {
 
         // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
-
+        refrescarVistaActual();
         // 4. Inyectamos el esqueleto (HTML) UNA SOLA VEZ
         container.innerHTML = html;
 
@@ -242,7 +242,6 @@ function inicializarFuncionesPorSeccion(sectionId) {
 
 function refrescarVistaActual() {
     // 1. SIEMPRE actualizar los indicadores globales (Home, Hoy, Ingresos/Gastos Mes)
-    // Esto asegura que donde sea que estés, los valores estén correctos
     if (typeof actualizarHome === 'function') {
         actualizarHome();
     }
@@ -255,16 +254,26 @@ function refrescarVistaActual() {
 
     if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    } else if (seccionId === 'nav-gastos') {
-        // Actualizamos filtros de estado si existen los selects
+    } 
+    else if (seccionId === 'nav-gastos') {
+        // Actualizamos filtros de estado desde los selects
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
-        // ¡Importante! Aseguramos que la lista de gastos se actualice
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    } else if (seccionId === 'nav-resumen') { // Asegúrate de que este ID coincida con tu botón
+    } 
+    else if (seccionId === 'nav-resumen') {
+        // --- AQUÍ ESTABA LA CLAVE ---
+        // Sincronizamos los filtros de la sección de análisis antes de calcular
+        const m = document.getElementById('res-mes');
+        const a = document.getElementById('res-año');
+        
+        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
+        
+        // Ahora sí, llamamos al cálculo
         actualizarResumen();
     }
 
