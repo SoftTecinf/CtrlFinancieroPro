@@ -244,66 +244,60 @@ function actualizarHome() {
         const datos = rawDatos.map(normalizarMovimiento).filter(Boolean);
 
         const ahora = new Date();
-        const hoyStr = ahora.toISOString().split('T')[0];
+        const hoyStr = ahora.toISOString().split('T')[0]; // "YYYY-MM-DD" del día de hoy
         let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-        // 1. Cálculos numéricos robustos
         datos.forEach(m => {
             const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
             balG += val;
-            
+
+            // Verificación del día de hoy usando el objeto nativo de manera segura
             let mFechaStr = "";
             try {
                 mFechaStr = m.dateObj.toISOString().split('T')[0];
-            } catch(e) {
+            } catch (e) {
                 mFechaStr = "";
             }
 
             if (mFechaStr === hoyStr) {
                 balD += val;
             }
-            
+
+            // Verificación de mes y año actual nativo (Como funcionaba originalmente)
             if (m.dateObj.getMonth() === ahora.getMonth() && m.dateObj.getFullYear() === ahora.getFullYear()) {
-                if (m.tipo === 'ingreso') ingM += m.monto; 
+                if (m.tipo === 'ingreso') ingM += m.monto;
                 else gasM += m.monto;
             }
         });
 
         const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
 
-        // 2. Renderizado de textos y tarjetas en la UI
         if (document.getElementById('balance-general')) document.getElementById('balance-general').innerText = fLocal(balG);
         if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
         if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
         if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
-        
+
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
-        // 3. Render del gráfico Donut Anti-Colisiones con valores blindados
+        // ==========================================
+        // 3. Render del gráfico Donut con Seguro Anti-Borrado
+        // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            if (window.timerChartH) {
-                clearTimeout(window.timerChartH);
+            if (window.chartH) {
+                window.chartH.destroy();
+                window.chartH = null;
             }
 
-            // Guardamos copias exactas de los valores del mes para el entorno asíncrono
-            const ingresosGrafica = ingM;
-            const gastosGrafica = gasM;
-
-            window.timerChartH = setTimeout(() => {
+            setTimeout(() => {
+                // CORREGIDO: Ahora el nombre coincide exactamente arriba y abajo
                 const canvasValidado = document.getElementById('chartHome');
-                if (!canvasValidado) return;
-                
-                if (window.chartH && typeof window.chartH.destroy === 'function') {
-                    window.chartH.destroy();
-                    window.chartH = null;
-                }
+                if (!canvasValidado) return; 
                 
                 const ctx = canvasValidado.getContext('2d');
                 
-                // Validación estricta usando las copias seguras
-                const hayDatos = (ingresosGrafica > 0 || gastosGrafica > 0);
-                const dataDonut = hayDatos ? [ingresosGrafica, gastosGrafica] : [1, 1];
+                const hayDatos = (ingM > 0 || gasM > 0);
+                const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
                 const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
                 window.chartH = new Chart(ctx, { 
@@ -328,8 +322,7 @@ function actualizarHome() {
                 });
             }, 50); 
         }
-
-        // 4. Lista de transacciones recientes
+        // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
             listaH.innerHTML = '';
@@ -337,8 +330,9 @@ function actualizarHome() {
                 listaH.innerHTML = '<p class="opacity-30 text-center py-6 text-xs uppercase font-medium">Sin movimientos</p>';
             } else {
                 [...datos].reverse().slice(0, 10).forEach(m => {
+                    // Usamos la fecha original exacta para que window.formatearFechaMX no devuelva error
                     const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
-                    
+
                     listaH.innerHTML += `
                         <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
                             <div>
