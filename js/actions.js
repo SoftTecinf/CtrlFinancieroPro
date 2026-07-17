@@ -299,10 +299,17 @@ function cerrarSesion() {
 }
 
 function obtenerPeriodoActual() {
-    let pref = seccionActual === 'ingresos' ? 'in' : (seccionActual === 'gastos' ? 'ex' : 'res');
+    // Detecta la sección activa del estado global seguro
+    const seccion = window.AppState?.seccionActual || 'home';
+    let pref = seccion === 'ingresos' ? 'in' : (seccion === 'gastos' ? 'ex' : 'res');
+    
     const mesEl = document.getElementById(`${pref}-mes`);
     const anioEl = document.getElementById(`${pref}-año`);
-    return { mes: mesEl ? parseInt(mesEl.value) : new Date().getMonth(), año: anioEl ? parseInt(anioEl.value) : new Date().getFullYear() };
+    
+    return { 
+        mes: mesEl ? parseInt(mesEl.value) : new Date().getMonth(), 
+        año: anioEl ? parseInt(anioEl.value) : new Date().getFullYear() 
+    };
 }
 
 function obtenerMovimientosFiltrados() {
