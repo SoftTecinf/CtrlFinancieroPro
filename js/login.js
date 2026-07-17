@@ -43,6 +43,10 @@ var AuthModule = {
                 localStorage.setItem('session_userName', res.userName || "Usuario");
                 localStorage.setItem('isLoggedIn', 'true');
 
+                // 🔥 AQUÍ SE CUMPLE TU REGLA AL 100%:
+                // Forzamos que la sección inicial sea 'home' obligatoriamente tras iniciar sesión
+                localStorage.setItem('ultima_seccion', 'home');
+
                 // ¡DESBLOQUEAMOS LA REDIRECCIÓN!
                 window.location.href = "./index.html";
             } else {
