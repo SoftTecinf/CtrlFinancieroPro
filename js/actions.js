@@ -265,7 +265,7 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (OPTIMIZADO Y CORREGIDO) ---
+// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (VERSION ULTRA RESISTENTE) ---
 window.renderizarGraficoResumen = function() {
     console.log("📊 [Gráfico] Iniciando renderizado...");
     
@@ -287,7 +287,15 @@ window.renderizarGraficoResumen = function() {
     const todosLosMovimientos = window.AppState?.movimientos || [];
     console.log(`📦 [Gráfico] Total de movimientos en memoria: ${todosLosMovimientos.length}`);
 
-    // FUNCIÓN INTERNA: Analizador inteligente de fechas (soporta YYYY-MM-DD y DD/MM/YYYY)
+    // LOG DE DIAGNÓSTICO: Imprime los primeros movimientos para ver el formato real de tus fechas
+    if (todosLosMovimientos.length > 0) {
+        console.log("📝 [Gráfico] Muestra de formatos de fecha en memoria:");
+        todosLosMovimientos.slice(0, 3).forEach((m, idx) => {
+            console.log(`   -> Movimiento ${idx + 1}: Desc="${m.desc}", Fecha Original="${m.fecha}", Tipo=${typeof m.fecha}`);
+        });
+    }
+
+    // FUNCIÓN INTERNA: Convertidor inteligente (Soporta YYYY-MM-DD, DD/MM/YYYY y Date objects)
     function parsearFechaSegura(fecha) {
         if (!fecha) return null;
         if (fecha instanceof Date) {
@@ -295,26 +303,25 @@ window.renderizarGraficoResumen = function() {
         }
         
         const str = fecha.toString().trim();
+        const numeros = str.match(/\d+/g); // Extrae todos los números secuenciales
+        if (!numeros || numeros.length < 3) return null;
         
-        // Caso A: Formato ISO "2026-07-17"
-        const matchISO = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-        if (matchISO) {
-            return {
-                año: parseInt(matchISO[1]),
-                mes: parseInt(matchISO[2]) - 1 // Base 0 (Enero = 0)
-            };
+        let año, mes;
+        
+        // Si la fecha contiene diagonal "/" es formato Latino/US (ej: 14/07/2026)
+        if (str.includes('/')) {
+            año = parseInt(numeros[2]); // El año está al final
+            mes = parseInt(numeros[1]) - 1; // El mes está en medio (Base 0 en JS)
+        } else {
+            // De lo contrario, asumimos formato estándar ISO (ej: 2026-07-14)
+            año = parseInt(numeros[0]); // El año está al inicio
+            mes = parseInt(numeros[1]) - 1; // El mes está en medio
         }
         
-        // Caso B: Formato Latino "17/07/2026" o "17-07-2026"
-        const matchLatino = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-        if (matchLatino) {
-            return {
-                año: parseInt(matchLatino[3]),
-                mes: parseInt(matchLatino[2]) - 1 // Base 0 (Enero = 0)
-            };
-        }
+        // Corrección automática si el año viene abreviado a 2 dígitos (ej: "26" -> 2026)
+        if (año < 100) año += 2000;
         
-        return null;
+        return { año, mes };
     }
 
     // 2. Filtrar los movimientos que corresponden al periodo
@@ -333,19 +340,19 @@ window.renderizarGraficoResumen = function() {
         if (!mapaCategorias[nombreCat]) {
             mapaCategorias[nombreCat] = 0;
         }
-        // Math.abs convierte los gastos negativos en positivos para que se puedan graficar
+        // Math.abs convierte los gastos negativos (-5500) en positivos (5500) para graficar la dona
         mapaCategorias[nombreCat] += Math.abs(Number(m.monto) || 0);
     });
 
     const listaCategorias = Object.keys(mapaCategorias);
     const listaMontos = Object.values(mapaCategorias);
 
-    console.log("🏷️ [Gráfico] Categorías a dibujar:", listaCategorias);
-    console.log("💰 [Gráfico] Valores asignados:", listaMontos);
+    console.log("🏷️ [Gráfico] Categorías agrupadas:", listaCategorias);
+    console.log("💰 [Gráfico] Valores absolutos:", listaMontos);
 
     // Si el filtro quedó vacío, limpiamos el canvas y salimos
     if (listaCategorias.length === 0) {
-        console.warn("⚠️ [Gráfico] No hay transacciones registradas para este mes y año.");
+        console.warn("⚠️ [Gráfico] El filtro de fecha no arrojó movimientos para este periodo.");
         if (window.miChartResumenInstance) {
             window.miChartResumenInstance.destroy();
             window.miChartResumenInstance = null;
@@ -353,7 +360,7 @@ window.renderizarGraficoResumen = function() {
         return;
     }
 
-    // 4. Destrucción del gráfico previo si existe
+    // 4. Destrucción segura del gráfico previo
     if (window.miChartResumenInstance) {
         window.miChartResumenInstance.destroy();
     }
