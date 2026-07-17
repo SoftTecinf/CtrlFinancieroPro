@@ -274,7 +274,82 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
+// ==========================================
+// CONTROL DEL GRÁFICO DE BARRAS (RESUMEN)
+// ==========================================
+window.chartR = window.chartR || null;
 
+window.actualizarResumen = function() {
+    console.log("📊 [Resumen] Ejecutando actualización de vista y barras...");
+
+    // 1. Obtener movimientos usando tu filtro nativo
+    // (Asegúrate de haber parchado el error de 'seccionActual' en actions.js)
+    const filtrados = typeof obtenerMovimientosFiltrados === 'function' ? obtenerMovimientosFiltrados() : [];
+    let ing = 0, gas = 0;
+
+    // 2. Limpiar y repoblar la Cronología del Periodo (Tu formato exacto)
+    const contLista = document.getElementById('lista-resumen-periodo');
+    if (contLista) {
+        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
+        
+        // Clonamos y ordenamos para no alterar el array original
+        [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
+            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
+                <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+            contLista.appendChild(div);
+        });
+    } else {
+        // Respaldo para calcular totales si el HTML aún no se monta
+        filtrados.forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+        });
+    }
+
+    // 3. Actualizar el gran texto de Utilidad del Periodo
+    const txtBalance = document.getElementById('resumen-balance-total');
+    if (txtBalance) {
+        txtBalance.innerText = typeof fMXN === 'function' ? fMXN(ing - gas) : `$${(ing - gas).toFixed(2)}`;
+    }
+
+    // 4. Renderizado seguro del Canvas de Barras
+    const canvas = document.getElementById('chartResumen');
+    if (!canvas) {
+        console.warn("⚠️ [Resumen] Canvas 'chartResumen' no encontrado en el DOM actual.");
+        return; 
+    }
+
+    const ctx = canvas.getContext('2d');
+    
+    // Si ya existía una gráfica en esta sesión, la borramos para evitar superposiciones
+    if (window.chartR) {
+        window.chartR.destroy();
+    }
+
+    // Dibujamos el gráfico de barras con tus colores crema y gris oscuro originales
+    window.chartR = new Chart(ctx, { 
+        type: 'bar', 
+        data: { 
+            labels: ['Ingresos', 'Gastos'], 
+            datasets: [{ 
+                data: [ing, gas], 
+                backgroundColor: ['#D6C7B3', '#45423E'], // Tus colores sobrios
+                borderRadius: 8 
+            }] 
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false, // Obliga al gráfico a respetar los 300px de tu HTML
+            plugins: { legend: { display: false } }, 
+            scales: { y: { beginAtZero: true } } 
+        } 
+    });
+
+    console.log("✅ [Resumen] ¡Gráfico de barras renderizado con éxito!");
+};
 
 // --- BUCLE DE SEGURIDAD PARA HOME ---
 window.addEventListener('load', () => {
