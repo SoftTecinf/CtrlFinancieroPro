@@ -265,127 +265,81 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (VERSIÓN DEFINITIVA) ---
-window.renderizarGraficoResumen = function() {
-    console.log("📊 [Gráfico] Iniciando renderizado...");
-    
+// ==========================================
+// CONTROL DEL GRÁFICO DE BARRAS (RESUMEN)
+// ==========================================
+window.chartR = window.chartR || null;
+
+window.actualizarResumen = function() {
+    console.log("📊 [Resumen] Ejecutando actualización de vista y barras...");
+
+    // 1. Obtener movimientos usando tu filtro nativo
+    // (Asegúrate de haber parchado el error de 'seccionActual' en actions.js)
+    const filtrados = typeof obtenerMovimientosFiltrados === 'function' ? obtenerMovimientosFiltrados() : [];
+    let ing = 0, gas = 0;
+
+    // 2. Limpiar y repoblar la Cronología del Periodo (Tu formato exacto)
+    const contLista = document.getElementById('lista-resumen-periodo');
+    if (contLista) {
+        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
+        
+        // Clonamos y ordenamos para no alterar el array original
+        [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
+            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
+                <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+            contLista.appendChild(div);
+        });
+    } else {
+        // Respaldo para calcular totales si el HTML aún no se monta
+        filtrados.forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+        });
+    }
+
+    // 3. Actualizar el gran texto de Utilidad del Periodo
+    const txtBalance = document.getElementById('resumen-balance-total');
+    if (txtBalance) {
+        txtBalance.innerText = typeof fMXN === 'function' ? fMXN(ing - gas) : `$${(ing - gas).toFixed(2)}`;
+    }
+
+    // 4. Renderizado seguro del Canvas de Barras
     const canvas = document.getElementById('chartResumen');
     if (!canvas) {
-        console.warn("⚠️ [Gráfico] No se encontró el canvas 'chartResumen' en el DOM.");
+        console.warn("⚠️ [Resumen] Canvas 'chartResumen' no encontrado en el DOM actual.");
         return; 
     }
 
-    // 1. Recuperar filtros del estado con respaldos seguros
-    let mesSeleccionado = parseInt(window.AppState?.filtrosActuales?.mes);
-    let añoSeleccionado = parseInt(window.AppState?.filtrosActuales?.año);
-    
-    if (isNaN(mesSeleccionado)) mesSeleccionado = new Date().getMonth();
-    if (isNaN(añoSeleccionado)) añoSeleccionado = new Date().getFullYear();
-
-    console.log(`🔍 [Gráfico] Buscando datos para Mes: ${mesSeleccionado} (Julio=6), Año: ${añoSeleccionado}`);
-
-    const todosLosMovimientos = window.AppState?.movimientos || [];
-    console.log(`📦 [Gráfico] Total de movimientos en memoria: ${todosLosMovimientos.length}`);
-
-    // FUNCIÓN INTERNA MEJORADA: Convertidor Híbrido Inteligente
-    function parsearFechaSegura(fecha) {
-        if (!fecha) return null;
-        
-        // Caso A: Ya es un objeto Date real
-        if (fecha instanceof Date) {
-            return { año: fecha.getFullYear(), mes: fecha.getMonth() };
-        }
-        
-        const str = fecha.toString().trim();
-        
-        // Paso 1: Intentamos conversión directa nativa (Ideal para "Tue Jul 14 2026...")
-        const d = new Date(str);
-        if (!isNaN(d.getTime())) {
-            return { 
-                año: d.getFullYear(), 
-                mes: d.getMonth() // Enero = 0, Julio = 6
-            };
-        }
-        
-        // Paso 2: Si el navegador falla (ej. con "14/07/2026"), extraemos manualmente
-        const numeros = str.match(/\d+/g);
-        if (!numeros || numeros.length < 3) return null;
-        
-        let año, mes;
-        if (str.includes('/')) {
-            // Formato DD/MM/YYYY
-            año = parseInt(numeros[2]);
-            mes = parseInt(numeros[1]) - 1;
-        } else {
-            // Formato YYYY-MM-DD
-            año = parseInt(numeros[0]);
-            mes = parseInt(numeros[1]) - 1;
-        }
-        
-        if (año < 100) año += 2000;
-        
-        return { año, mes };
-    }
-
-    // 2. Filtrar los movimientos que corresponden al periodo
-    const movimientosDelPeriodo = todosLosMovimientos.filter(m => {
-        const fechaInfo = parsearFechaSegura(m.fecha);
-        if (!fechaInfo) return false;
-        return fechaInfo.año === añoSeleccionado && fechaInfo.mes === mesSeleccionado;
-    });
-
-    console.log(`🎯 [Gráfico] Movimientos que pasaron el filtro: ${movimientosDelPeriodo.length}`);
-
-    // 3. Agrupar montos acumulados por Categoría
-    const mapaCategorias = {};
-    movimientosDelPeriodo.forEach(m => {
-        const nombreCat = m.cat ? m.cat.trim() : 'Sin Categoría';
-        if (!mapaCategorias[nombreCat]) {
-            mapaCategorias[nombreCat] = 0;
-        }
-        // Math.abs convierte los gastos negativos en positivos para que se puedan pintar en la dona
-        mapaCategorias[nombreCat] += Math.abs(Number(m.monto) || 0);
-    });
-
-    const listaCategorias = Object.keys(mapaCategorias);
-    const listaMontos = Object.values(mapaCategorias);
-
-    console.log("🏷️ [Gráfico] Categorías agrupadas con éxito:", listaCategorias);
-    console.log("💰 [Gráfico] Valores absolutos:", listaMontos);
-
-    // Si el filtro quedó vacío, limpiamos el canvas y salimos
-    if (listaCategorias.length === 0) {
-        console.warn("⚠️ [Gráfico] El filtro de fecha no arrojó movimientos para este periodo.");
-        if (window.miChartResumenInstance) {
-            window.miChartResumenInstance.destroy();
-            window.miChartResumenInstance = null;
-        }
-        return;
-    }
-
-    // 4. Destrucción segura del gráfico previo
-    if (window.miChartResumenInstance) {
-        window.miChartResumenInstance.destroy();
-    }
-
-    // 5. Dibujar en el canvas
     const ctx = canvas.getContext('2d');
-    window.miChartResumenInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: listaCategorias,
-            datasets: [{
-                data: listaMontos,
-                backgroundColor: ['#4F46E5', '#10B981', '#EF4444', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6']
-            }]
+    
+    // Si ya existía una gráfica en esta sesión, la borramos para evitar superposiciones
+    if (window.chartR) {
+        window.chartR.destroy();
+    }
+
+    // Dibujamos el gráfico de barras con tus colores crema y gris oscuro originales
+    window.chartR = new Chart(ctx, { 
+        type: 'bar', 
+        data: { 
+            labels: ['Ingresos', 'Gastos'], 
+            datasets: [{ 
+                data: [ing, gas], 
+                backgroundColor: ['#D6C7B3', '#45423E'], // Tus colores sobrios
+                borderRadius: 8 
+            }] 
         },
-        options: {
+        options: { 
             responsive: true,
-            maintainAspectRatio: false
-        }
+            maintainAspectRatio: false, // Obliga al gráfico a respetar los 300px de tu HTML
+            plugins: { legend: { display: false } }, 
+            scales: { y: { beginAtZero: true } } 
+        } 
     });
 
-    console.log("✅ [Gráfico] ¡Dibujado con éxito en pantalla!");
+    console.log("✅ [Resumen] ¡Gráfico de barras renderizado con éxito!");
 };
 
 // --- BUCLE DE SEGURIDAD PARA HOME ---
