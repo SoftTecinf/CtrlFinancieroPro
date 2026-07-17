@@ -196,6 +196,13 @@ async function eliminarCategoria(id) {
     }
 }
 
+function borrarTodo() {
+    if (confirm("⚠️ ¿Estás completamente seguro de borrar TODO el historial y las configuraciones del sistema? Esta acción no se puede deshacer.")) { 
+        localStorage.clear(); 
+        location.reload(); 
+    }
+}
+
 function prepararEdicion(id, tipo) {
     const mov = AppState.movimientos.find(m => m.id === id);
     if (!mov) return;
@@ -313,18 +320,23 @@ function obtenerPeriodoActual() {
 }
 
 function obtenerMovimientosFiltrados() {
+    // 1. Obtener periodo actual (asegúrate de que esto devuelva el mes y año correctos)
     const { mes, año } = obtenerPeriodoActual();
-    const listaMovimientos = window.AppState?.movimientos || [];
-    
-    return listaMovimientos.filter(m => {
-        if (!m.fecha) return false;
-        // Cortamos el string YYYY-MM-DD directamente para evitar desfases de zona horaria local
-        const partes = m.fecha.split('-'); 
-        const nAnio = parseInt(partes[0]);
-        const nMes = parseInt(partes[1]) - 1; // JS maneja meses 0-11
-        return nMes === mes && nAnio === año;
+
+    return movimientos.filter(m => {
+        // 2. Convertir la fecha del movimiento a objeto Date de forma segura
+        // Si m.fecha es "2026-07-08", esto creará una fecha en UTC
+        const fechaEstandar = new Date(m.fecha).toISOString().split('T')[0];
+        const mF = new Date(fechaEstandar + 'T00:00:00');
+
+        // 3. Comparar mes y año
+        const coincideMes = mF.getMonth() === mes;
+        const coincideAño = mF.getFullYear() === año;
+
+        return coincideMes && coincideAño;
     });
 }
+
 // ========================================================
 // FUNCIÓN DE REPORTE FINANCIERO INTEGRADO (4 PESTAÑAS)
 // ========================================================
