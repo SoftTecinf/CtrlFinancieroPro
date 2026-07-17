@@ -112,7 +112,33 @@ function renderCategoriasConfig() {
 }
 
 // Asegúrate de que esta variable sea global en tu archivo
+function editMode(id, active) {
+    const viewEl = document.getElementById(`view-${id}`);
+    const editEl = document.getElementById(`edit-${id}`);
+    if (viewEl && editEl) {
+        viewEl.classList.toggle('hidden', active);
+        editEl.classList.toggle('hidden', !active);
+        if (active) {
+            const input = document.getElementById(`input-${id}`);
+            if (input) input.focus();
+        }
+    }
+}
 
+function saveEdit(id) {
+    const inputEl = document.getElementById(`input-${id}`);
+    if (!inputEl) return;
+    
+    const nuevoNombre = inputEl.value.trim().toUpperCase();
+    if (nuevoNombre && window.AppState) {
+        const index = window.AppState.categorias.findIndex(c => c.id === id);
+        if (index !== -1) {
+            window.AppState.categorias[index].nombre = nuevoNombre;
+            localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
+            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+        }
+    }
+}
 
 function actualizarHome() {
     // 1. LEEMOS Y NORMALIZAMOS DATOS
