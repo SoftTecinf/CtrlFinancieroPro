@@ -141,66 +141,80 @@ function editMode(id, active) {
 }*/
 
 function actualizarHome() {
-    const hoyStr = new Date().toISOString().split('T')[0];
+    // 1. LEEMOS Y NORMALIZAMOS DATOS
+    let datos = AppState.movimientos || [];
+    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
+        datos = datos.movimientos || Object.values(datos);
+    }
+    if (!Array.isArray(datos)) datos = [];
+
+    if (datos.length === 0) return;
+
+    // 2. CÁLCULOS
+    const hoyStr = new Date().toISOString().split('T')[0]; // "2026-07-16"
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
-    
-    const listaMovimientos = window.AppState?.movimientos || [];
 
-    listaMovimientos.forEach(m => {
-        const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
+    datos.forEach(m => {
+        if (!m || typeof m.monto === 'undefined') return;
+
+        const monto = parseFloat(m.monto) || 0;
+        const val = m.tipo === 'ingreso' ? monto : -monto;
         balG += val;
-        
-        if (m.fecha === hoyStr) balD += val;
-        
-        if (m.fecha) {
-            const partes = m.fecha.split('-');
-            if (parseInt(partes[1]) - 1 === ahora.getMonth() && parseInt(partes[0]) === ahora.getFullYear()) {
-                if (m.tipo === 'ingreso') ingM += m.monto; 
-                else gasM += m.monto;
-            }
+
+        // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
+        // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
+        const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
+
+        if (fechaMov === hoyStr) {
+            balD += val;
+        }
+
+        // --- CÁLCULO MES ACTUAL ---
+        const mF = new Date(m.fecha);
+        if (!isNaN(mF.getTime()) && mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
+            if (m.tipo === 'ingreso') ingM += monto;
+            else gasM += monto;
         }
     });
 
-    // Formateador MXN local seguro
-    const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
+    // 3. ACTUALIZACIÓN INTELIGENTE DE TEXTOS
+    const updates = [
+        { id: 'balance-general', val: fMXN(balG) },
+        { id: 'balance-dia', val: fMXN(balD) }, // Ahora balD debería sumar correctamente
+        { id: 'home-ingresos', val: fMXN(ingM) },
+        { id: 'home-gastos', val: fMXN(gasM) }
+    ];
 
-    if (document.getElementById('balance-general')) document.getElementById('balance-general').innerText = fLocal(balG);
-    if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
-    if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
-    if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
-    
-    // Donut de Resumen Mensual en Home
-    const canvasH = document.getElementById('chartHome');
-    if (canvasH) {
-        const ctx = canvasH.getContext('2d');
-        if (window.chartH) window.chartH.destroy();
-        window.chartH = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { 
-                labels: ['Ingresos', 'Gastos'], 
-                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] 
-            }, 
-            options: { cutout: '75%', plugins: { legend: { display: false } } } 
-        });
-    }
+    updates.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el && el.innerText !== item.val) el.innerText = item.val;
+    });
 
-    // Lista de las 10 transacciones más recientes
+    // 4. ACTUALIZAR ESTADO GLOBAL
+    window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
+
+    // 5. LISTA RECIENTE
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
-        listaH.innerHTML = '';
-        [...listaMovimientos].reverse().slice(0, 10).forEach(m => {
-            listaH.innerHTML += `
-                <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
+        const ultimosMovs = [...datos].reverse().slice(0, 10);
+        let nuevoHtml = '';
+        ultimosMovs.forEach(m => {
+            nuevoHtml += `
+                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
                     <div>
-                        <p class="text-xs font-semibold uppercase text-stone-800">${m.desc}</p>
-                        <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${m.fecha}</p>
+                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                        <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
                     </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
                     </span>
                 </div>`;
         });
+
+        if (listaH.innerHTML !== nuevoHtml) {
+            listaH.innerHTML = nuevoHtml;
+        }
     }
 }
 
@@ -209,65 +223,48 @@ window.chartR = window.chartR || null;
 function actualizarResumen() {
     const filtrados = obtenerMovimientosFiltrados();
     let ing = 0, gas = 0;
-    
     const contLista = document.getElementById('lista-resumen-periodo');
-    if (contLista) {
-        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
-        
-        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-            
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            
-            // 🔥 AQUÍ CONECTAMOS TU FORMATEADOR INTELLIGENTE:
-            div.innerHTML = `<div>
-                <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
-            </div>
-            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-            </span>`;
-            
-            contLista.appendChild(div);
-        });
-    } else {
-        filtrados.forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-        });
-    }
+    if (!contLista) return;
 
-    const txtBalance = document.getElementById('resumen-balance-total');
-    if (txtBalance) {
-        txtBalance.innerText = fMXN(ing - gas);
-    }
-
-    const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; 
-
-    const ctx = canvas.getContext('2d');
+    contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-30 text-center py-12 text-xs font-medium uppercase tracking-wider">Sin movimientos registrados en este período.</p>';
     
-    if (window.chartR) {
-        window.chartR.destroy();
-    }
+    const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
 
-    window.chartR = new Chart(ctx, { 
-        type: 'bar', 
-        data: { 
-            labels: ['Ingresos', 'Gastos'], 
-            datasets: [{ 
-                data: [ing, gas], 
-                backgroundColor: ['#D6C7B3', '#45423E'], 
-                borderRadius: 8 
-            }] 
-        },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false } }, 
-            scales: { y: { beginAtZero: true } } 
-        } 
+    filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+        if (m.tipo === 'ingreso') ing += m.monto; 
+        else gas += m.monto;
+        
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50";
+        div.innerHTML = `
+            <div>
+                <p class="text-[11px] font-semibold text-stone-800">${m.desc.toUpperCase()}</p>
+                <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${m.cat} | ${m.fecha}</p>
+            </div>
+            <span class="text-[11px] font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
+                ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
+            </span>`;
+        contLista.appendChild(div);
     });
+
+    if (document.getElementById('resumen-balance-total')) {
+        document.getElementById('resumen-balance-total').innerText = fLocal(ing - gas);
+    }
+    
+    // Gráfico de Barras Comparativo del Período Seleccionado
+    const canvasR = document.getElementById('chartResumen');
+    if (canvasR) {
+        const ctx = canvasR.getContext('2d');
+        if (window.chartR) window.chartR.destroy();
+        window.chartR = new Chart(ctx, { 
+            type: 'bar', 
+            data: { 
+                labels: ['Ingresos', 'Gastos'], 
+                datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 6 }] 
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } 
+        });
+    }
 }
 
 function actualizarFechaHeader() {
