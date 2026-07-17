@@ -265,24 +265,66 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS ---
+// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (OPTIMIZADO Y CORREGIDO) ---
 window.renderizarGraficoResumen = function() {
+    console.log("📊 [Gráfico] Iniciando renderizado...");
+    
     const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; // Si no estamos en la sección Resumen, salimos pacíficamente
+    if (!canvas) {
+        console.warn("⚠️ [Gráfico] No se encontró el canvas 'chartResumen' en el DOM.");
+        return; 
+    }
 
-    // 1. Obtener los datos del estado de la app
-    const mesSeleccionado = window.AppState.filtrosActuales.mes;   // Ejemplo: 6 (Julio)
-    const añoSeleccionado = window.AppState.filtrosActuales.año;   // Ejemplo: 2026
-    const todosLosMovimientos = window.AppState.movimientos || [];
+    // 1. Recuperar filtros del estado con respaldos seguros
+    let mesSeleccionado = parseInt(window.AppState?.filtrosActuales?.mes);
+    let añoSeleccionado = parseInt(window.AppState?.filtrosActuales?.año);
+    
+    if (isNaN(mesSeleccionado)) mesSeleccionado = new Date().getMonth();
+    if (isNaN(añoSeleccionado)) añoSeleccionado = new Date().getFullYear();
 
-    // 2. Filtrar los movimientos que corresponden exclusivamente al mes y año seleccionado
+    console.log(`🔍 [Gráfico] Buscando datos para Mes: ${mesSeleccionado} (Julio=6), Año: ${añoSeleccionado}`);
+
+    const todosLosMovimientos = window.AppState?.movimientos || [];
+    console.log(`📦 [Gráfico] Total de movimientos en memoria: ${todosLosMovimientos.length}`);
+
+    // FUNCIÓN INTERNA: Analizador inteligente de fechas (soporta YYYY-MM-DD y DD/MM/YYYY)
+    function parsearFechaSegura(fecha) {
+        if (!fecha) return null;
+        if (fecha instanceof Date) {
+            return { año: fecha.getFullYear(), mes: fecha.getMonth() };
+        }
+        
+        const str = fecha.toString().trim();
+        
+        // Caso A: Formato ISO "2026-07-17"
+        const matchISO = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (matchISO) {
+            return {
+                año: parseInt(matchISO[1]),
+                mes: parseInt(matchISO[2]) - 1 // Base 0 (Enero = 0)
+            };
+        }
+        
+        // Caso B: Formato Latino "17/07/2026" o "17-07-2026"
+        const matchLatino = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        if (matchLatino) {
+            return {
+                año: parseInt(matchLatino[3]),
+                mes: parseInt(matchLatino[2]) - 1 // Base 0 (Enero = 0)
+            };
+        }
+        
+        return null;
+    }
+
+    // 2. Filtrar los movimientos que corresponden al periodo
     const movimientosDelPeriodo = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
-        const partes = m.fecha.split('-'); // "2026-07-17" -> ["2026", "07", "17"]
-        const añoMov = parseInt(partes[0]);
-        const mesMov = parseInt(partes[1]) - 1; // Ajustamos base 0 de JS (0 = Enero)
-        return añoMov === añoSeleccionado && mesMov === mesSeleccionado;
+        const fechaInfo = parsearFechaSegura(m.fecha);
+        if (!fechaInfo) return false;
+        return fechaInfo.año === añoSeleccionado && fechaInfo.mes === mesSeleccionado;
     });
+
+    console.log(`🎯 [Gráfico] Movimientos que pasaron el filtro: ${movimientosDelPeriodo.length}`);
 
     // 3. Agrupar montos acumulados por Categoría
     const mapaCategorias = {};
@@ -291,16 +333,19 @@ window.renderizarGraficoResumen = function() {
         if (!mapaCategorias[nombreCat]) {
             mapaCategorias[nombreCat] = 0;
         }
-        // 🔥 CLAVE: Usamos Math.abs() para convertir gastos negativos (-5500) a positivos (5500)
-        // de lo contrario Chart.js no puede dibujarlo en la dona
-        mapaCategorias[nombreCat] += Math.abs(m.monto || 0);
+        // Math.abs convierte los gastos negativos en positivos para que se puedan graficar
+        mapaCategorias[nombreCat] += Math.abs(Number(m.monto) || 0);
     });
 
     const listaCategorias = Object.keys(mapaCategorias);
     const listaMontos = Object.values(mapaCategorias);
 
-    // Si no hay datos en este mes, destruimos el gráfico viejo y dejamos el espacio limpio
+    console.log("🏷️ [Gráfico] Categorías a dibujar:", listaCategorias);
+    console.log("💰 [Gráfico] Valores asignados:", listaMontos);
+
+    // Si el filtro quedó vacío, limpiamos el canvas y salimos
     if (listaCategorias.length === 0) {
+        console.warn("⚠️ [Gráfico] No hay transacciones registradas para este mes y año.");
         if (window.miChartResumenInstance) {
             window.miChartResumenInstance.destroy();
             window.miChartResumenInstance = null;
@@ -308,12 +353,12 @@ window.renderizarGraficoResumen = function() {
         return;
     }
 
-    // 4. Destrucción segura del canvas anterior
+    // 4. Destrucción del gráfico previo si existe
     if (window.miChartResumenInstance) {
         window.miChartResumenInstance.destroy();
     }
 
-    // 5. Dibujo del nuevo gráfico con los datos procesados
+    // 5. Dibujar en el canvas
     const ctx = canvas.getContext('2d');
     window.miChartResumenInstance = new Chart(ctx, {
         type: 'doughnut',
@@ -329,6 +374,8 @@ window.renderizarGraficoResumen = function() {
             maintainAspectRatio: false
         }
     });
+
+    console.log("✅ [Gráfico] ¡Dibujado con éxito en pantalla!");
 };
 
 // --- BUCLE DE SEGURIDAD PARA HOME ---
