@@ -307,53 +307,35 @@ function toggleLoading(show) {
 
 function inicializarFiltros() {
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const idsAnio = ['in-año', 'ex-año', 'res-año'];
+    const idsMes = ['in-mes', 'ex-mes', 'res-mes'];
     const añoActual = new Date().getFullYear();
-    const mesActual = new Date().getMonth(); // 6 para Julio
-    const selectsMes = ['in-mes', 'ex-mes', 'res-mes'];
-    const selectsAnio = ['in-año', 'ex-año', 'res-año'];
-
-    // 1. Llenamos y seteamos valores
-    selectsMes.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = '';
-            meses.forEach((m, i) => {
-                let opt = document.createElement('option');
-                opt.value = i;
-                opt.innerHTML = m;
-                sel.appendChild(opt);
-            });
-            sel.value = mesActual;
-
-            // ESCUCHA: Si el usuario cambia el mes, refrescamos la vista
-            sel.addEventListener('change', () => {
-                refrescarVistaActual();
-            });
-        }
-    });
-
-    selectsAnio.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = '';
-            for (let i = añoActual; i >= añoActual - 4; i--) {
-                let opt = document.createElement('option');
-                opt.value = i;
-                opt.innerHTML = i;
-                sel.appendChild(opt);
+    const mesActual = new Date().getMonth();
+    
+    [idsMes, idsAnio].forEach((list, idx) => {
+        list.forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel) {
+                sel.innerHTML = '';
+                if (idx === 0) {
+                    meses.forEach((m, i) => {
+                        let opt = document.createElement('option');
+                        opt.value = i; 
+                        opt.innerHTML = m.toUpperCase();
+                        sel.appendChild(opt);
+                    });
+                    sel.value = mesActual;
+                } else {
+                    for (let i = añoActual; i >= añoActual - 4; i--) {
+                        let opt = document.createElement('option');
+                        opt.value = i; 
+                        opt.innerHTML = i;
+                        sel.appendChild(opt);
+                    }
+                }
             }
-            sel.value = añoActual;
-
-            // ESCUCHA: Si el usuario cambia el año, refrescamos la vista
-            sel.addEventListener('change', () => {
-                refrescarVistaActual();
-            });
-        }
+        });
     });
-
-    // 2. Sincronizamos AppState inicial
-    AppState.filtrosActuales.mes = mesActual;
-    AppState.filtrosActuales.año = añoActual;
 }
 
 function formatCurrency(input, hiddenId) {
