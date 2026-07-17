@@ -225,32 +225,30 @@ function prepararEdicion(id, tipo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 1. ANCLA GLOBAL: Definimos el estado si no existe
-window.EstadoFinanciero = window.EstadoFinanciero || { ingresos: 0, gastos: 0 };
+// ==========================================
+// CONTROL DE GRÁFICOS GLOBALES
+// ==========================================
 window.chartH = window.chartH || null;
+window.miChartResumenInstance = window.miChartResumenInstance || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
+// --- GRÁFICO 1: PANTALLA INICIO (HOME) ---
 window.actualizarGraficoDistribucion = function() {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
-    // LEEMOS ESTADO
     const ingresos = window.EstadoFinanciero?.ingresos || 0;
     const gastos = window.EstadoFinanciero?.gastos || 0;
 
-    // --- EL CERROJO ---
-    // Si ya tenemos una instancia y los valores no han cambiado, NO HACEMOS NADA
+    // El cerrojo para evitar parpadeos innecesarios
     if (window.chartH && window.ultimaCarga?.i === ingresos && window.ultimaCarga?.g === gastos) {
         return; 
     }
-    // ------------------
 
-    // DESTRUCCIÓN
     if (window.chartH) {
         window.chartH.destroy();
     }
 
-    // DIBUJO
     const ctx = canvas.getContext('2d');
     window.chartH = new Chart(ctx, {
         type: 'doughnut',
@@ -264,44 +262,66 @@ window.actualizarGraficoDistribucion = function() {
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // GUARDAMOS ESTADO PARA EL CERROJO
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// 7. INICIALIZACIÓN MÁS SEGURA
-// Usamos un intervalo, pero verificamos que Chart exista
-window.addEventListener('load', () => {
-    // Definimos un intervalo de seguridad
-    setInterval(() => {
-        // Solo intentamos ejecutar si Chart existe Y la función ha sido cargada
-        if (typeof Chart !== 'undefined' && typeof window.actualizarGraficoDistribucion === 'function') {
-            window.actualizarGraficoDistribucion();
-        }
-    }, 500);
-});
-
-// 1. Declarar una variable global para el gráfico fuera de la función
-let miChartResumenInstance = null;
-
-function renderizarGraficoResumen(datosFiltrados) {
+// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS ---
+window.renderizarGraficoResumen = function() {
     const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; // Si el canvas no está en el DOM actual, salimos
+    if (!canvas) return; // Si no estamos en la sección Resumen, salimos pacíficamente
 
-    const ctx = canvas.getContext('2d');
+    // 1. Obtener los datos del estado de la app
+    const mesSeleccionado = window.AppState.filtrosActuales.mes;   // Ejemplo: 6 (Julio)
+    const añoSeleccionado = window.AppState.filtrosActuales.año;   // Ejemplo: 2026
+    const todosLosMovimientos = window.AppState.movimientos || [];
 
-    // 2. ¡EL TRUCO CLAVE!: Si ya existía un gráfico en memoria, lo destruimos
-    if (miChartResumenInstance !== null) {
-        miChartResumenInstance.destroy(); 
+    // 2. Filtrar los movimientos que corresponden exclusivamente al mes y año seleccionado
+    const movimientosDelPeriodo = todosLosMovimientos.filter(m => {
+        if (!m.fecha) return false;
+        const partes = m.fecha.split('-'); // "2026-07-17" -> ["2026", "07", "17"]
+        const añoMov = parseInt(partes[0]);
+        const mesMov = parseInt(partes[1]) - 1; // Ajustamos base 0 de JS (0 = Enero)
+        return añoMov === añoSeleccionado && mesMov === mesSeleccionado;
+    });
+
+    // 3. Agrupar montos acumulados por Categoría
+    const mapaCategorias = {};
+    movimientosDelPeriodo.forEach(m => {
+        const nombreCat = m.cat ? m.cat.trim() : 'Sin Categoría';
+        if (!mapaCategorias[nombreCat]) {
+            mapaCategorias[nombreCat] = 0;
+        }
+        // 🔥 CLAVE: Usamos Math.abs() para convertir gastos negativos (-5500) a positivos (5500)
+        // de lo contrario Chart.js no puede dibujarlo en la dona
+        mapaCategorias[nombreCat] += Math.abs(m.monto || 0);
+    });
+
+    const listaCategorias = Object.keys(mapaCategorias);
+    const listaMontos = Object.values(mapaCategorias);
+
+    // Si no hay datos en este mes, destruimos el gráfico viejo y dejamos el espacio limpio
+    if (listaCategorias.length === 0) {
+        if (window.miChartResumenInstance) {
+            window.miChartResumenInstance.destroy();
+            window.miChartResumenInstance = null;
+        }
+        return;
     }
 
-    // 3. Creamos el gráfico desde cero en el NUEVO elemento canvas
-    miChartResumenInstance = new Chart(ctx, {
-        type: 'doughnut', // O el tipo de gráfico que estés usando (bar, line, etc.)
+    // 4. Destrucción segura del canvas anterior
+    if (window.miChartResumenInstance) {
+        window.miChartResumenInstance.destroy();
+    }
+
+    // 5. Dibujo del nuevo gráfico con los datos procesados
+    const ctx = canvas.getContext('2d');
+    window.miChartResumenInstance = new Chart(ctx, {
+        type: 'doughnut',
         data: {
-            labels: datosFiltrados.categorias,
+            labels: listaCategorias,
             datasets: [{
-                data: datosFiltrados.montos,
-                backgroundColor: ['#4F46E5', '#10B981', '#EF4444', '#F59E0B']
+                data: listaMontos,
+                backgroundColor: ['#4F46E5', '#10B981', '#EF4444', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6']
             }]
         },
         options: {
@@ -309,8 +329,16 @@ function renderizarGraficoResumen(datosFiltrados) {
             maintainAspectRatio: false
         }
     });
-}
+};
 
+// --- BUCLE DE SEGURIDAD PARA HOME ---
+window.addEventListener('load', () => {
+    setInterval(() => {
+        if (typeof Chart !== 'undefined' && typeof window.actualizarGraficoDistribucion === 'function') {
+            window.actualizarGraficoDistribucion();
+        }
+    }, 500);
+});
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
