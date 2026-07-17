@@ -1,6 +1,6 @@
 // 🔥 INYECTOR GLOBAL DE EMERGENCIA para evitar el ReferenceError
 Object.defineProperty(window, 'seccionActual', {
-    get: function () {
+    get: function() {
         // Lee dinámicamente la sección activa que guardamos en showSection
         return localStorage.getItem('ultima_seccion') || 'home';
     },
@@ -55,10 +55,10 @@ async function guardarRegistro(tipo) {
 
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-        if (!res.success) throw new Error(res.message);
+        if (!res.success) throw new Error(res.message);        
         // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
         // 1. Sincronizamos con el servidor para obtener los datos más recientes
-        await inicializarSincronizacion();
+        await inicializarSincronizacion(); 
         // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
         //alert("Proceso éxitoso.");
         refrescarVistaActual();
@@ -118,7 +118,7 @@ async function eliminarMovimiento(id) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
 
-        // alert("Eliminado con éxito.");
+       // alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
         console.error("Error al eliminar:", error);
@@ -242,7 +242,7 @@ window.miChartResumenInstance = window.miChartResumenInstance || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 // --- GRÁFICO 1: PANTALLA INICIO (HOME) ---
-window.actualizarGraficoDistribucion = function () {
+window.actualizarGraficoDistribucion = function() {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
@@ -251,7 +251,7 @@ window.actualizarGraficoDistribucion = function () {
 
     // El cerrojo para evitar parpadeos innecesarios
     if (window.chartH && window.ultimaCarga?.i === ingresos && window.ultimaCarga?.g === gastos) {
-        return;
+        return; 
     }
 
     if (window.chartH) {
@@ -273,6 +273,8 @@ window.actualizarGraficoDistribucion = function () {
 
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
+
+
 
 // --- BUCLE DE SEGURIDAD PARA HOME ---
 window.addEventListener('load', () => {
