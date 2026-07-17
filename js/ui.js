@@ -473,7 +473,17 @@ function inicializarFiltros() {
             sel.value = mesActual;
 
             // ESCUCHA: Si el usuario cambia el mes, refrescamos la vista
-            sel.addEventListener('change', () => {
+            sel.addEventListener('change', (e) => {
+                // 1. Guardamos el nuevo valor en el estado global
+                AppState.filtrosActuales.mes = parseInt(e.target.value);
+                
+                // 2. (Opcional) Sincronizamos los otros selects de mes para que todos digan lo mismo
+                selectsMes.forEach(id => {
+                    const otroSel = document.getElementById(id);
+                    if(otroSel) otroSel.value = e.target.value;
+                });
+
+                // 3. Refrescamos la vista
                 refrescarVistaActual();
             });
         }
@@ -492,7 +502,17 @@ function inicializarFiltros() {
             sel.value = añoActual;
 
             // ESCUCHA: Si el usuario cambia el año, refrescamos la vista
-            sel.addEventListener('change', () => {
+            sel.addEventListener('change', (e) => {
+                // 1. Guardamos el nuevo valor en el estado global
+                AppState.filtrosActuales.año = parseInt(e.target.value);
+                
+                // 2. (Opcional) Sincronizamos los otros selects de año
+                selectsAnio.forEach(id => {
+                    const otroSel = document.getElementById(id);
+                    if(otroSel) otroSel.value = e.target.value;
+                });
+
+                // 3. Refrescamos la vista
                 refrescarVistaActual();
             });
         }
