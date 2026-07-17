@@ -284,49 +284,45 @@ function actualizarHome() {
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            // Destruimos la instancia vieja inmediatamente para liberar la memoria del canvas
             if (window.chartH) {
                 window.chartH.destroy();
                 window.chartH = null;
             }
 
-            // Metemos un retraso mínimo de 50 milisegundos. 
-            // Esto le da tiempo al HTML y a tus otras funciones de terminar de cargar 
-            // antes de pintar definitivamente los colores.
             setTimeout(() => {
-                // Re-verificamos que el elemento siga existiendo en el DOM tras el retraso
+                // CORREGIDO: Ahora el nombre coincide exactamente arriba y abajo
                 const canvasValidado = document.getElementById('chartHome');
-                if (!canvasValidated) return;
-
+                if (!canvasValidado) return; 
+                
                 const ctx = canvasValidado.getContext('2d');
-
-                // Si el mes está totalmente en ceros, muestra una dona gris neutral
+                
                 const hayDatos = (ingM > 0 || gasM > 0);
                 const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
                 const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
-                window.chartH = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Ingresos', 'Gastos'],
-                        datasets: [{
-                            data: dataDonut,
+                window.chartH = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['Ingresos', 'Gastos'], 
+                        datasets: [{ 
+                            data: dataDonut, 
                             backgroundColor: colorsDonut,
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        cutout: '75%',
+                            borderWidth: 0 
+                        }] 
+                    }, 
+                    options: { 
+                        cutout: '75%', 
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
+                        plugins: { 
                             legend: { display: false },
                             tooltip: { enabled: hayDatos }
-                        }
-                    }
+                        } 
+                    } 
                 });
-            }, 50); // 50ms es el tiempo mágico para ganarle al refresco de la UI
+            }, 50); 
         }
+        
         // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
