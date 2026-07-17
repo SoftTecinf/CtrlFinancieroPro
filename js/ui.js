@@ -196,21 +196,33 @@ function actualizarHome() {
 }
 
 function actualizarResumen() {
-    const mes = parseInt(document.getElementById('res-mes').value);
-    const año = parseInt(document.getElementById('res-año').value);
+    // 1. Buscamos los elementos con seguridad
+    const elMes = document.getElementById('res-mes');
+    const elAnio = document.getElementById('res-año');
 
-    // 1. Filtrar movimientos del periodo seleccionado
+    // Validación de seguridad: si no existen, no hacemos nada (evita el crash)
+    if (!elMes || !elAnio) return; 
+
+    // Extraemos valores
+    const mesSeleccionado = parseInt(elMes.value); // Asumiendo que 1 es Enero, 2 Febrero...
+    const añoSeleccionado = parseInt(elAnio.value);
+
+    // ¡OJO AQUÍ! En JS los meses van de 0 a 11. 
+    // Si tu <select> tiene valores 1-12, debes restar 1 para que coincida con getMonth().
+    const mesJS = mesSeleccionado - 1; 
+
+    // 2. Filtrar movimientos
     const movsPeriodo = window.AppState.movimientos.filter(m => {
         const d = new Date(m.fecha);
-        return d.getMonth() === mes && d.getFullYear() === año;
+        return d.getMonth() === mesJS && d.getFullYear() === añoSeleccionado;
     });
 
-    // 2. Calcular Utilidad (Ingresos - Gastos)
+    // 3. Calcular Utilidad
     const ingresos = movsPeriodo.filter(m => m.tipo === 'ingreso').reduce((acc, m) => acc + Number(m.monto), 0);
     const gastos = movsPeriodo.filter(m => m.tipo === 'gasto').reduce((acc, m) => acc + Number(m.monto), 0);
     const utilidad = ingresos - gastos;
 
-    // 3. Actualizar UI
+    // 4. Actualizar UI
     const elBalance = document.getElementById('resumen-balance-total');
     if (elBalance) {
         elBalance.innerText = fMXN(utilidad);
@@ -218,24 +230,26 @@ function actualizarResumen() {
         elBalance.classList.toggle('text-stone-700', utilidad >= 0);
     }
 
-    // 4. Renderizar Cronología (la lista)
+    // 5. Renderizar Cronología (Validando que 'lista' exista)
     const lista = document.getElementById('lista-resumen-periodo');
-    let html = '';
-    movsPeriodo.forEach(m => {
-        html += `
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                    <p class="text-xs font-bold">${m.desc}</p>
-                    <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
-                </div>
-                <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
-                    ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                </span>
-            </div>`;
-    });
-    lista.innerHTML = html || '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
+    if (lista) {
+        let html = '';
+        movsPeriodo.forEach(m => {
+            html += `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-xs font-bold">${m.desc}</p>
+                        <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
+                    </div>
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </span>
+                </div>`;
+        });
+        lista.innerHTML = html || '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
+    }
 
-    // 5. Actualizar Gráfico (si tu función global lo permite)
+    // 6. Actualizar Gráfico
     if (typeof window.actualizarGraficoResumen === 'function') {
         window.actualizarGraficoResumen(movsPeriodo);
     }
