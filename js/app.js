@@ -262,22 +262,25 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     } 
     else if (seccionId === 'nav-resumen') {
-        // --- AQUÍ ESTABA LA CLAVE ---
-        // Sincronizamos los filtros de la sección de análisis antes de calcular
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
-        
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
         
-        // Ahora sí, llamamos al cálculo
-        actualizarResumen();
+        actualizarResumen(); // Esta función procesa tus textos y datos numéricos
     }
 
     // 3. Gráficos
     requestAnimationFrame(() => {
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
+        }
+
+        // 🔥 AGREGA ESTA LÍNEA AQUÍ
+        // Reemplaza 'renderizarGraficoResumen' por el nombre real de tu función de dibujo
+        if (seccionId === 'nav-resumen' && typeof renderizarGraficoResumen === 'function') {
+            // Pasamos los datos del estado global que correspondan
+            renderizarGraficoResumen(window.AppState.movimientos); 
         }
     });
 }
