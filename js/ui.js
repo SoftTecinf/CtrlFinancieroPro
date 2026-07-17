@@ -280,54 +280,55 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut (CONTROL TOTAL + INDICADORES)
+        // 3. Render del gráfico Donut (ACTUALIZACIÓN INTELIGENTE)
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            // Limpieza robusta del canvas
             const chartExistente = Chart.getChart(canvasH);
-            if (chartExistente) chartExistente.destroy();
-
-            const ctx = canvasH.getContext('2d');
-
             const hayDatos = (ingM > 0 || gasM > 0);
-            // Colores fijos para que no se pierdan los indicadores
-            const COLOR_INGRESO = '#D6C7B3';
-            const COLOR_GASTO = '#45423E';
+            const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
+            const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
-            window.chartH = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ingresos', 'Gastos'],
-                    datasets: [{
-                        data: hayDatos ? [ingM, gasM] : [1, 1],
-                        backgroundColor: hayDatos ? [COLOR_INGRESO, COLOR_GASTO] : ['#E5E7EB', '#E5E7EB'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    cutout: '75%',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: hayDatos,
-                            callbacks: {
-                                // Aquí recuperamos los indicadores de valor
-                                label: function (context) {
-                                    let label = context.label || '';
-                                    if (label) label += ': ';
-                                    // Usamos la misma función de formateo que tenías arriba
-                                    const valor = context.parsed;
-                                    label += typeof fMXN === 'function' ? fMXN(valor) : `$${valor.toFixed(2)}`;
-                                    return label;
+            if (chartExistente) {
+                // Si el gráfico ya existe, solo actualizamos los datos y colores
+                chartExistente.data.datasets[0].data = dataDonut;
+                chartExistente.data.datasets[0].backgroundColor = colorsDonut;
+                chartExistente.update(); // Esto cambia los datos sin parpadear
+            } else {
+                // Si es la primera vez que carga, creamos el gráfico
+                const ctx = canvasH.getContext('2d');
+                window.chartH = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ingresos', 'Gastos'],
+                        datasets: [{
+                            data: dataDonut,
+                            backgroundColor: colorsDonut,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        cutout: '75%',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: hayDatos,
+                                callbacks: {
+                                    label: function (context) {
+                                        let label = context.label || '';
+                                        if (label) label += ': ';
+                                        const valor = context.parsed;
+                                        label += typeof fMXN === 'function' ? fMXN(valor) : `$${valor.toFixed(2)}`;
+                                        return label;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         // Lista de transacciones recientes reparada
