@@ -323,23 +323,48 @@ function obtenerMovimientosFiltrados() {
     });
 }
 
+// ========================================================
+// FUNCIÓN DE REPORTE FINANCIERO INTEGRADO (4 PESTAÑAS)
+// ========================================================
 async function generarLibroContable() {
-    alert("Generando reporte financiero... (Esta función requiere la lógica de exportación a PDF o Excel)");
+    console.log("📥 Iniciando construcción de Libro Contable Excel...");
+
+    // 1. Obtener los datos del período seleccionado y el estado de la aplicación
     const { mes, año } = obtenerPeriodoActual();
     const filtrados = obtenerMovimientosFiltrados();
+    
+    // 🔥 PROTECCIÓN CLAVE: Obtenemos el historial completo desde el AppState global de forma segura
+    const todosLosMovimientos = window.AppState?.movimientos || [];
+
+    if (!filtrados.length) {
+        alert("No hay transacciones registradas en este período para generar el reporte.");
+        return;
+    }
+
     const workbook = new ExcelJS.Workbook();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const ahora = new Date();
+    
+    // Formato regional unificado para México
+    const fechaReporte = ahora.toLocaleDateString('es-MX', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    }).toUpperCase();
 
-    if (!filtrados.length) return alert("No hay datos en este período.");
+    // ==========================================
+    // --- PESTAÑA 1: ESTADO DE RESULTADOS ---
+    // ==========================================
     const sheetER = workbook.addWorksheet('Estado de Resultados');
     let filaER = 1;
 
     filaER = Encabezado(sheetER, "ESTADO DE RESULTADOS", filaER);
-    filaER = Encabezado(sheetER, "PERIODO DE " + meses[mes] + " " + año, filaER);
-    filaER = Encabezado(sheetER, "GENERADO EL " + ahora.toLocaleDateString('es-MX'), filaER);
-    filaER++;
+    filaER = Encabezado(sheetER, "PERIODO DE " + meses[mes].toUpperCase() + " " + año, filaER);
+    filaER = Encabezado(sheetER, "GENERADO EL " + fechaReporte, filaER);
+    filaER++; // Celda de separación en blanco
 
+    // Sección de Ingresos
     let totalIngresos = 0;
     filaER = TitRepCont(sheetER, "INGRESOS", null, filaER);
     filtrados.filter(m => m.tipo === 'ingreso').forEach(m => {
@@ -349,6 +374,7 @@ async function generarLibroContable() {
     filaER = TitRepCont(sheetER, "(+) TOTAL INGRESOS", totalIngresos, filaER);
     filaER++;
 
+    // Sección de Gastos
     let totalGastos = 0;
     filaER = TitRepCont(sheetER, "GASTOS", null, filaER);
     filtrados.filter(m => m.tipo === 'gasto').forEach(m => {
@@ -358,12 +384,83 @@ async function generarLibroContable() {
     filaER = TitRepCont(sheetER, "(-) TOTAL GASTOS", totalGastos, filaER);
     filaER++;
 
+    // Utilidad Neta
     const utilidad = totalIngresos - totalGastos;
     filaER = UtiNeta(sheetER, "UTILIDAD NETA DEL PERIODO", totalGastos, utilidad, filaER);
 
-    descargarArchivo(workbook, "Reporte_Sincronizado_" + meses[mes]);
-}
 
+    // ==========================================
+    // --- PESTAÑA 2: BALANCE GENERAL ---
+    // ==========================================
+    const sheetBG = workbook.addWorksheet('Balance General');
+    let filaBG = 1;
+
+    filaBG = Encabezado(sheetBG, "BALANCE GENERAL", filaBG);
+    filaBG = Encabezado(sheetBG, "FECHA DE CORTE: " + fechaReporte, filaBG);
+    filaBG = Encabezado(sheetBG, "GENERADO EL " + fechaReporte, filaBG);
+    filaBG++;
+
+    // Cálculo histórico acumulado usando la variable blindada
+    let ingHist = 0, gasHist = 0;
+    todosLosMovimientos.forEach(m => {
+        if (m.tipo === 'ingreso') ingHist += m.monto;
+        else gasHist += m.monto;
+    });
+
+    // Activos
+    filaBG = TitRepCont(sheetBG, "ACTIVOS", null, filaBG);
+    filaBG = DatoRepCont(sheetBG, "Efectivo y Equivalentes", ingHist - gasHist, filaBG);
+    filaBG = TitRepCont(sheetBG, "TOTAL ACTIVOS", ingHist - gasHist, filaBG);
+    filaBG++;
+
+    // Patrimonio
+    filaBG = TitRepCont(sheetBG, "PATRIMONIO", null, filaBG);
+    filaBG = DatoRepCont(sheetBG, "Utilidades Acumuladas (Ingresos)", ingHist, filaBG);
+    filaBG = DatoRepCont(sheetBG, "Gastos Acumulados", -1 * gasHist, filaBG);
+    filaBG = UtiNeta(sheetBG, "TOTAL PATRIMONIO", ingHist - gasHist, ingHist - gasHist, filaBG);
+
+
+    // ==========================================
+    // --- PESTAÑA 3: DETALLE DE INGRESOS ---
+    // ==========================================
+    const wsIng = workbook.addWorksheet('Ingresos');
+    let filaIng = 1;
+
+    filaIng = Encabezado(wsIng, "DETALLE DE INGRESOS", filaIng);
+    filaIng = Encabezado(wsIng, "PERIODO DE " + meses[mes].toUpperCase() + " " + año, filaIng);
+    filaIng = Encabezado(wsIng, "GENERADO EL " + fechaReporte, filaIng);
+    filaIng++;
+    
+    if (typeof llenarTablaDetalle === 'function') {
+        llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'));
+    }
+
+
+    // ==========================================
+    // --- PESTAÑA 4: DETALLE DE GASTOS ---
+    // ==========================================
+    const wsGas = workbook.addWorksheet('Gastos');
+    let filaGas = 1;
+
+    filaGas = Encabezado(wsGas, "DETALLE DE GASTOS", filaGas);
+    filaGas = Encabezado(wsGas, "PERIODO DE " + meses[mes].toUpperCase() + " " + año, filaGas);
+    filaGas = Encabezado(wsGas, "GENERADO EL " + fechaReporte, filaGas);
+    filaGas++;
+    
+    if (typeof llenarTablaDetalle === 'function') {
+        llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'));
+    }
+
+
+    // ==========================================
+    // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
+    // ==========================================
+    if (typeof descargarArchivo === 'function') {
+        descargarArchivo(workbook, "RepCont_" + meses[mes] + "_" + año);
+    } else {
+        console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
+    }
+}
 function Encabezado(ws, texto, fila) { ws.mergeCells(`A${fila}:D${fila}`); const cell = ws.getCell(`A${fila}`); cell.value = texto.toUpperCase(); cell.font = { size: 12, bold: true, color: { argb: 'FF45423E' } }; cell.alignment = { horizontal: 'center' }; return fila + 1; }
 function TitRepCont(ws, tit, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } }; const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
 function DatoRepCont(ws, cat, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = cat.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
