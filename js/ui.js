@@ -280,19 +280,26 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut con Seguro Anti-Borrado
+        // 3. Render del gráfico Donut (CONTROLADO)
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
+            // 1. LIMPIEZA TOTAL: Cancelamos cualquier temporizador previo pendiente
+            if (window.chartHomeTimer) {
+                clearTimeout(window.chartHomeTimer);
+                window.chartHomeTimer = null;
+            }
+
+            // 2. DESTRUCCIÓN INMEDIATA: Destruimos la instancia actual ANTES de iniciar cualquier espera
             if (window.chartH) {
                 window.chartH.destroy();
                 window.chartH = null;
             }
 
-            setTimeout(() => {
-                // CORREGIDO: Ahora el nombre coincide exactamente arriba y abajo
+            // 3. EJECUCIÓN ÚNICA: Solo iniciamos el dibujo una vez que todo esté despejado
+            window.chartHomeTimer = setTimeout(() => {
                 const canvasValidado = document.getElementById('chartHome');
-                if (!canvasValidado) return; 
+                if (!canvasValidado) return;
                 
                 const ctx = canvasValidado.getContext('2d');
                 
@@ -322,6 +329,7 @@ function actualizarHome() {
                 });
             }, 50); 
         }
+        
         // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
