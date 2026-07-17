@@ -1,15 +1,8 @@
-// 🔥 INYECTORES GLOBALES DE EMERGENCIA (Evitan ReferenceError en cascada)
+// 🔥 INYECTOR GLOBAL DE EMERGENCIA para evitar el ReferenceError
 Object.defineProperty(window, 'seccionActual', {
     get: function () {
+        // Lee dinámicamente la sección activa que guardamos en showSection
         return localStorage.getItem('ultima_seccion') || 'home';
-    },
-    configurable: true
-});
-
-Object.defineProperty(window, 'movimientos', {
-    get: function () {
-        // Enlaza la variable suelta directamente con el AppState global
-        return window.AppState?.movimientos || [];
     },
     configurable: true
 });
@@ -281,71 +274,6 @@ window.actualizarGraficoDistribucion = function () {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// ==========================================
-// CONTROL DEL GRÁFICO DE BARRAS (RESUMEN)
-// ==========================================
-window.chartR = window.chartR || null;
-
-window.actualizarResumen = function() {
-    console.log("📊 [Resumen] Ejecutando actualización de vista y barras...");
-
-    const filtrados = typeof obtenerMovimientosFiltrados === 'function' ? obtenerMovimientosFiltrados() : [];
-    let ing = 0, gas = 0;
-
-    const contLista = document.getElementById('lista-resumen-periodo');
-    if (contLista) {
-        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
-        
-        [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-            
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            
-            // 🔥 AQUÍ CORREGIMOS EL DISEÑO E INTEGRAMOS TU FECHA FORMATEADA
-            div.innerHTML = `<div><p class="text-xs font-semibold uppercase">${m.desc}</p>
-                                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p></div>
-                            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
-            contLista.appendChild(div);
-        });
-    } else {
-        filtrados.forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-        });
-    }
-
-    const txtBalance = document.getElementById('resumen-balance-total');
-    if (txtBalance) {
-        txtBalance.innerText = typeof fMXN === 'function' ? fMXN(ing - gas) : `$${(ing - gas).toFixed(2)}`;
-    }
-
-    const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; 
-
-    const ctx = canvas.getContext('2d');
-    if (window.chartR) {
-        window.chartR.destroy();
-    }
-
-    window.chartR = new Chart(ctx, { 
-        type: 'bar', 
-        data: { 
-            labels: ['Ingresos', 'Gastos'], 
-            datasets: [{ 
-                data: [ing, gas], 
-                backgroundColor: ['#D6C7B3', '#45423E'], 
-                borderRadius: 8 
-            }] 
-        },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false } }, 
-            scales: { y: { beginAtZero: true } } 
-        } 
-    });
-};
-
 // --- BUCLE DE SEGURIDAD PARA HOME ---
 window.addEventListener('load', () => {
     setInterval(() => {
@@ -354,7 +282,6 @@ window.addEventListener('load', () => {
         }
     }, 500);
 });
-
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
