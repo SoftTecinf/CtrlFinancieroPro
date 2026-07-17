@@ -280,6 +280,36 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
+// 1. Declarar una variable global para el gráfico fuera de la función
+let miChartResumenInstance = null;
+
+function renderizarGraficoResumen(datosFiltrados) {
+    const canvas = document.getElementById('chartResumen');
+    if (!canvas) return; // Si el canvas no está en el DOM actual, salimos
+
+    const ctx = canvas.getContext('2d');
+
+    // 2. ¡EL TRUCO CLAVE!: Si ya existía un gráfico en memoria, lo destruimos
+    if (miChartResumenInstance !== null) {
+        miChartResumenInstance.destroy(); 
+    }
+
+    // 3. Creamos el gráfico desde cero en el NUEVO elemento canvas
+    miChartResumenInstance = new Chart(ctx, {
+        type: 'doughnut', // O el tipo de gráfico que estés usando (bar, line, etc.)
+        data: {
+            labels: datosFiltrados.categorias,
+            datasets: [{
+                data: datosFiltrados.montos,
+                backgroundColor: ['#4F46E5', '#10B981', '#EF4444', '#F59E0B']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
 
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
