@@ -37,47 +37,37 @@ async function FetchAPI(action, extraData = {}) {
 
 // Agregamos 'actualizarUI = true' por defecto. 
 // Como por defecto es true, todas tus llamadas actuales seguirán funcionando IGUAL.
-async function inicializarSincronizacion(actualizarUI = true) {
-    const state = window.AppState; 
+async function inicializarSincronizacion() {
+    const state = window.AppState;
+    const loader = document.getElementById('loader');
 
-    if (!state) {
-        console.error("AppState no está inicializado.");
-        return;
-    }
-
-    // 1. CARGA INICIAL (Caché)
+    // 1. Carga Rápida (Local)
     const guardado = localStorage.getItem('financiero_state');
     if (guardado) {
         try {
             const cache = JSON.parse(guardado);
             state.movimientos = cache.movimientos || [];
             state.categorias = cache.categorias || [];
-            
-            // Solo actualiza si se permite actualizar UI
-            if (actualizarUI && typeof actualizarHome === 'function') actualizarHome();
-        } catch (e) { console.error("Error al leer caché:", e); }
+            // Si hay datos en caché, ocultamos el loader de inmediato
+            if (loader) loader.style.display = 'none'; 
+        } catch (e) { console.error("Error cache:", e); }
     }
 
-    // 2. SINCRONIZACIÓN (Red)
-    try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-
-        if (!data || typeof data !== 'object') return;
-
-        if (data.movimientos) state.movimientos = data.movimientos;
-        if (data.categorias) state.categorias = data.categorias;
-        state.cargado = true;
-
-        localStorage.setItem('financiero_state', JSON.stringify(state));
-        
-        // 3. ACTUALIZACIÓN FINAL DE UI (Solo si el parámetro lo permite)
-        if (actualizarUI) {
-            if (typeof actualizarHome === 'function') actualizarHome();
-            if (typeof renderCategoriasConfig === 'function') renderCategoriasConfig();
-        }
-        
-    } catch (err) {
-        console.error("Error al sincronizar con red:", err);
-    }
+    // 2. Sincronización (Red) - SIN BLOQUEAR
+    // No usamos 'await' aquí para que el resto de la app siga funcionando
+    fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.movimientos) {
+                state.movimientos = data.movimientos;
+                state.categorias = data.categorias;
+                state.cargado = true;
+                localStorage.setItem('financiero_state', JSON.stringify(state));
+                refrescarVistaActual(); // Refresca solo cuando llegan los datos nuevos
+            }
+        })
+        .catch(err => console.error("Error red:", err))
+        .finally(() => {
+            if (loader) loader.style.display = 'none'; // Quitamos el cartel al terminar
+        });
 }
