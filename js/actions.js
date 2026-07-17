@@ -1,13 +1,13 @@
 // 🔥 INYECTORES GLOBALES DE EMERGENCIA (Evitan ReferenceError en cascada)
 Object.defineProperty(window, 'seccionActual', {
-    get: function() {
+    get: function () {
         return localStorage.getItem('ultima_seccion') || 'home';
     },
     configurable: true
 });
 
 Object.defineProperty(window, 'movimientos', {
-    get: function() {
+    get: function () {
         // Enlaza la variable suelta directamente con el AppState global
         return window.AppState?.movimientos || [];
     },
@@ -62,10 +62,10 @@ async function guardarRegistro(tipo) {
 
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-        if (!res.success) throw new Error(res.message);        
+        if (!res.success) throw new Error(res.message);
         // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
         // 1. Sincronizamos con el servidor para obtener los datos más recientes
-        await inicializarSincronizacion(); 
+        await inicializarSincronizacion();
         // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
         //alert("Proceso éxitoso.");
         refrescarVistaActual();
@@ -125,7 +125,7 @@ async function eliminarMovimiento(id) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
 
-       // alert("Eliminado con éxito.");
+        // alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
         console.error("Error al eliminar:", error);
@@ -249,7 +249,7 @@ window.miChartResumenInstance = window.miChartResumenInstance || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 // --- GRÁFICO 1: PANTALLA INICIO (HOME) ---
-window.actualizarGraficoDistribucion = function() {
+window.actualizarGraficoDistribucion = function () {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
@@ -258,7 +258,7 @@ window.actualizarGraficoDistribucion = function() {
 
     // El cerrojo para evitar parpadeos innecesarios
     if (window.chartH && window.ultimaCarga?.i === ingresos && window.ultimaCarga?.g === gastos) {
-        return; 
+        return;
     }
 
     if (window.chartH) {
@@ -286,9 +286,7 @@ window.actualizarGraficoDistribucion = function() {
 // ==========================================
 window.chartR = window.chartR || null;
 
-window.actualizarResumen = function() {
-    console.log("📊 [Resumen] Ejecutando actualización de vista y barras...");
-
+window.actualizarResumen = function () {
     // 1. Obtener movimientos usando tu filtro nativo
     // (Asegúrate de haber parchado el error de 'seccionActual' en actions.js)
     const filtrados = typeof obtenerMovimientosFiltrados === 'function' ? obtenerMovimientosFiltrados() : [];
@@ -298,21 +296,22 @@ window.actualizarResumen = function() {
     const contLista = document.getElementById('lista-resumen-periodo');
     if (contLista) {
         contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
-        
+
         // Clonamos y ordenamos para no alterar el array original
         [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-            
+            if (m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+
             const div = document.createElement('div');
             div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
+            div.innerHTML = `<div><p class="text-xs font-semibold uppercase">${m.desc}</p>
+                        <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p></div>
                 <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
             contLista.appendChild(div);
         });
     } else {
         // Respaldo para calcular totales si el HTML aún no se monta
         filtrados.forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            if (m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
         });
     }
 
@@ -326,33 +325,33 @@ window.actualizarResumen = function() {
     const canvas = document.getElementById('chartResumen');
     if (!canvas) {
         console.warn("⚠️ [Resumen] Canvas 'chartResumen' no encontrado en el DOM actual.");
-        return; 
+        return;
     }
 
     const ctx = canvas.getContext('2d');
-    
+
     // Si ya existía una gráfica en esta sesión, la borramos para evitar superposiciones
     if (window.chartR) {
         window.chartR.destroy();
     }
 
     // Dibujamos el gráfico de barras con tus colores crema y gris oscuro originales
-    window.chartR = new Chart(ctx, { 
-        type: 'bar', 
-        data: { 
-            labels: ['Ingresos', 'Gastos'], 
-            datasets: [{ 
-                data: [ing, gas], 
+    window.chartR = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [ing, gas],
                 backgroundColor: ['#D6C7B3', '#45423E'], // Tus colores sobrios
-                borderRadius: 8 
-            }] 
+                borderRadius: 8
+            }]
         },
-        options: { 
+        options: {
             responsive: true,
             maintainAspectRatio: false, // Obliga al gráfico a respetar los 300px de tu HTML
-            plugins: { legend: { display: false } }, 
-            scales: { y: { beginAtZero: true } } 
-        } 
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
     });
 
     console.log("✅ [Resumen] ¡Gráfico de barras renderizado con éxito!");
