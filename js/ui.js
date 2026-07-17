@@ -1,13 +1,13 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-
+    
     // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
     const tipoNormalizado = tipo.toLowerCase().trim();
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
-
+        
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth();
@@ -32,9 +32,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     let htmlAcumulado = '';
     filtrados.forEach(m => {
         // Aseguramos que formatearFechaMX sea global (window.formatearFechaMX)
-        const fechaLegible = (typeof window.formatearFechaMX === 'function')
-            ? window.formatearFechaMX(m.fecha)
-            : m.fecha.split('T')[0];
+        const fechaLegible = (typeof window.formatearFechaMX === 'function') 
+                             ? window.formatearFechaMX(m.fecha) 
+                             : m.fecha.split('T')[0];
 
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
@@ -134,7 +134,7 @@ function actualizarHome() {
 
     datos.forEach(m => {
         if (!m || typeof m.monto === 'undefined') return;
-
+        
         const monto = parseFloat(m.monto) || 0;
         const val = m.tipo === 'ingreso' ? monto : -monto;
         balG += val;
@@ -142,7 +142,7 @@ function actualizarHome() {
         // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
         // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
         const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
-
+        
         if (fechaMov === hoyStr) {
             balD += val;
         }
@@ -162,7 +162,7 @@ function actualizarHome() {
         { id: 'home-ingresos', val: fMXN(ingM) },
         { id: 'home-gastos', val: fMXN(gasM) }
     ];
-
+    
     updates.forEach(item => {
         const el = document.getElementById(item.id);
         if (el && el.innerText !== item.val) el.innerText = item.val;
@@ -188,7 +188,7 @@ function actualizarHome() {
                     </span>
                 </div>`;
         });
-
+        
         if (listaH.innerHTML !== nuevoHtml) {
             listaH.innerHTML = nuevoHtml;
         }
@@ -196,33 +196,33 @@ function actualizarHome() {
 }
 
 function actualizarResumen() {
-    // 1. Seguridad del DOM: Si los elementos no existen, abortamos
+    // 1. Buscamos los elementos con seguridad
     const elMes = document.getElementById('res-mes');
     const elAnio = document.getElementById('res-año');
+
+    // Validación de seguridad: si no existen, no hacemos nada (evita el crash)
     if (!elMes || !elAnio) return; 
 
-    // 2. Seguridad de Datos: Si el estado global aún no tiene movimientos, evitamos errores
-    if (!window.AppState.movimientos || window.AppState.movimientos.length === 0) {
-        console.warn("ActualizarResumen: Aún no hay movimientos cargados.");
-        return; // Opcional: podrías poner aquí un loader pequeño en el DOM
-    }
-
-    // 3. Extracción y Filtrado
-    const mesSeleccionado = parseInt(elMes.value); 
+    // Extraemos valores
+    const mesSeleccionado = parseInt(elMes.value); // Asumiendo que 1 es Enero, 2 Febrero...
     const añoSeleccionado = parseInt(elAnio.value);
 
+    // ¡OJO AQUÍ! En JS los meses van de 0 a 11. 
+    // Si tu <select> tiene valores 1-12, debes restar 1 para que coincida con getMonth().
+    const mesJS = mesSeleccionado - 1; 
+
+    // 2. Filtrar movimientos
     const movsPeriodo = window.AppState.movimientos.filter(m => {
         const d = new Date(m.fecha);
-        // Nota: Asegúrate de que tu select tenga valores 0-11 para coincidir con getMonth()
-        return d.getMonth() === mesSeleccionado && d.getFullYear() === añoSeleccionado;
+        return d.getMonth() === mesJS && d.getFullYear() === añoSeleccionado;
     });
 
-    // 4. Cálculos
+    // 3. Calcular Utilidad
     const ingresos = movsPeriodo.filter(m => m.tipo === 'ingreso').reduce((acc, m) => acc + Number(m.monto), 0);
     const gastos = movsPeriodo.filter(m => m.tipo === 'gasto').reduce((acc, m) => acc + Number(m.monto), 0);
     const utilidad = ingresos - gastos;
 
-    // 5. Actualización UI (Balance)
+    // 4. Actualizar UI
     const elBalance = document.getElementById('resumen-balance-total');
     if (elBalance) {
         elBalance.innerText = fMXN(utilidad);
@@ -230,43 +230,34 @@ function actualizarResumen() {
         elBalance.classList.toggle('text-stone-700', utilidad >= 0);
     }
 
-    // 6. Cronología
+    // 5. Renderizar Cronología (Validando que 'lista' exista)
     const lista = document.getElementById('lista-resumen-periodo');
     if (lista) {
-        if (movsPeriodo.length === 0) {
-            lista.innerHTML = '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
-        } else {
-            let html = '';
-            movsPeriodo.forEach(m => {
-                html += `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                            <p class="text-xs font-bold">${m.desc}</p>
-                            <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
-                        </div>
-                        <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
-                            ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                        </span>
-                    </div>`;
-            });
-            lista.innerHTML = html;
-        }
+        let html = '';
+        movsPeriodo.forEach(m => {
+            html += `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-xs font-bold">${m.desc}</p>
+                        <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
+                    </div>
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </span>
+                </div>`;
+        });
+        lista.innerHTML = html || '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
     }
 
-    // 7. Gráfico
+    // 6. Actualizar Gráfico
     if (typeof window.actualizarGraficoResumen === 'function') {
         window.actualizarGraficoResumen(movsPeriodo);
     }
 }
 
 function actualizarFechaHeader() {
-    // Asegúrate de que este ID existe en TODOS tus archivos .html (resumen.html, home.html, etc.)
-    const el = document.getElementById('fecha-sistema'); 
-    
-    if (!el) {
-        console.warn("No se encontró el elemento 'fecha-sistema'. Verifica tu HTML.");
-        return;
-    }
+    const el = document.getElementById('fecha-sistema');
+    if (!el) return; // Candado de seguridad por si no está en la pantalla actual
 
     const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     const fecha = new Date().toLocaleDateString('es-MX', opciones);
