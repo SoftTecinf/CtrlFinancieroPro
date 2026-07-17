@@ -125,20 +125,62 @@ function editMode(id, active) {
     }
 }
 
-/*function saveEdit(id) {
-    const inputEl = document.getElementById(`input-${id}`);
-    if (!inputEl) return;
-    
-    const nuevoNombre = inputEl.value.trim().toUpperCase();
-    if (nuevoNombre && window.AppState) {
-        const index = window.AppState.categorias.findIndex(c => c.id === id);
+function saveEdit(id) {
+    try {
+        const inputEl = document.getElementById(`input-${id}`);
+        if (!inputEl) return;
+        
+        const nuevoNombre = inputEl.value.trim().toUpperCase();
+        if (!nuevoNombre || !window.AppState) return;
+        
+        // 1. COMPARACIÓN SEGURA: Convertimos ambos a String para evitar fallos de Tipo (Número vs Texto)
+        const index = window.AppState.categorias.findIndex(c => String(c.id) === String(id));
+        
         if (index !== -1) {
+            const nombreAnterior = window.AppState.categorias[index].nombre;
+            
+            // Si el usuario no cambió el nombre, no hacemos nada extra
+            if (nombreAnterior === nuevoNombre) return;
+            
+            // 2. Actualizar el nombre en el catálogo de categorías
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
-            if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+            
+            // 3. 🔥 EL ESCUDO EN CASCADA: Actualizar movimientos existentes
+            // Buscamos todas las transacciones viejas que usaban el nombre anterior y las vinculamos al nuevo
+            if (window.AppState.movimientos && Array.isArray(window.AppState.movimientos)) {
+                window.AppState.movimientos = window.AppState.movimientos.map(m => {
+                    if (!m) return m;
+                    
+                    // Soporte híbrido por si usas m.cat o m.categoria en tu base de datos
+                    if (m.cat && m.cat.toUpperCase() === nombreAnterior.toUpperCase()) {
+                        m.cat = nuevoNombre;
+                    }
+                    if (m.categoria && m.categoria.toUpperCase() === nombreAnterior.toUpperCase()) {
+                        m.categoria = nuevoNombre;
+                    }
+                    return m;
+                });
+                
+                // Si manejas un localStorage de movimientos local, descomenta la siguiente línea para persistir el cambio:
+                // localStorage.setItem('movs_mxn', JSON.stringify(window.AppState.movimientos));
+            }
+            
+            // 4. Forzar el redibujado inmediato y seguro de la UI antes de refrescar la vista entera
+            if (typeof actualizarHome === 'function') actualizarHome();
+            if (typeof actualizarResumen === 'function') actualizarResumen();
+            
+            // 5. Refrescar el contenedor principal de la vista actual
+            if (typeof refrescarVistaActual === 'function') {
+                refrescarVistaActual();
+            }
+            
+            console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
         }
+    } catch (error) {
+        console.error("Error crítico en saveEdit de categorías:", error);
     }
-}*/
+}
 
 // Variables globales seguras para los gráficos
 window.chartH = window.chartH || null;
