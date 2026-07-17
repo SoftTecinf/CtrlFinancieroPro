@@ -270,16 +270,17 @@ function refrescarVistaActual() {
         actualizarResumen(); // Esta función procesa tus textos y datos numéricos
     }
 
-    // 3. Gráficos en refrescarVistaActual
+    // 3. Gráficos dentro de refrescarVistaActual
     requestAnimationFrame(() => {
+        // Mantiene el bucle del home si existe
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
 
-        // 🔥 LLAMADA A TU FUNCIÓN RESTAURADA
+        // 🔥 LADO DE ANÁLISIS: Llama a tu formato original de barras
         if (seccionId === 'resumen' || seccionId === 'analisis' || seccionId === 'nav-resumen') {
-            if (typeof actualizarResumen === 'function') {
-                actualizarResumen();
+            if (typeof window.actualizarResumen === 'function') {
+                window.actualizarResumen();
             }
         }
     });
