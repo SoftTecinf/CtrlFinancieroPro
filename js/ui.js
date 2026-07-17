@@ -280,56 +280,46 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut (CONTROLADO)
+        // 3. Render del gráfico Donut (CONTROL TOTAL)
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            // 1. LIMPIEZA TOTAL: Cancelamos cualquier temporizador previo pendiente
-            if (window.chartHomeTimer) {
-                clearTimeout(window.chartHomeTimer);
-                window.chartHomeTimer = null;
+            // 🔥 SOLUCIÓN DEFINITIVA: Buscar si ya existe una instancia de gráfico en este canvas
+            // Chart.getChart es la API oficial de Chart.js para recuperar el gráfico existente
+            const chartExistente = Chart.getChart(canvasH);
+            if (chartExistente) {
+                chartExistente.destroy();
             }
 
-            // 2. DESTRUCCIÓN INMEDIATA: Destruimos la instancia actual ANTES de iniciar cualquier espera
-            if (window.chartH) {
-                window.chartH.destroy();
-                window.chartH = null;
-            }
+            // Ahora que el lienzo está garantizado como libre, dibujamos
+            const ctx = canvasH.getContext('2d');
+            
+            const hayDatos = (ingM > 0 || gasM > 0);
+            const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
+            const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
-            // 3. EJECUCIÓN ÚNICA: Solo iniciamos el dibujo una vez que todo esté despejado
-            window.chartHomeTimer = setTimeout(() => {
-                const canvasValidado = document.getElementById('chartHome');
-                if (!canvasValidado) return;
-                
-                const ctx = canvasValidado.getContext('2d');
-                
-                const hayDatos = (ingM > 0 || gasM > 0);
-                const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
-                const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
-
-                window.chartH = new Chart(ctx, { 
-                    type: 'doughnut', 
-                    data: { 
-                        labels: ['Ingresos', 'Gastos'], 
-                        datasets: [{ 
-                            data: dataDonut, 
-                            backgroundColor: colorsDonut,
-                            borderWidth: 0 
-                        }] 
-                    }, 
-                    options: { 
-                        cutout: '75%', 
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { display: false },
-                            tooltip: { enabled: hayDatos }
-                        } 
+            window.chartH = new Chart(ctx, { 
+                type: 'doughnut', 
+                data: { 
+                    labels: ['Ingresos', 'Gastos'], 
+                    datasets: [{ 
+                        data: dataDonut, 
+                        backgroundColor: colorsDonut,
+                        borderWidth: 0 
+                    }] 
+                }, 
+                options: { 
+                    cutout: '75%', 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { enabled: hayDatos }
                     } 
-                });
-            }, 50); 
+                } 
+            });
         }
-        
+
         // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
