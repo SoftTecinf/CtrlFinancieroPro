@@ -65,17 +65,17 @@ function actualizarSelectsCategorias() {
     const inSel = document.getElementById('in-categoria');
     const exSel = document.getElementById('ex-categoria');
     const listaCategorias = window.AppState?.categorias || [];
-    
+
     if (inSel) {
         inSel.innerHTML = '';
-        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => { 
-            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
+        listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => {
+            inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
     }
     if (exSel) {
         exSel.innerHTML = '';
-        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => { 
-            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`; 
+        listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => {
+            exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
     }
 }
@@ -87,7 +87,7 @@ function renderCategoriasConfig() {
 
     contIng.innerHTML = '';
     contGas.innerHTML = '';
-    
+
     const listaCategorias = window.AppState?.categorias || [];
 
     listaCategorias.forEach(c => {
@@ -105,7 +105,7 @@ function renderCategoriasConfig() {
                     <button onclick="saveEdit(${c.id})" class="bg-stone-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">OK</button>
                 </div>
             </div>`;
-            
+
         if (c.tipo === 'ingreso') contIng.innerHTML += itemHtml;
         else contGas.innerHTML += itemHtml;
     });
@@ -129,29 +129,29 @@ function saveEdit(id) {
     try {
         const inputEl = document.getElementById(`input-${id}`);
         if (!inputEl) return;
-        
+
         const nuevoNombre = inputEl.value.trim().toUpperCase();
         if (!nuevoNombre || !window.AppState) return;
-        
+
         // 1. COMPARACIÓN SEGURA: Convertimos ambos a String para evitar fallos de Tipo (Número vs Texto)
         const index = window.AppState.categorias.findIndex(c => String(c.id) === String(id));
-        
+
         if (index !== -1) {
             const nombreAnterior = window.AppState.categorias[index].nombre;
-            
+
             // Si el usuario no cambió el nombre, no hacemos nada extra
             if (nombreAnterior === nuevoNombre) return;
-            
+
             // 2. Actualizar el nombre en el catálogo de categorías
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
-            
+
             // 3. 🔥 EL ESCUDO EN CASCADA: Actualizar movimientos existentes
             // Buscamos todas las transacciones viejas que usaban el nombre anterior y las vinculamos al nuevo
             if (window.AppState.movimientos && Array.isArray(window.AppState.movimientos)) {
                 window.AppState.movimientos = window.AppState.movimientos.map(m => {
                     if (!m) return m;
-                    
+
                     // Soporte híbrido por si usas m.cat o m.categoria en tu base de datos
                     if (m.cat && m.cat.toUpperCase() === nombreAnterior.toUpperCase()) {
                         m.cat = nuevoNombre;
@@ -161,20 +161,20 @@ function saveEdit(id) {
                     }
                     return m;
                 });
-                
+
                 // Si manejas un localStorage de movimientos local, descomenta la siguiente línea para persistir el cambio:
                 // localStorage.setItem('movs_mxn', JSON.stringify(window.AppState.movimientos));
             }
-            
+
             // 4. Forzar el redibujado inmediato y seguro de la UI antes de refrescar la vista entera
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof actualizarResumen === 'function') actualizarResumen();
-            
+
             // 5. Refrescar el contenedor principal de la vista actual
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
             }
-            
+
             console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
         }
     } catch (error) {
@@ -191,7 +191,7 @@ window.chartR = window.chartR || null;
 // ========================================================
 function normalizarMovimiento(m) {
     if (!m) return null;
-    
+
     // Guardamos una copia exacta del dato de fecha original para tus formateadores de la app
     const fechaOriginal = m.fecha;
 
@@ -199,7 +199,7 @@ function normalizarMovimiento(m) {
     let dateObj = null;
     if (m.fecha) {
         dateObj = new Date(m.fecha);
-        
+
         // Si el formato viene como texto es-MX "DD/MM/YYYY", new Date() podría fallar.
         // Agregamos un salvavidas para reconstruirla limpiamente si contiene diagonales:
         if (isNaN(dateObj.getTime()) && typeof m.fecha === 'string') {
@@ -250,22 +250,22 @@ function actualizarHome() {
         datos.forEach(m => {
             const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
             balG += val;
-            
+
             // Verificación del día de hoy usando el objeto nativo de manera segura
             let mFechaStr = "";
             try {
                 mFechaStr = m.dateObj.toISOString().split('T')[0];
-            } catch(e) {
+            } catch (e) {
                 mFechaStr = "";
             }
 
             if (mFechaStr === hoyStr) {
                 balD += val;
             }
-            
+
             // Verificación de mes y año actual nativo (Como funcionaba originalmente)
             if (m.dateObj.getMonth() === ahora.getMonth() && m.dateObj.getFullYear() === ahora.getFullYear()) {
-                if (m.tipo === 'ingreso') ingM += m.monto; 
+                if (m.tipo === 'ingreso') ingM += m.monto;
                 else gasM += m.monto;
             }
         });
@@ -276,47 +276,57 @@ function actualizarHome() {
         if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
         if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
         if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
-        
+
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
-        // Renderizado del gráfico Donut corregido con colores en orden correcto
+        // ==========================================
+        // 3. Render del gráfico Donut con Seguro Anti-Borrado
+        // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            const ctx = canvasH.getContext('2d');
+            // Destruimos la instancia vieja inmediatamente para liberar la memoria del canvas
             if (window.chartH) {
                 window.chartH.destroy();
                 window.chartH = null;
             }
-            
-            // Si el mes está totalmente en ceros, muestra una dona gris neutral
-            const hayDatos = (ingM > 0 || gasM > 0);
-            const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
-            const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
-            window.chartH = new Chart(ctx, { 
-                type: 'doughnut', 
-                data: { 
-                    labels: ['Ingresos', 'Gastos'], 
-                    datasets: [{ 
-                        data: dataDonut, 
-                        backgroundColor: colorsDonut,
-                        borderWidth: 0 // Quita bordes extraños para que se vea más limpio
-                    }] 
-                }, 
-                options: { 
-                    cutout: '75%', 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: hayDatos // Desactiva el tooltip si está en gris sin datos
+            // Metemos un retraso mínimo de 50 milisegundos. 
+            // Esto le da tiempo al HTML y a tus otras funciones de terminar de cargar 
+            // antes de pintar definitivamente los colores.
+            setTimeout(() => {
+                // Re-verificamos que el elemento siga existiendo en el DOM tras el retraso
+                const canvasValidado = document.getElementById('chartHome');
+                if (!canvasValidated) return;
+
+                const ctx = canvasValidado.getContext('2d');
+
+                // Si el mes está totalmente en ceros, muestra una dona gris neutral
+                const hayDatos = (ingM > 0 || gasM > 0);
+                const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
+                const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
+
+                window.chartH = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Ingresos', 'Gastos'],
+                        datasets: [{
+                            data: dataDonut,
+                            backgroundColor: colorsDonut,
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        cutout: '75%',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: hayDatos }
                         }
-                    } 
-                } 
-            });
+                    }
+                });
+            }, 50); // 50ms es el tiempo mágico para ganarle al refresco de la UI
         }
-
         // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
@@ -327,7 +337,7 @@ function actualizarHome() {
                 [...datos].reverse().slice(0, 10).forEach(m => {
                     // Usamos la fecha original exacta para que window.formatearFechaMX no devuelva error
                     const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
-                    
+
                     listaH.innerHTML += `
                         <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
                             <div>
@@ -359,7 +369,7 @@ function actualizarResumen() {
         let ing = 0, gas = 0;
 
         filtrados.forEach(m => {
-            if (m.tipo === 'ingreso') ing += m.monto; 
+            if (m.tipo === 'ingreso') ing += m.monto;
             else gas += m.monto;
         });
 
@@ -372,11 +382,11 @@ function actualizarResumen() {
         const contLista = document.getElementById('lista-resumen-periodo');
         if (contLista) {
             contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-30 text-center py-12 text-xs font-medium uppercase tracking-wider">Sin movimientos registrados en este período.</p>';
-            
+
             // Ordenamos de forma cronológica por el objeto de tiempo nativo
             [...filtrados].sort((a, b) => b.dateObj - a.dateObj).forEach(m => {
                 const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
-                
+
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50";
                 div.innerHTML = `
@@ -390,7 +400,7 @@ function actualizarResumen() {
                 contLista.appendChild(div);
             });
         }
-        
+
         const canvasR = document.getElementById('chartResumen');
         if (canvasR) {
             const ctx = canvasR.getContext('2d');
@@ -398,18 +408,18 @@ function actualizarResumen() {
                 window.chartR.destroy();
                 window.chartR = null;
             }
-            window.chartR = new Chart(ctx, { 
-                type: 'bar', 
-                data: { 
-                    labels: ['Ingresos', 'Gastos'], 
-                    datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 6 }] 
+            window.chartR = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'Gastos'],
+                    datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 6 }]
                 },
-                options: { 
+                options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { beginAtZero: true } } 
-                } 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
             });
         }
     } catch (error) {
