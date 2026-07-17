@@ -211,10 +211,14 @@ function actualizarResumen() {
         filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
             if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
             
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
-                <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+            div.innerHTML = `<div>
+                <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
+            </div>
+            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+            </span>`;
+            
             contLista.appendChild(div);
         });
     } else {
