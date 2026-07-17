@@ -365,6 +365,7 @@ window.addEventListener('load', () => {
         }
     }, 500);
 });
+
 // --- CONTROL DE SESIÓN ---
 function cerrarSesion() {
     localStorage.removeItem('session_user');
