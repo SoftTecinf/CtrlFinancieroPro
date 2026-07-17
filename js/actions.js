@@ -7,7 +7,7 @@ Object.defineProperty(window, 'seccionActual', {
 });
 
 Object.defineProperty(window, 'movimientos', {
-    get: function() {
+    get: function () {
         // Devuelve los movimientos reales desde el estado global seguro
         return window.AppState?.movimientos || [];
     },
@@ -62,10 +62,10 @@ async function guardarRegistro(tipo) {
 
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
-        if (!res.success) throw new Error(res.message);        
+        if (!res.success) throw new Error(res.message);
         // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
         // 1. Sincronizamos con el servidor para obtener los datos más recientes
-        await inicializarSincronizacion(); 
+        await inicializarSincronizacion();
         // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
         //alert("Proceso éxitoso.");
         refrescarVistaActual();
@@ -125,7 +125,7 @@ async function eliminarMovimiento(id) {
             throw new Error(res?.message || "Error al conectar con el servidor");
         }
 
-       // alert("Eliminado con éxito.");
+        // alert("Eliminado con éxito.");
     } catch (error) {
         // 4. REVERSIÓN SI FALLA
         console.error("Error al eliminar:", error);
@@ -249,7 +249,7 @@ window.miChartResumenInstance = window.miChartResumenInstance || null;
 window.ultimaCarga = { i: -1, g: -1 };
 
 // --- GRÁFICO 1: PANTALLA INICIO (HOME) ---
-window.actualizarGraficoDistribucion = function() {
+window.actualizarGraficoDistribucion = function () {
     const canvas = document.getElementById('chartHome');
     if (!canvas) return;
 
@@ -258,7 +258,7 @@ window.actualizarGraficoDistribucion = function() {
 
     // El cerrojo para evitar parpadeos innecesarios
     if (window.chartH && window.ultimaCarga?.i === ingresos && window.ultimaCarga?.g === gastos) {
-        return; 
+        return;
     }
 
     if (window.chartH) {
@@ -332,7 +332,7 @@ async function generarLibroContable() {
     // 1. Obtener los datos del período seleccionado y el estado de la aplicación
     const { mes, año } = obtenerPeriodoActual();
     const filtrados = obtenerMovimientosFiltrados();
-    
+
     // 🔥 PROTECCIÓN CLAVE: Obtenemos el historial completo desde el AppState global de forma segura
     const todosLosMovimientos = window.AppState?.movimientos || [];
 
@@ -344,13 +344,13 @@ async function generarLibroContable() {
     const workbook = new ExcelJS.Workbook();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const ahora = new Date();
-    
+
     // Formato regional unificado para México
-    const fechaReporte = ahora.toLocaleDateString('es-MX', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const fechaReporte = ahora.toLocaleDateString('es-MX', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     }).toUpperCase();
 
     // ==========================================
@@ -430,7 +430,7 @@ async function generarLibroContable() {
     filaIng = Encabezado(wsIng, "PERIODO DE " + meses[mes].toUpperCase() + " " + año, filaIng);
     filaIng = Encabezado(wsIng, "GENERADO EL " + fechaReporte, filaIng);
     filaIng++;
-    
+
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'));
     }
@@ -446,7 +446,7 @@ async function generarLibroContable() {
     filaGas = Encabezado(wsGas, "PERIODO DE " + meses[mes].toUpperCase() + " " + año, filaGas);
     filaGas = Encabezado(wsGas, "GENERADO EL " + fechaReporte, filaGas);
     filaGas++;
-    
+
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'));
     }
@@ -461,8 +461,101 @@ async function generarLibroContable() {
         console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
     }
 }
-function Encabezado(ws, texto, fila) { ws.mergeCells(`A${fila}:D${fila}`); const cell = ws.getCell(`A${fila}`); cell.value = texto.toUpperCase(); cell.font = { size: 12, bold: true, color: { argb: 'FF45423E' } }; cell.alignment = { horizontal: 'center' }; return fila + 1; }
-function TitRepCont(ws, tit, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } }; const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
-function DatoRepCont(ws, cat, monto, fila) { const cell = ws.getCell(`A${fila}`); cell.value = cat.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = monto; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
-function UtiNeta(ws, tit, monto, utilidad, fila) { const cell = ws.getCell(`A${fila}`); cell.value = tit.toUpperCase(); const cell1 = ws.getCell(`B${fila}`); cell1.value = utilidad; cell1.numFmt = '"$"#,##0.00'; return fila + 1; }
+
+// ========================================================
+// --- FUNCIONES AUXILIARES PARA GENERACIÓN DE EXCEL ---
+// ========================================================
+
+function Encabezado(ws, texto, fila) {
+    ws.mergeCells(`A${fila}:D${fila}`);
+    const cell = ws.getCell(`A${fila}`);
+    cell.value = texto.toUpperCase();
+    cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF45423E' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // Configuración estética base de la pestaña
+    ws.views = [{ showGridLines: true }];
+    ws.getRow(fila).height = 25;
+
+    // Definimos anchos fijos proporcionales una sola vez por pestaña
+    ws.getColumn('A').width = 35; // Categoría / Concepto
+    ws.getColumn('B').width = 22; // Montos financieros
+    ws.getColumn('C').width = 15; // Columnas auxiliares si aplican
+    ws.getColumn('D').width = 15;
+
+    return fila + 1;
+}
+
+function TitRepCont(ws, tit, monto, fila) {
+    ws.getRow(fila).height = 22;
+
+    const cellA = ws.getCell(`A${fila}`);
+    cellA.value = tit.toUpperCase();
+    cellA.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    cellA.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+    cellA.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    const cellB = ws.getCell(`B${fila}`);
+    // Si no viene monto (es solo título de sección), dejamos la celda vacía de forma limpia
+    cellB.value = monto !== null && monto !== undefined ? monto : "";
+    cellB.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    cellB.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+    cellB.alignment = { vertical: 'middle', horizontal: 'right' };
+    if (monto !== null && monto !== undefined) {
+        cellB.numFmt = '"$"#,##0.00';
+    }
+
+    return fila + 1;
+}
+
+function DatoRepCont(ws, cat, monto, fila) {
+    ws.getRow(fila).height = 20;
+
+    // Paleta arena y crema desaturada para filas cebra
+    const colorFondo = (fila % 2 !== 0) ? 'FFF5F2EB' : 'FFFFFFFF';
+    const bordeGrisFino = { style: 'thin', color: { argb: 'FFEAE6DF' } };
+
+    const cellA = ws.getCell(`A${fila}`);
+    cellA.value = cat.toUpperCase();
+    cellA.font = { name: 'Arial', size: 10, color: { argb: 'FF45423E' } };
+    cellA.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFondo } };
+    cellA.alignment = { vertical: 'middle', horizontal: 'left' };
+    cellA.border = { bottom: bordeGrisFino, right: bordeGrisFino };
+
+    const cellB = ws.getCell(`B${fila}`);
+    cellB.value = monto;
+    cellB.font = { name: 'Arial', size: 10, color: { argb: 'FF45423E' } };
+    cellB.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFondo } };
+    cellB.alignment = { vertical: 'middle', horizontal: 'right' };
+    cellB.numFmt = '"$"#,##0.00';
+    cellB.border = { bottom: bordeGrisFino };
+
+    return fila + 1;
+}
+
+function UtiNeta(ws, tit, monto, utilidad, fila) {
+    ws.getRow(fila).height = 24;
+
+    const cellA = ws.getCell(`A${fila}`);
+    cellA.value = tit.toUpperCase();
+    cellA.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    cellA.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF45423E' } }; // Fondo oscuro distinguible
+    cellA.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    const cellB = ws.getCell(`B${fila}`);
+    // 🔥 CORRECCIÓN CLAVE: Asigna el valor real de la utilidad calculada en lugar del acumulado de gastos
+    cellB.value = utilidad;
+    cellB.font = {
+        name: 'Arial',
+        size: 10,
+        bold: true,
+        color: { argb: utilidad >= 0 ? 'FFFFFFFF' : 'FFFF8A8A' } // Blanco si es positivo, Rojo suave si es negativo
+    };
+    cellB.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF45423E' } };
+    cellB.alignment = { vertical: 'middle', horizontal: 'right' };
+    cellB.numFmt = '"$"#,##0.00';
+
+    return fila + 1;
+}
 async function descargarArchivo(workbook, nombre) { const buffer = await workbook.xlsx.writeBuffer(); const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${nombre}.xlsx`; link.click(); }
