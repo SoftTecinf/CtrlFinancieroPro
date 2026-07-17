@@ -147,17 +147,33 @@ window.chartR = window.chartR || null;
 // ========================================================
 // --- AUXILIAR: NORMALIZADOR UNIVERSAL DE MOVIMIENTOS ---
 // ========================================================
-// Asegura que no importa si el dato viene de la API o del formulario local,
-// siempre tendrá las propiedades correctas y fechas limpias en formato YYYY-MM-DD.
 function normalizarMovimiento(m) {
     if (!m) return null;
     
-    // Forzar lectura limpia de la fecha
-    let fechaLimpia = "";
+    // Guardamos una copia exacta del dato de fecha original para tus formateadores de la app
+    const fechaOriginal = m.fecha;
+
+    // Crear un objeto Date nativo seguro para cálculos numéricos e internos
+    let dateObj = null;
     if (m.fecha) {
-        fechaLimpia = typeof m.fecha === 'string' ? m.fecha.split('T')[0] : new Date(m.fecha).toISOString().split('T')[0];
-    } else {
-        fechaLimpia = new Date().toISOString().split('T')[0];
+        dateObj = new Date(m.fecha);
+        
+        // Si el formato viene como texto es-MX "DD/MM/YYYY", new Date() podría fallar.
+        // Agregamos un salvavidas para reconstruirla limpiamente si contiene diagonales:
+        if (isNaN(dateObj.getTime()) && typeof m.fecha === 'string') {
+            const partesFecha = m.fecha.split('/');
+            if (partesFecha.length === 3) {
+                const dia = partesFecha[0].padStart(2, '0');
+                const mes = partesFecha[1].padStart(2, '0');
+                const anio = partesFecha[2];
+                dateObj = new Date(`${anio}-${mes}-${dia}T00:00:00`);
+            }
+        }
+    }
+
+    // Si la fecha sigue siendo inválida o no existía, usamos la fecha de hoy por defecto
+    if (!dateObj || isNaN(dateObj.getTime())) {
+        dateObj = new Date();
     }
 
     return {
@@ -166,7 +182,8 @@ function normalizarMovimiento(m) {
         tipo: m.tipo === 'ingreso' ? 'ingreso' : 'gasto',
         desc: (m.desc || m.concepto || "Sin concepto").trim(),
         cat: (m.cat || m.categoria || "Varios").trim(),
-        fecha: fechaLimpia
+        fechaOriginal: fechaOriginal, // Mandamos la original sin alterar a la UI
+        dateObj: dateObj              // Mandamos el objeto nativo para los cálculos
     };
 }
 
@@ -176,7 +193,6 @@ function normalizarMovimiento(m) {
 
 function actualizarHome() {
     try {
-        // 1. Obtener y normalizar la lista completa
         let rawDatos = window.AppState?.movimientos || [];
         if (rawDatos && !Array.isArray(rawDatos) && typeof rawDatos === 'object') {
             rawDatos = rawDatos.movimientos || Object.values(rawDatos);
@@ -185,42 +201,43 @@ function actualizarHome() {
 
         const datos = rawDatos.map(normalizarMovimiento).filter(Boolean);
 
-        const hoyStr = new Date().toISOString().split('T')[0];
         const ahora = new Date();
+        const hoyStr = ahora.toISOString().split('T')[0]; // "YYYY-MM-DD" del día de hoy
         let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-        // 2. Procesamiento de totales
         datos.forEach(m => {
             const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
             balG += val;
             
-            if (m.fecha === hoyStr) balD += val;
+            // Verificación del día de hoy usando el objeto nativo de manera segura
+            let mFechaStr = "";
+            try {
+                mFechaStr = m.dateObj.toISOString().split('T')[0];
+            } catch(e) {
+                mFechaStr = "";
+            }
+
+            if (mFechaStr === hoyStr) {
+                balD += val;
+            }
             
-            // Validar mes y año actual de forma segura sin romper por caracteres extraños
-            const partes = m.fecha.split('-');
-            if (partes.length >= 2) {
-                const anioMov = parseInt(partes[0], 10);
-                const mesMov = parseInt(partes[1], 10) - 1; // Base 0 en JS
-                if (mesMov === ahora.getMonth() && anioMov === ahora.getFullYear()) {
-                    if (m.tipo === 'ingreso') ingM += m.monto; 
-                    else gasM += m.monto;
-                }
+            // Verificación de mes y año actual nativo (Como funcionaba originalmente)
+            if (m.dateObj.getMonth() === ahora.getMonth() && m.dateObj.getFullYear() === ahora.getFullYear()) {
+                if (m.tipo === 'ingreso') ingM += m.monto; 
+                else gasM += m.monto;
             }
         });
 
-        // Formateador MXN de respaldo por si fMXN no está en el scope global
         const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
 
-        // Actualizar textos en el DOM de forma segura
         if (document.getElementById('balance-general')) document.getElementById('balance-general').innerText = fLocal(balG);
         if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
         if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
         if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
         
-        // Mantener la persistencia del estado global que otras vistas consumen
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
-        // 3. Render del gráfico Donut (chartHome)
+        // Renderizado del gráfico Donut corregido
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
             const ctx = canvasH.getContext('2d');
@@ -228,7 +245,8 @@ function actualizarHome() {
                 window.chartH.destroy();
                 window.chartH = null;
             }
-            // Si no hay datos en el mes, evita que el gráfico se dibuje vacío o cause división por cero
+            
+            // Si el mes no tiene transacciones todavía, dibuja un círculo gris neutral, de lo contrario tus colores estéticos
             const dataDonut = (ingM === 0 && gasM === 0) ? [1, 0] : [ingM, gasM];
             const colorsDonut = (ingM === 0 && gasM === 0) ? ['#E5E7EB', '#E5E7EB'] : ['#D6C7B3', '#45423E'];
 
@@ -247,7 +265,7 @@ function actualizarHome() {
             });
         }
 
-        // 4. Lista de transacciones recientes
+        // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
             listaH.innerHTML = '';
@@ -255,7 +273,9 @@ function actualizarHome() {
                 listaH.innerHTML = '<p class="opacity-30 text-center py-6 text-xs uppercase font-medium">Sin movimientos</p>';
             } else {
                 [...datos].reverse().slice(0, 10).forEach(m => {
-                    const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fecha) : m.fecha;
+                    // Usamos la fecha original exacta para que window.formatearFechaMX no devuelva error
+                    const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
+                    
                     listaH.innerHTML += `
                         <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
                             <div>
@@ -276,7 +296,6 @@ function actualizarHome() {
 
 function actualizarResumen() {
     try {
-        // Ejecutar filtros de manera segura
         let rawFiltrados = [];
         if (typeof obtenerMovimientosFiltrados === 'function') {
             rawFiltrados = obtenerMovimientosFiltrados() || [];
@@ -287,7 +306,6 @@ function actualizarResumen() {
         const filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
         let ing = 0, gas = 0;
 
-        // Calcular acumulados de forma prioritaria (independiente de la vista actual)
         filtrados.forEach(m => {
             if (m.tipo === 'ingreso') ing += m.monto; 
             else gas += m.monto;
@@ -299,14 +317,14 @@ function actualizarResumen() {
             document.getElementById('resumen-balance-total').innerText = fLocal(ing - gas);
         }
 
-        // Renderizado de la lista detallada si el contenedor está presente
         const contLista = document.getElementById('lista-resumen-periodo');
         if (contLista) {
             contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-30 text-center py-12 text-xs font-medium uppercase tracking-wider">Sin movimientos registrados en este período.</p>';
             
-            // Ordenar por fecha cronológica descendente de manera segura
-            [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-                const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fecha) : m.fecha;
+            // Ordenamos de forma cronológica por el objeto de tiempo nativo
+            [...filtrados].sort((a, b) => b.dateObj - a.dateObj).forEach(m => {
+                const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
+                
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50";
                 div.innerHTML = `
@@ -321,7 +339,6 @@ function actualizarResumen() {
             });
         }
         
-        // Render de Gráfico de Barras Comparativo (chartResumen)
         const canvasR = document.getElementById('chartResumen');
         if (canvasR) {
             const ctx = canvasR.getContext('2d');
