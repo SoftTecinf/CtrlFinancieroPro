@@ -195,62 +195,70 @@ function actualizarHome() {
     }
 }
 
+// 1. ANCLA GLOBAL: Aseguramos que la instancia del gráfico persista entre pestañas
+window.chartR = window.chartR || null;
+
 function actualizarResumen() {
-    // 1. Buscamos los elementos con seguridad
-    const elMes = document.getElementById('res-mes');
-    const elAnio = document.getElementById('res-año');
-
-    // Validación de seguridad: si no existen, no hacemos nada (evita el crash)
-    if (!elMes || !elAnio) return;
-
-    // Extraemos valores
-    const mesSeleccionado = parseInt(elMes.value); // El valor real del select
-    const añoSeleccionado = parseInt(elAnio.value);
-
-    // Filtro robusto: compara sin hacer cálculos matemáticos extras
-    const movsPeriodo = window.AppState.movimientos.filter(m => {
-        const d = new Date(m.fecha);
-        // Si tu fecha está en formato 'YYYY-MM-DD', cuidado con la zona horaria.
-        // Usar .getUTCMonth() o .getMonth() depende de cómo guardaste la fecha.
-        return d.getMonth() === mesSeleccionado && d.getFullYear() === añoSeleccionado;
-    });
-
-    // 3. Calcular Utilidad
-    const ingresos = movsPeriodo.filter(m => m.tipo === 'ingreso').reduce((acc, m) => acc + Number(m.monto), 0);
-    const gastos = movsPeriodo.filter(m => m.tipo === 'gasto').reduce((acc, m) => acc + Number(m.monto), 0);
-    const utilidad = ingresos - gastos;
-
-    // 4. Actualizar UI
-    const elBalance = document.getElementById('resumen-balance-total');
-    if (elBalance) {
-        elBalance.innerText = fMXN(utilidad);
-        elBalance.classList.toggle('text-rose-500', utilidad < 0);
-        elBalance.classList.toggle('text-stone-700', utilidad >= 0);
-    }
-
-    // 5. Renderizar Cronología (Validando que 'lista' exista)
-    const lista = document.getElementById('lista-resumen-periodo');
-    if (lista) {
-        let html = '';
-        movsPeriodo.forEach(m => {
-            html += `
-                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div>
-                        <p class="text-xs font-bold">${m.desc}</p>
-                        <p class="text-[9px] opacity-50">${window.formatearFechaMX(m.fecha)}</p>
-                    </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-emerald-600'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                    </span>
-                </div>`;
+    // Tu lógica original: Obtener movimientos ya filtrados por el estado de la app
+    const filtrados = obtenerMovimientosFiltrados();
+    let ing = 0, gas = 0;
+    
+    // 2. Limpiar y repoblar la lista de transacciones (Tu formato exacto)
+    const contLista = document.getElementById('lista-resumen-periodo');
+    if (contLista) {
+        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
+        
+        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
+            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
+                <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+            contLista.appendChild(div);
         });
-        lista.innerHTML = html || '<p class="text-xs text-center opacity-50">Sin movimientos en este periodo</p>';
+    } else {
+        // Respaldo por si la lista no está en el DOM pero necesitamos calcular los totales
+        filtrados.forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+        });
     }
 
-    // 6. Actualizar Gráfico
-    if (typeof window.actualizarGraficoResumen === 'function') {
-        window.actualizarGraficoResumen(movsPeriodo);
+    // 3. Actualizar la Utilidad del Periodo (Tu formato exacto)
+    const txtBalance = document.getElementById('resumen-balance-total');
+    if (txtBalance) {
+        txtBalance.innerText = fMXN(ing - gas);
     }
+
+    // 4. Renderizado Seguro del Gráfico de Barras Original
+    const canvas = document.getElementById('chartResumen');
+    if (!canvas) return; // Si el canvas limpio no ha nacido en el HTML nuevo, salimos pacíficamente
+
+    const ctx = canvas.getContext('2d');
+    
+    // TRUCO CLAVE: Destrucción usando la referencia global de ventana
+    if (window.chartR) {
+        window.chartR.destroy();
+    }
+
+    // Volvemos a instanciar el gráfico con tus estilos, colores y bordes originales
+    window.chartR = new Chart(ctx, { 
+        type: 'bar', 
+        data: { 
+            labels: ['Ingresos', 'Gastos'], 
+            datasets: [{ 
+                data: [ing, gas], 
+                backgroundColor: ['#D6C7B3', '#45423E'], // Tus hermosos colores originales
+                borderRadius: 8 
+            }] 
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false, // Permite amoldarse al contenedor de 300px
+            plugins: { legend: { display: false } }, 
+            scales: { y: { beginAtZero: true } } 
+        } 
+    });
 }
 
 function actualizarFechaHeader() {
