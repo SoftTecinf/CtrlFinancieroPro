@@ -137,63 +137,29 @@ async function eliminarMovimiento(id) {
 
 }
 
-async function agregarCategoria() {
-    const inputNombre = document.getElementById('nueva-cat-nombre');
-    const nom = inputNombre.value.trim().toUpperCase();
-    const tipo = document.getElementById('nueva-cat-tipo').value;
+function agregarCategoria() {
+    const inputCat = document.getElementById('nueva-cat-nombre');
+    const selectTipo = document.getElementById('nueva-cat-tipo');
+    if (!inputCat || !selectTipo) return;
 
-    if (!nom) return;
-
-    // 1. CREAMOS EL OBJETO DE MANERA OPTIMISTA
-    const nuevaCat = { id: Date.now(), nombre: nom, tipo };
-
-    // 2. ACTUALIZAMOS LA MEMORIA Y LA INTERFAZ AL INSTANTE (0 ms)
-    AppState.categorias.push(nuevaCat);
-    renderCategoriasConfig(); // Actualiza el DOM inmediatamente
-    inputNombre.value = '';   // Limpiamos el input
-
-    // 3. ENVIAMOS AL SERVIDOR EN SEGUNDO PLANO (No bloqueamos al usuario)
-    try {
-        const res = await FetchAPI("agregarCategoria", nuevaCat);
-
-        if (res.success) {
-            console.log("Categoría sincronizada con éxito en Google Sheets.");
-            // Opcional: Si el ID real viene de Google, podrías actualizarlo aquí, 
-            // pero para una lista simple, Date.now() es suficiente.
-        } else {
-            throw new Error(res.message);
-        }
-    } catch (error) {
-        // 4. REVERSIÓN SI FALLA (Manejo de errores)
-        console.error("Error al guardar, revirtiendo cambios...", error);
-        AppState.categorias = AppState.categorias.filter(c => c.id !== nuevaCat.id);
-        renderCategoriasConfig();
-        alert("Hubo un error al guardar en la nube. Intenta de nuevo.");
-    }
+    const nom = inputCat.value.trim().toUpperCase();
+    const tipo = selectTipo.value;
+    
+    if (!nom || !window.AppState) return;
+    
+    window.AppState.categorias.push({ id: Date.now(), nombre: nom, tipo });
+    localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
+    inputCat.value = '';
+    
+    if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
 }
 
-async function eliminarCategoria(id) {
-    if (!confirm("¿Deseas borrar esta categoría?")) return;
-
-    const estadoAnterior = [...AppState.categorias];
-    AppState.categorias = AppState.categorias.filter(c => c.id !== id);
-    renderCategoriasConfig();
-
-    try {
-        const res = await FetchAPI("eliminarCategoria", { id });
-
-        // 🔥 MODIFICACIÓN AQUÍ: Si res es null o no es lo que esperamos
-        if (!res || !res.success) {
-            console.error("Respuesta del servidor:", res); // <-- Mira esto en la consola
-            throw new Error(res ? res.message : "Error de conexión");
-        }
-    } catch (error) {
-        console.error("Error al eliminar:", error);
-        AppState.categorias = estadoAnterior;
-        renderCategoriasConfig();
-        // 🔥 AQUÍ VEREMOS EL ERROR REAL
-        alert("No se pudo eliminar: " + error.message);
-    }
+function eliminarCategoria(id) {
+    if (!window.AppState) return;
+    window.AppState.categorias = window.AppState.categorias.filter(c => c.id !== id);
+    localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
+    
+    if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
 }
 
 function borrarTodo() {
