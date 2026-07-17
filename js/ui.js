@@ -223,48 +223,65 @@ window.chartR = window.chartR || null;
 function actualizarResumen() {
     const filtrados = obtenerMovimientosFiltrados();
     let ing = 0, gas = 0;
+    
     const contLista = document.getElementById('lista-resumen-periodo');
-    if (!contLista) return;
-
-    contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-30 text-center py-12 text-xs font-medium uppercase tracking-wider">Sin movimientos registrados en este período.</p>';
-    
-    const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
-
-    filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-        if (m.tipo === 'ingreso') ing += m.monto; 
-        else gas += m.monto;
+    if (contLista) {
+        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
         
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50";
-        div.innerHTML = `
-            <div>
-                <p class="text-[11px] font-semibold text-stone-800">${m.desc.toUpperCase()}</p>
-                <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${m.cat} | ${m.fecha}</p>
+        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
+            
+            // 🔥 AQUÍ CONECTAMOS TU FORMATEADOR INTELLIGENTE:
+            div.innerHTML = `<div>
+                <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
             </div>
-            <span class="text-[11px] font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
-                ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
+            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
             </span>`;
-        contLista.appendChild(div);
-    });
-
-    if (document.getElementById('resumen-balance-total')) {
-        document.getElementById('resumen-balance-total').innerText = fLocal(ing - gas);
-    }
-    
-    // Gráfico de Barras Comparativo del Período Seleccionado
-    const canvasR = document.getElementById('chartResumen');
-    if (canvasR) {
-        const ctx = canvasR.getContext('2d');
-        if (window.chartR) window.chartR.destroy();
-        window.chartR = new Chart(ctx, { 
-            type: 'bar', 
-            data: { 
-                labels: ['Ingresos', 'Gastos'], 
-                datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 6 }] 
-            },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } 
+            
+            contLista.appendChild(div);
+        });
+    } else {
+        filtrados.forEach(m => {
+            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
         });
     }
+
+    const txtBalance = document.getElementById('resumen-balance-total');
+    if (txtBalance) {
+        txtBalance.innerText = fMXN(ing - gas);
+    }
+
+    const canvas = document.getElementById('chartResumen');
+    if (!canvas) return; 
+
+    const ctx = canvas.getContext('2d');
+    
+    if (window.chartR) {
+        window.chartR.destroy();
+    }
+
+    window.chartR = new Chart(ctx, { 
+        type: 'bar', 
+        data: { 
+            labels: ['Ingresos', 'Gastos'], 
+            datasets: [{ 
+                data: [ing, gas], 
+                backgroundColor: ['#D6C7B3', '#45423E'], 
+                borderRadius: 8 
+            }] 
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } }, 
+            scales: { y: { beginAtZero: true } } 
+        } 
+    });
 }
 
 function actualizarFechaHeader() {
