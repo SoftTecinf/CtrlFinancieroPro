@@ -265,7 +265,7 @@ window.actualizarGraficoDistribucion = function() {
     window.ultimaCarga = { i: ingresos, g: gastos };
 };
 
-// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (VERSION ULTRA RESISTENTE) ---
+// --- GRÁFICO 2: PANTALLA RESUMEN / ANÁLISIS (VERSIÓN DEFINITIVA) ---
 window.renderizarGraficoResumen = function() {
     console.log("📊 [Gráfico] Iniciando renderizado...");
     
@@ -287,38 +287,41 @@ window.renderizarGraficoResumen = function() {
     const todosLosMovimientos = window.AppState?.movimientos || [];
     console.log(`📦 [Gráfico] Total de movimientos en memoria: ${todosLosMovimientos.length}`);
 
-    // LOG DE DIAGNÓSTICO: Imprime los primeros movimientos para ver el formato real de tus fechas
-    if (todosLosMovimientos.length > 0) {
-        console.log("📝 [Gráfico] Muestra de formatos de fecha en memoria:");
-        todosLosMovimientos.slice(0, 3).forEach((m, idx) => {
-            console.log(`   -> Movimiento ${idx + 1}: Desc="${m.desc}", Fecha Original="${m.fecha}", Tipo=${typeof m.fecha}`);
-        });
-    }
-
-    // FUNCIÓN INTERNA: Convertidor inteligente (Soporta YYYY-MM-DD, DD/MM/YYYY y Date objects)
+    // FUNCIÓN INTERNA MEJORADA: Convertidor Híbrido Inteligente
     function parsearFechaSegura(fecha) {
         if (!fecha) return null;
+        
+        // Caso A: Ya es un objeto Date real
         if (fecha instanceof Date) {
             return { año: fecha.getFullYear(), mes: fecha.getMonth() };
         }
         
         const str = fecha.toString().trim();
-        const numeros = str.match(/\d+/g); // Extrae todos los números secuenciales
+        
+        // Paso 1: Intentamos conversión directa nativa (Ideal para "Tue Jul 14 2026...")
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+            return { 
+                año: d.getFullYear(), 
+                mes: d.getMonth() // Enero = 0, Julio = 6
+            };
+        }
+        
+        // Paso 2: Si el navegador falla (ej. con "14/07/2026"), extraemos manualmente
+        const numeros = str.match(/\d+/g);
         if (!numeros || numeros.length < 3) return null;
         
         let año, mes;
-        
-        // Si la fecha contiene diagonal "/" es formato Latino/US (ej: 14/07/2026)
         if (str.includes('/')) {
-            año = parseInt(numeros[2]); // El año está al final
-            mes = parseInt(numeros[1]) - 1; // El mes está en medio (Base 0 en JS)
+            // Formato DD/MM/YYYY
+            año = parseInt(numeros[2]);
+            mes = parseInt(numeros[1]) - 1;
         } else {
-            // De lo contrario, asumimos formato estándar ISO (ej: 2026-07-14)
-            año = parseInt(numeros[0]); // El año está al inicio
-            mes = parseInt(numeros[1]) - 1; // El mes está en medio
+            // Formato YYYY-MM-DD
+            año = parseInt(numeros[0]);
+            mes = parseInt(numeros[1]) - 1;
         }
         
-        // Corrección automática si el año viene abreviado a 2 dígitos (ej: "26" -> 2026)
         if (año < 100) año += 2000;
         
         return { año, mes };
@@ -340,14 +343,14 @@ window.renderizarGraficoResumen = function() {
         if (!mapaCategorias[nombreCat]) {
             mapaCategorias[nombreCat] = 0;
         }
-        // Math.abs convierte los gastos negativos (-5500) en positivos (5500) para graficar la dona
+        // Math.abs convierte los gastos negativos en positivos para que se puedan pintar en la dona
         mapaCategorias[nombreCat] += Math.abs(Number(m.monto) || 0);
     });
 
     const listaCategorias = Object.keys(mapaCategorias);
     const listaMontos = Object.values(mapaCategorias);
 
-    console.log("🏷️ [Gráfico] Categorías agrupadas:", listaCategorias);
+    console.log("🏷️ [Gráfico] Categorías agrupadas con éxito:", listaCategorias);
     console.log("💰 [Gráfico] Valores absolutos:", listaMontos);
 
     // Si el filtro quedó vacío, limpiamos el canvas y salimos
