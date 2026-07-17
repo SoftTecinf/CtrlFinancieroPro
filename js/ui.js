@@ -280,19 +280,26 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut con Seguro Anti-Borrado
+        // 3. Render del gráfico Donut Anti-Colisiones
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            if (window.chartH) {
-                window.chartH.destroy();
-                window.chartH = null;
+            // Cancelamos cualquier intento previo de renderizado si la función se llama en ráfaga
+            if (window.timerChartH) {
+                clearTimeout(window.timerChartH);
             }
 
-            setTimeout(() => {
-                // CORREGIDO: Ahora el nombre coincide exactamente arriba y abajo
+            // Guardamos el temporizador en una variable global de control
+            window.timerChartH = setTimeout(() => {
                 const canvasValidado = document.getElementById('chartHome');
-                if (!canvasValidado) return; 
+                if (!canvasValidado) return;
+                
+                // 🔥 LA CLAVE DE LA CONSOLA: Destruir la instancia vieja JUSTO AQUÍ, 
+                // un milisegundo antes de pintar la nueva para evitar el error "Canvas is already in use"
+                if (window.chartH && typeof window.chartH.destroy === 'function') {
+                    window.chartH.destroy();
+                    window.chartH = null;
+                }
                 
                 const ctx = canvasValidado.getContext('2d');
                 
@@ -311,7 +318,7 @@ function actualizarHome() {
                         }] 
                     }, 
                     options: { 
-                        cutout: '75%', 
+                        cutout: '75%', // 👈 Si quieres el anillo más grueso, cámbialo aquí por '60%' o '50%'
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { 
@@ -320,9 +327,9 @@ function actualizarHome() {
                         } 
                     } 
                 });
-            }, 50); 
+            }, 60); // 60ms para dar estabilidad total entre ejecuciones consecutivas
         }
-        
+
         // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
