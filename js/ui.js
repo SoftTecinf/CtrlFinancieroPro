@@ -195,15 +195,12 @@ function actualizarHome() {
     }
 }
 
-// 1. ANCLA GLOBAL: Aseguramos que la instancia del gráfico persista entre pestañas
 window.chartR = window.chartR || null;
 
 function actualizarResumen() {
-    // Tu lógica original: Obtener movimientos ya filtrados por el estado de la app
     const filtrados = obtenerMovimientosFiltrados();
     let ing = 0, gas = 0;
     
-    // 2. Limpiar y repoblar la lista de transacciones (Tu formato exacto)
     const contLista = document.getElementById('lista-resumen-periodo');
     if (contLista) {
         contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
@@ -213,48 +210,51 @@ function actualizarResumen() {
             
             const div = document.createElement('div');
             div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            div.innerHTML = `<div><p class="text-[10px] font-semibold">${m.desc}</p><p class="text-[8px] opacity-40 uppercase">${m.cat} | ${m.fecha}</p></div>
-                <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}</span>`;
+            
+            // 🔥 AQUÍ CONECTAMOS TU FORMATEADOR INTELLIGENTE:
+            div.innerHTML = `<div>
+                <p class="text-xs font-semibold uppercase">${m.desc}</p>
+                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
+            </div>
+            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+            </span>`;
+            
             contLista.appendChild(div);
         });
     } else {
-        // Respaldo por si la lista no está en el DOM pero necesitamos calcular los totales
         filtrados.forEach(m => {
             if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
         });
     }
 
-    // 3. Actualizar la Utilidad del Periodo (Tu formato exacto)
     const txtBalance = document.getElementById('resumen-balance-total');
     if (txtBalance) {
         txtBalance.innerText = fMXN(ing - gas);
     }
 
-    // 4. Renderizado Seguro del Gráfico de Barras Original
     const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; // Si el canvas limpio no ha nacido en el HTML nuevo, salimos pacíficamente
+    if (!canvas) return; 
 
     const ctx = canvas.getContext('2d');
     
-    // TRUCO CLAVE: Destrucción usando la referencia global de ventana
     if (window.chartR) {
         window.chartR.destroy();
     }
 
-    // Volvemos a instanciar el gráfico con tus estilos, colores y bordes originales
     window.chartR = new Chart(ctx, { 
         type: 'bar', 
         data: { 
             labels: ['Ingresos', 'Gastos'], 
             datasets: [{ 
                 data: [ing, gas], 
-                backgroundColor: ['#D6C7B3', '#45423E'], // Tus hermosos colores originales
+                backgroundColor: ['#D6C7B3', '#45423E'], 
                 borderRadius: 8 
             }] 
         },
         options: { 
             responsive: true,
-            maintainAspectRatio: false, // Permite amoldarse al contenedor de 300px
+            maintainAspectRatio: false, 
             plugins: { legend: { display: false } }, 
             scales: { y: { beginAtZero: true } } 
         } 
