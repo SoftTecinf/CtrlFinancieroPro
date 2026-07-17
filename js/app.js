@@ -270,17 +270,17 @@ function refrescarVistaActual() {
         actualizarResumen(); // Esta función procesa tus textos y datos numéricos
     }
 
-    // 3. Gráficos
+// 3. Gráficos
     requestAnimationFrame(() => {
+        // Ejecuta el gráfico de la pantalla principal si existe el elemento
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
 
-        // 🔥 AGREGA ESTA LÍNEA AQUÍ
-        // Reemplaza 'renderizarGraficoResumen' por el nombre real de tu función de dibujo
-        if (seccionId === 'nav-resumen' && typeof renderizarGraficoResumen === 'function') {
-            // Pasamos los datos del estado global que correspondan
-            renderizarGraficoResumen(window.AppState.movimientos); 
+        // 🔥 EJECUTA EL GRÁFICO DE RESUMEN
+        // Al ser autónoma, sólo la llamamos si la función existe en el entorno
+        if (typeof window.renderizarGraficoResumen === 'function') {
+            window.renderizarGraficoResumen(); 
         }
     });
 }
