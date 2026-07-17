@@ -1,8 +1,15 @@
-// 🔥 INYECTOR GLOBAL DE EMERGENCIA para evitar el ReferenceError
+// 🔥 INYECTORES GLOBALES DE EMERGENCIA (Evitan ReferenceError en cascada)
 Object.defineProperty(window, 'seccionActual', {
     get: function() {
-        // Lee dinámicamente la sección activa que guardamos en showSection
         return localStorage.getItem('ultima_seccion') || 'home';
+    },
+    configurable: true
+});
+
+Object.defineProperty(window, 'movimientos', {
+    get: function() {
+        // Enlaza la variable suelta directamente con el AppState global
+        return window.AppState?.movimientos || [];
     },
     configurable: true
 });
