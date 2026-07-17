@@ -185,12 +185,14 @@ async function showSection(sectionId) {
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
-                        inicializarFuncionesPorSeccion(sectionId);
-                        refrescarVistaActual(); // Mover aquí para pintar con datos frescos de la red
+                        inicializarFuncionesPorSeccion(sectionId); // Llena selects de categorías con datos nuevos
+                        refrescarVistaActual(); 
                         if (typeof toggleLoading === 'function') toggleLoading(false);
                     });
                 } else {
-                    // Si ya hay datos en AppState, mandamos llamar el refresco para pintarlos en el HTML nuevo
+                    // 🔥 CORRECCIÓN AQUÍ: Aunque los datos ya existan en caché, 
+                    // debemos volver a llenar los selects de categorías del nuevo HTML
+                    inicializarFuncionesPorSeccion(sectionId); 
                     refrescarVistaActual(); 
                     if (typeof toggleLoading === 'function') toggleLoading(false);
                 }
