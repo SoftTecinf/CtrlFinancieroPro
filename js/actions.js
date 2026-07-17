@@ -196,12 +196,7 @@ async function eliminarCategoria(id) {
     }
 }
 
-function borrarTodo() {
-    if (confirm("⚠️ ¿Estás completamente seguro de borrar TODO el historial y las configuraciones del sistema? Esta acción no se puede deshacer.")) { 
-        localStorage.clear(); 
-        location.reload(); 
-    }
-}
+
 
 function prepararEdicion(id, tipo) {
     const mov = AppState.movimientos.find(m => m.id === id);
