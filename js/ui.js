@@ -140,157 +140,225 @@ function editMode(id, active) {
     }
 }*/
 
-function actualizarHome() {
-    // 1. LEEMOS Y NORMALIZAMOS DATOS
-    let datos = AppState.movimientos || [];
-    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
-        datos = datos.movimientos || Object.values(datos);
+// Variables globales seguras para los gráficos
+window.chartH = window.chartH || null;
+window.chartR = window.chartR || null;
+
+// ========================================================
+// --- AUXILIAR: NORMALIZADOR UNIVERSAL DE MOVIMIENTOS ---
+// ========================================================
+// Asegura que no importa si el dato viene de la API o del formulario local,
+// siempre tendrá las propiedades correctas y fechas limpias en formato YYYY-MM-DD.
+function normalizarMovimiento(m) {
+    if (!m) return null;
+    
+    // Forzar lectura limpia de la fecha
+    let fechaLimpia = "";
+    if (m.fecha) {
+        fechaLimpia = typeof m.fecha === 'string' ? m.fecha.split('T')[0] : new Date(m.fecha).toISOString().split('T')[0];
+    } else {
+        fechaLimpia = new Date().toISOString().split('T')[0];
     }
-    if (!Array.isArray(datos)) datos = [];
 
-    if (datos.length === 0) return;
+    return {
+        id: m.id || "",
+        monto: parseFloat(m.monto) || 0,
+        tipo: m.tipo === 'ingreso' ? 'ingreso' : 'gasto',
+        desc: (m.desc || m.concepto || "Sin concepto").trim(),
+        cat: (m.cat || m.categoria || "Varios").trim(),
+        fecha: fechaLimpia
+    };
+}
 
-    // 2. CÁLCULOS
-    const hoyStr = new Date().toISOString().split('T')[0]; // "2026-07-16"
-    const ahora = new Date();
-    let balG = 0, balD = 0, ingM = 0, gasM = 0;
+// ========================================================
+// --- ACTUALIZACIÓN EN TIEMPO REAL DE DASHBOARDS (UI) ---
+// ========================================================
 
-    datos.forEach(m => {
-        if (!m || typeof m.monto === 'undefined') return;
-
-        const monto = parseFloat(m.monto) || 0;
-        const val = m.tipo === 'ingreso' ? monto : -monto;
-        balG += val;
-
-        // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
-        // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
-        const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
-
-        if (fechaMov === hoyStr) {
-            balD += val;
+function actualizarHome() {
+    try {
+        // 1. Obtener y normalizar la lista completa
+        let rawDatos = window.AppState?.movimientos || [];
+        if (rawDatos && !Array.isArray(rawDatos) && typeof rawDatos === 'object') {
+            rawDatos = rawDatos.movimientos || Object.values(rawDatos);
         }
+        if (!Array.isArray(rawDatos)) rawDatos = [];
 
-        // --- CÁLCULO MES ACTUAL ---
-        const mF = new Date(m.fecha);
-        if (!isNaN(mF.getTime()) && mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-            if (m.tipo === 'ingreso') ingM += monto;
-            else gasM += monto;
-        }
-    });
+        const datos = rawDatos.map(normalizarMovimiento).filter(Boolean);
 
-    // 3. ACTUALIZACIÓN INTELIGENTE DE TEXTOS
-    const updates = [
-        { id: 'balance-general', val: fMXN(balG) },
-        { id: 'balance-dia', val: fMXN(balD) }, // Ahora balD debería sumar correctamente
-        { id: 'home-ingresos', val: fMXN(ingM) },
-        { id: 'home-gastos', val: fMXN(gasM) }
-    ];
+        const hoyStr = new Date().toISOString().split('T')[0];
+        const ahora = new Date();
+        let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
-    updates.forEach(item => {
-        const el = document.getElementById(item.id);
-        if (el && el.innerText !== item.val) el.innerText = item.val;
-    });
-
-    // 4. ACTUALIZAR ESTADO GLOBAL
-    window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
-
-    // 5. LISTA RECIENTE
-    const listaH = document.getElementById('lista-recientes');
-    if (listaH) {
-        const ultimosMovs = [...datos].reverse().slice(0, 10);
-        let nuevoHtml = '';
-        ultimosMovs.forEach(m => {
-            nuevoHtml += `
-                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
-                    <div>
-                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                        <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
-                    </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                    </span>
-                </div>`;
+        // 2. Procesamiento de totales
+        datos.forEach(m => {
+            const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
+            balG += val;
+            
+            if (m.fecha === hoyStr) balD += val;
+            
+            // Validar mes y año actual de forma segura sin romper por caracteres extraños
+            const partes = m.fecha.split('-');
+            if (partes.length >= 2) {
+                const anioMov = parseInt(partes[0], 10);
+                const mesMov = parseInt(partes[1], 10) - 1; // Base 0 en JS
+                if (mesMov === ahora.getMonth() && anioMov === ahora.getFullYear()) {
+                    if (m.tipo === 'ingreso') ingM += m.monto; 
+                    else gasM += m.monto;
+                }
+            }
         });
 
-        if (listaH.innerHTML !== nuevoHtml) {
-            listaH.innerHTML = nuevoHtml;
+        // Formateador MXN de respaldo por si fMXN no está en el scope global
+        const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
+
+        // Actualizar textos en el DOM de forma segura
+        if (document.getElementById('balance-general')) document.getElementById('balance-general').innerText = fLocal(balG);
+        if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
+        if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
+        if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
+        
+        // Mantener la persistencia del estado global que otras vistas consumen
+        window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
+
+        // 3. Render del gráfico Donut (chartHome)
+        const canvasH = document.getElementById('chartHome');
+        if (canvasH) {
+            const ctx = canvasH.getContext('2d');
+            if (window.chartH) {
+                window.chartH.destroy();
+                window.chartH = null;
+            }
+            // Si no hay datos en el mes, evita que el gráfico se dibuje vacío o cause división por cero
+            const dataDonut = (ingM === 0 && gasM === 0) ? [1, 0] : [ingM, gasM];
+            const colorsDonut = (ingM === 0 && gasM === 0) ? ['#E5E7EB', '#E5E7EB'] : ['#D6C7B3', '#45423E'];
+
+            window.chartH = new Chart(ctx, { 
+                type: 'doughnut', 
+                data: { 
+                    labels: ['Ingresos', 'Gastos'], 
+                    datasets: [{ data: dataDonut, backgroundColor: colorsDonut }] 
+                }, 
+                options: { 
+                    cutout: '75%', 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } } 
+                } 
+            });
         }
+
+        // 4. Lista de transacciones recientes
+        const listaH = document.getElementById('lista-recientes');
+        if (listaH) {
+            listaH.innerHTML = '';
+            if (datos.length === 0) {
+                listaH.innerHTML = '<p class="opacity-30 text-center py-6 text-xs uppercase font-medium">Sin movimientos</p>';
+            } else {
+                [...datos].reverse().slice(0, 10).forEach(m => {
+                    const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fecha) : m.fecha;
+                    listaH.innerHTML += `
+                        <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
+                            <div>
+                                <p class="text-xs font-semibold uppercase text-stone-800">${m.desc}</p>
+                                <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${fechaFormateada} | ${m.cat}</p>
+                            </div>
+                            <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
+                                ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
+                            </span>
+                        </div>`;
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Error crítico en actualizarHome:", error);
     }
 }
 
-window.chartR = window.chartR || null;
-
 function actualizarResumen() {
-    const filtrados = obtenerMovimientosFiltrados();
-    let ing = 0, gas = 0;
-    
-    const contLista = document.getElementById('lista-resumen-periodo');
-    if (contLista) {
-        contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-20 text-center py-10 text-sm">Sin movimientos.</p>';
-        
-        filtrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
-            
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white";
-            
-            // 🔥 AQUÍ CONECTAMOS TU FORMATEADOR INTELLIGENTE:
-            div.innerHTML = `<div>
-                <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
-            </div>
-            <span class="text-[10px] font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-            </span>`;
-            
-            contLista.appendChild(div);
-        });
-    } else {
+    try {
+        // Ejecutar filtros de manera segura
+        let rawFiltrados = [];
+        if (typeof obtenerMovimientosFiltrados === 'function') {
+            rawFiltrados = obtenerMovimientosFiltrados() || [];
+        } else {
+            rawFiltrados = window.AppState?.movimientos || [];
+        }
+
+        const filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
+        let ing = 0, gas = 0;
+
+        // Calcular acumulados de forma prioritaria (independiente de la vista actual)
         filtrados.forEach(m => {
-            if(m.tipo === 'ingreso') ing += m.monto; else gas += m.monto;
+            if (m.tipo === 'ingreso') ing += m.monto; 
+            else gas += m.monto;
         });
+
+        const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
+
+        if (document.getElementById('resumen-balance-total')) {
+            document.getElementById('resumen-balance-total').innerText = fLocal(ing - gas);
+        }
+
+        // Renderizado de la lista detallada si el contenedor está presente
+        const contLista = document.getElementById('lista-resumen-periodo');
+        if (contLista) {
+            contLista.innerHTML = filtrados.length ? '' : '<p class="opacity-30 text-center py-12 text-xs font-medium uppercase tracking-wider">Sin movimientos registrados en este período.</p>';
+            
+            // Ordenar por fecha cronológica descendente de manera segura
+            [...filtrados].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+                const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fecha) : m.fecha;
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50";
+                div.innerHTML = `
+                    <div>
+                        <p class="text-[11px] font-semibold text-stone-800">${m.desc.toUpperCase()}</p>
+                        <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${m.cat} | ${fechaFormateada}</p>
+                    </div>
+                    <span class="text-[11px] font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
+                    </span>`;
+                contLista.appendChild(div);
+            });
+        }
+        
+        // Render de Gráfico de Barras Comparativo (chartResumen)
+        const canvasR = document.getElementById('chartResumen');
+        if (canvasR) {
+            const ctx = canvasR.getContext('2d');
+            if (window.chartR) {
+                window.chartR.destroy();
+                window.chartR = null;
+            }
+            window.chartR = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: ['Ingresos', 'Gastos'], 
+                    datasets: [{ data: [ing, gas], backgroundColor: ['#D6C7B3', '#45423E'], borderRadius: 6 }] 
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { beginAtZero: true } } 
+                } 
+            });
+        }
+    } catch (error) {
+        console.error("Error crítico en actualizarResumen:", error);
     }
-
-    const txtBalance = document.getElementById('resumen-balance-total');
-    if (txtBalance) {
-        txtBalance.innerText = fMXN(ing - gas);
-    }
-
-    const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; 
-
-    const ctx = canvas.getContext('2d');
-    
-    if (window.chartR) {
-        window.chartR.destroy();
-    }
-
-    window.chartR = new Chart(ctx, { 
-        type: 'bar', 
-        data: { 
-            labels: ['Ingresos', 'Gastos'], 
-            datasets: [{ 
-                data: [ing, gas], 
-                backgroundColor: ['#D6C7B3', '#45423E'], 
-                borderRadius: 8 
-            }] 
-        },
-        options: { 
-            responsive: true,
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false } }, 
-            scales: { y: { beginAtZero: true } } 
-        } 
-    });
 }
 
 function actualizarFechaHeader() {
-    const el = document.getElementById('fecha-sistema');
-    if (!el) return; // Candado de seguridad por si no está en la pantalla actual
-
-    const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const fecha = new Date().toLocaleDateString('es-MX', opciones);
-    el.innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+    try {
+        const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const fecha = new Date().toLocaleDateString('es-MX', opciones);
+        const headerEl = document.getElementById('fecha-sistema');
+        if (headerEl) {
+            headerEl.innerText = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 function toggleLoading(show) {
