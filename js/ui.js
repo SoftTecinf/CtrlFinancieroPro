@@ -303,33 +303,53 @@ function actualizarHome() {
                     window.chartH = null;
                 }
 
+// ... (dentro de tu setTimeout)
                 const ctx = canvasValidado.getContext('2d');
                 
-                const hayDatos = (ingresosFinales > 0 || gastosFinales > 0);
-                const dataDonut = hayDatos ? [ingresosFinales, gastosFinales] : [1, 1];
-                const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
-
+                // Valores asegurados
+                const ingresos = ingresosFinales;
+                const gastos = gastosFinales;
+                
+                // Mapeo explícito de colores para evitar que se pierdan
+                // Si quieres cambiar el tono, solo modifica estos dos valores:
+                const COLOR_INGRESO = '#D6C7B3'; // El tono claro
+                const COLOR_GASTO = '#45423E';   // El tono oscuro
+                
+                const hayDatos = (ingresos > 0 || gastos > 0);
+                
+                // Construcción forzada del dataset
                 window.chartH = new Chart(ctx, { 
                     type: 'doughnut', 
                     data: { 
                         labels: ['Ingresos', 'Gastos'], 
                         datasets: [{ 
-                            data: dataDonut, 
-                            backgroundColor: colorsDonut,
-                            borderWidth: 0 
+                            data: hayDatos ? [ingresos, gastos] : [1, 1], 
+                            backgroundColor: hayDatos ? [COLOR_INGRESO, COLOR_GASTO] : ['#E5E7EB', '#E5E7EB'],
+                            borderWidth: 0,
+                            hoverOffset: 4
                         }] 
                     }, 
                     options: { 
-                        cutout: '75%', // Recuerda que puedes cambiar este valor a tu gusto estético (ej: '65%')
+                        cutout: '75%', 
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { 
                             legend: { display: false },
-                            tooltip: { enabled: hayDatos }
+                            tooltip: { 
+                                enabled: hayDatos,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) label += ': ';
+                                        label += fLocal(context.parsed);
+                                        return label;
+                                    }
+                                }
+                            }
                         } 
                     } 
                 });
-            }, 50); 
+                // ...            }, 50); 
         }
 
         // Lista de transacciones recientes
