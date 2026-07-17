@@ -244,13 +244,14 @@ function actualizarHome() {
         const datos = rawDatos.map(normalizarMovimiento).filter(Boolean);
 
         const ahora = new Date();
-        const hoyStr = ahora.toISOString().split('T')[0]; 
+        const hoyStr = ahora.toISOString().split('T')[0]; // "YYYY-MM-DD" del día de hoy
         let balG = 0, balD = 0, ingM = 0, gasM = 0;
 
         datos.forEach(m => {
             const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
             balG += val;
 
+            // Verificación del día de hoy usando el objeto nativo de manera segura
             let mFechaStr = "";
             try {
                 mFechaStr = m.dateObj.toISOString().split('T')[0];
@@ -262,6 +263,7 @@ function actualizarHome() {
                 balD += val;
             }
 
+            // Verificación de mes y año actual nativo (Como funcionaba originalmente)
             if (m.dateObj.getMonth() === ahora.getMonth() && m.dateObj.getFullYear() === ahora.getFullYear()) {
                 if (m.tipo === 'ingreso') ingM += m.monto;
                 else gasM += m.monto;
@@ -278,55 +280,34 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut (BLINDADO Y SIN ERRORES)
+        // 3. Render del gráfico Donut con Seguro Anti-Borrado
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            // 1. Si la función se vuelve a llamar antes de 50ms, cancelamos el temporizador anterior
-            if (window.homeChartTimer) {
-                clearTimeout(window.homeChartTimer);
+            if (window.chartH) {
+                window.chartH.destroy();
+                window.chartH = null;
             }
 
-            // 2. Congelamos los valores numéricos actuales para el entorno asíncrono
-            const ingresosFinales = ingM;
-            const gastosFinales = gasM;
-
-            // 3. Iniciamos el nuevo temporizador único
-            window.homeChartTimer = setTimeout(() => {
+            setTimeout(() => {
+                // CORREGIDO: Ahora el nombre coincide exactamente arriba y abajo
                 const canvasValidado = document.getElementById('chartHome');
                 if (!canvasValidado) return; 
                 
-                // 🔥 LA SOLUCIÓN: Destruir el gráfico anterior JUSTO AQUÍ adentro, 
-                // una línea antes de crear el nuevo para que Chart.js no choque
-                if (window.chartH && typeof window.chartH.destroy === 'function') {
-                    window.chartH.destroy();
-                    window.chartH = null;
-                }
-
-// ... (dentro de tu setTimeout)
                 const ctx = canvasValidado.getContext('2d');
                 
-                // Valores asegurados
-                const ingresos = ingresosFinales;
-                const gastos = gastosFinales;
-                
-                // Mapeo explícito de colores para evitar que se pierdan
-                // Si quieres cambiar el tono, solo modifica estos dos valores:
-                const COLOR_INGRESO = '#D6C7B3'; // El tono claro
-                const COLOR_GASTO = '#45423E';   // El tono oscuro
-                
-                const hayDatos = (ingresos > 0 || gastos > 0);
-                
-                // Construcción forzada del dataset
+                const hayDatos = (ingM > 0 || gasM > 0);
+                const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
+                const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
+
                 window.chartH = new Chart(ctx, { 
                     type: 'doughnut', 
                     data: { 
                         labels: ['Ingresos', 'Gastos'], 
                         datasets: [{ 
-                            data: hayDatos ? [ingresos, gastos] : [1, 1], 
-                            backgroundColor: hayDatos ? [COLOR_INGRESO, COLOR_GASTO] : ['#E5E7EB', '#E5E7EB'],
-                            borderWidth: 0,
-                            hoverOffset: 4
+                            data: dataDonut, 
+                            backgroundColor: colorsDonut,
+                            borderWidth: 0 
                         }] 
                     }, 
                     options: { 
@@ -335,24 +316,13 @@ function actualizarHome() {
                         maintainAspectRatio: false,
                         plugins: { 
                             legend: { display: false },
-                            tooltip: { 
-                                enabled: hayDatos,
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.label || '';
-                                        if (label) label += ': ';
-                                        label += fLocal(context.parsed);
-                                        return label;
-                                    }
-                                }
-                            }
+                            tooltip: { enabled: hayDatos }
                         } 
                     } 
                 });
-                // ...            }, 50); 
+            }, 50); 
         }
-
-        // Lista de transacciones recientes
+        // Lista de transacciones recientes reparada
         const listaH = document.getElementById('lista-recientes');
         if (listaH) {
             listaH.innerHTML = '';
@@ -360,6 +330,7 @@ function actualizarHome() {
                 listaH.innerHTML = '<p class="opacity-30 text-center py-6 text-xs uppercase font-medium">Sin movimientos</p>';
             } else {
                 [...datos].reverse().slice(0, 10).forEach(m => {
+                    // Usamos la fecha original exacta para que window.formatearFechaMX no devuelva error
                     const fechaFormateada = typeof window.formatearFechaMX === 'function' ? window.formatearFechaMX(m.fechaOriginal) : m.dateObj.toLocaleDateString('es-MX');
 
                     listaH.innerHTML += `
