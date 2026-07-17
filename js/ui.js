@@ -141,80 +141,66 @@ function editMode(id, active) {
 }*/
 
 function actualizarHome() {
-    // 1. LEEMOS Y NORMALIZAMOS DATOS
-    let datos = AppState.movimientos || [];
-    if (datos && !Array.isArray(datos) && typeof datos === 'object') {
-        datos = datos.movimientos || Object.values(datos);
-    }
-    if (!Array.isArray(datos)) datos = [];
-
-    if (datos.length === 0) return;
-
-    // 2. CÁLCULOS
-    const hoyStr = new Date().toISOString().split('T')[0]; // "2026-07-16"
+    const hoyStr = new Date().toISOString().split('T')[0];
     const ahora = new Date();
     let balG = 0, balD = 0, ingM = 0, gasM = 0;
+    
+    const listaMovimientos = window.AppState?.movimientos || [];
 
-    datos.forEach(m => {
-        if (!m || typeof m.monto === 'undefined') return;
-
-        const monto = parseFloat(m.monto) || 0;
-        const val = m.tipo === 'ingreso' ? monto : -monto;
+    listaMovimientos.forEach(m => {
+        const val = m.tipo === 'ingreso' ? m.monto : -m.monto;
         balG += val;
-
-        // --- NORMALIZACIÓN SEGURA PARA EL BALANCE DEL DÍA ---
-        // Esto convierte cualquier formato de fecha de Google Sheets a "YYYY-MM-DD"
-        const fechaMov = new Date(m.fecha).toISOString().split('T')[0];
-
-        if (fechaMov === hoyStr) {
-            balD += val;
-        }
-
-        // --- CÁLCULO MES ACTUAL ---
-        const mF = new Date(m.fecha);
-        if (!isNaN(mF.getTime()) && mF.getMonth() === ahora.getMonth() && mF.getFullYear() === ahora.getFullYear()) {
-            if (m.tipo === 'ingreso') ingM += monto;
-            else gasM += monto;
+        
+        if (m.fecha === hoyStr) balD += val;
+        
+        if (m.fecha) {
+            const partes = m.fecha.split('-');
+            if (parseInt(partes[1]) - 1 === ahora.getMonth() && parseInt(partes[0]) === ahora.getFullYear()) {
+                if (m.tipo === 'ingreso') ingM += m.monto; 
+                else gasM += m.monto;
+            }
         }
     });
 
-    // 3. ACTUALIZACIÓN INTELIGENTE DE TEXTOS
-    const updates = [
-        { id: 'balance-general', val: fMXN(balG) },
-        { id: 'balance-dia', val: fMXN(balD) }, // Ahora balD debería sumar correctamente
-        { id: 'home-ingresos', val: fMXN(ingM) },
-        { id: 'home-gastos', val: fMXN(gasM) }
-    ];
+    // Formateador MXN local seguro
+    const fLocal = (v) => typeof fMXN === 'function' ? fMXN(v) : `$${v.toFixed(2)}`;
 
-    updates.forEach(item => {
-        const el = document.getElementById(item.id);
-        if (el && el.innerText !== item.val) el.innerText = item.val;
-    });
+    if (document.getElementById('balance-general')) document.getElementById('balance-general').innerText = fLocal(balG);
+    if (document.getElementById('balance-dia')) document.getElementById('balance-dia').innerText = fLocal(balD);
+    if (document.getElementById('home-ingresos')) document.getElementById('home-ingresos').innerText = fLocal(ingM);
+    if (document.getElementById('home-gastos')) document.getElementById('home-gastos').innerText = fLocal(gasM);
+    
+    // Donut de Resumen Mensual en Home
+    const canvasH = document.getElementById('chartHome');
+    if (canvasH) {
+        const ctx = canvasH.getContext('2d');
+        if (window.chartH) window.chartH.destroy();
+        window.chartH = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Ingresos', 'Gastos'], 
+                datasets: [{ data: [ingM, gasM], backgroundColor: ['#D6C7B3', '#E5E7EB'] }] 
+            }, 
+            options: { cutout: '75%', plugins: { legend: { display: false } } } 
+        });
+    }
 
-    // 4. ACTUALIZAR ESTADO GLOBAL
-    window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
-
-    // 5. LISTA RECIENTE
+    // Lista de las 10 transacciones más recientes
     const listaH = document.getElementById('lista-recientes');
     if (listaH) {
-        const ultimosMovs = [...datos].reverse().slice(0, 10);
-        let nuevoHtml = '';
-        ultimosMovs.forEach(m => {
-            nuevoHtml += `
-                <div class="flex justify-between items-center p-3 bg-gray-50/50 rounded-xl border border-white">
+        listaH.innerHTML = '';
+        [...listaMovimientos].reverse().slice(0, 10).forEach(m => {
+            listaH.innerHTML += `
+                <div class="flex justify-between items-center p-3 bg-stone-50/60 rounded-xl border border-white transition hover:bg-stone-50">
                     <div>
-                        <p class="text-xs font-semibold uppercase">${m.desc}</p>
-                        <p class="text-[8px] opacity-40 uppercase">${window.formatearFechaMX(m.fecha)} | ${m.cat}</p>
+                        <p class="text-xs font-semibold uppercase text-stone-800">${m.desc}</p>
+                        <p class="text-[9px] text-stone-400 font-medium uppercase mt-0.5">${m.fecha}</p>
                     </div>
-                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                        ${m.tipo === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    <span class="text-xs font-bold ${m.tipo === 'gasto' ? 'text-rose-500' : 'text-stone-700'}">
+                        ${m.tipo === 'gasto' ? '-' : '+'}${fLocal(m.monto)}
                     </span>
                 </div>`;
         });
-
-        if (listaH.innerHTML !== nuevoHtml) {
-            listaH.innerHTML = nuevoHtml;
-        }
     }
 }
 
