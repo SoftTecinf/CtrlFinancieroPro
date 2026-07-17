@@ -110,43 +110,38 @@ async function showSection(sectionId) {
     if (typeof toggleLoading === 'function') toggleLoading(true);
 
     try {
-        // 2. Fetch del HTML
+        // 2. Fetch del HTML de la sección
         const response = await fetch(`${sectionId}.html`);
         if (!response.ok) throw new Error("Error de carga");
         const html = await response.text();
 
         // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
-        refrescarVistaActual();
-        // 4. Inyectamos el esqueleto (HTML) UNA SOLA VEZ
+        
+        // CORRECCIÓN: Primero inyectamos el HTML limpio en el DOM
         container.innerHTML = html;
 
-        // 5. Renderizado final
-        // Usamos requestAnimationFrame para asegurar que el navegador procesó el DOM
+        // 4. Renderizado final y repoblación de datos
         requestAnimationFrame(() => {
 
             // A. Recuperar nombre de usuario
             const userDisplayEl = document.getElementById('user-display');
             if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
 
-            // B. Re-iniciamos filtros
+            // B. Re-iniciamos filtros generales de la UI
             if (typeof inicializarFiltros === 'function') inicializarFiltros();
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
-            // C. Lógica específica por sección
+            // C. Lógica específica por sección (Respetando el Estado Global)
             if (sectionId === 'home') {
-                // 1. Ejecutamos la lógica de refresco
                 inicializarFuncionesPorSeccion(sectionId);
-
-                // 2. FORZAMOS EL DIBUJO DEL GRÁFICO AQUÍ MISMO
-                // Resetemos la bandera de carga para obligar a dibujar aunque el objeto crea que ya lo hizo
                 window.ultimaCarga = { i: -1, g: -1 };
 
                 setTimeout(() => {
                     if (typeof actualizarGraficoDistribucion === 'function') {
                         actualizarGraficoDistribucion();
                     }
-                }, 200); // 200ms es un tiempo seguro para que el navegador ya haya "pintado" el canvas
+                }, 200);
             }
             else if (sectionId === 'ingresos') {
                 const inputFecha = document.getElementById('in-fecha');
@@ -154,26 +149,32 @@ async function showSection(sectionId) {
 
                 const mesSel = document.getElementById('in-mes');
                 if (mesSel) {
-                    mesSel.value = new Date().getMonth();
-                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                    // MODIFICADO: Lee el mes del estado global, NO el mes del sistema actual
+                    mesSel.value = AppState.filtrosActuales.mes;
                 }
                 inicializarFuncionesPorSeccion(sectionId);
             }
             else if (sectionId === 'gastos') {
-                // ESTE BLOQUE ES PARA GASTOS
                 const inputFecha = document.getElementById('ex-fecha');
                 if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
 
                 const mesSel = document.getElementById('ex-mes');
                 if (mesSel) {
-                    mesSel.value = new Date().getMonth();
-                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                    // MODIFICADO: Lee el mes del estado global, NO el mes del sistema actual
+                    mesSel.value = AppState.filtrosActuales.mes;
+                }
+                inicializarFuncionesPorSeccion(sectionId);
+            }
+            else if (sectionId === 'resumen' || sectionId === 'analisis') {
+                // Bloque explícito para asegurar que la sección de análisis se sincronice al entrar
+                const mesSel = document.getElementById('res-mes');
+                if (mesSel) {
+                    mesSel.value = AppState.filtrosActuales.mes;
                 }
                 inicializarFuncionesPorSeccion(sectionId);
             }
 
-            // D. SINCRONIZACIÓN DE DATOS
-            // Definimos las variables AQUÍ, en el mismo nivel que el resto de la función showSection
+            // D. SINCRONIZACIÓN Y DIBUJO DE DATOS
             const movs = AppState.movimientos || [];
             const cats = AppState.categorias || [];
 
@@ -181,17 +182,16 @@ async function showSection(sectionId) {
             const faltanCategorias = (cats.length === 0);
 
             setTimeout(() => {
-                // Usamos las variables que ya declaramos arriba de forma segura
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
-                        // Solo renderizamos UNA VEZ cuando ya tenemos los datos frescos
                         inicializarFuncionesPorSeccion(sectionId);
+                        refrescarVistaActual(); // Mover aquí para pintar con datos frescos de la red
                         if (typeof toggleLoading === 'function') toggleLoading(false);
                     });
                 } else {
-                    // Si ya estaban cargados, renderizamos normal
-                    inicializarFuncionesPorSeccion(sectionId);
+                    // Si ya hay datos en AppState, mandamos llamar el refresco para pintarlos en el HTML nuevo
+                    refrescarVistaActual(); 
                     if (typeof toggleLoading === 'function') toggleLoading(false);
                 }
             }, 150);
