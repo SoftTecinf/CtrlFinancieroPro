@@ -115,23 +115,93 @@ async function showSection(sectionId) {
         if (!response.ok) throw new Error("Error de carga");
         const html = await response.text();
 
-        // Control de concurrencia
+        // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
-
-        // 3. ¡CORRECCIÓN CRÍTICA!: Inyectamos el HTML PRIMERO
+        refrescarVistaActual();
+        // 4. Inyectamos el esqueleto (HTML) UNA SOLA VEZ
         container.innerHTML = html;
 
-        // 4. Ahora que el DOM existe, actualizamos la interfaz
-        actualizarFechaHeader(); 
-        
-        // Ejecutamos la lógica de la sección
-        inicializarFuncionesPorSeccion(sectionId);
+        // 5. Renderizado final
+        // Usamos requestAnimationFrame para asegurar que el navegador procesó el DOM
+        requestAnimationFrame(() => {
 
-        if (typeof toggleLoading === 'function') toggleLoading(false);
+            // A. Recuperar nombre de usuario
+            const userDisplayEl = document.getElementById('user-display');
+            if (userDisplayEl) userDisplayEl.innerText = localStorage.getItem('session_userName') || 'Soporte';
+
+            // B. Re-iniciamos filtros
+            if (typeof inicializarFiltros === 'function') inicializarFiltros();
+            if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
+
+            // C. Lógica específica por sección
+            if (sectionId === 'home') {
+                // 1. Ejecutamos la lógica de refresco
+                inicializarFuncionesPorSeccion(sectionId);
+
+                // 2. FORZAMOS EL DIBUJO DEL GRÁFICO AQUÍ MISMO
+                // Resetemos la bandera de carga para obligar a dibujar aunque el objeto crea que ya lo hizo
+                window.ultimaCarga = { i: -1, g: -1 };
+
+                setTimeout(() => {
+                    if (typeof actualizarGraficoDistribucion === 'function') {
+                        actualizarGraficoDistribucion();
+                    }
+                }, 200); // 200ms es un tiempo seguro para que el navegador ya haya "pintado" el canvas
+            }
+            else if (sectionId === 'ingresos') {
+                const inputFecha = document.getElementById('in-fecha');
+                if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+
+                const mesSel = document.getElementById('in-mes');
+                if (mesSel) {
+                    mesSel.value = new Date().getMonth();
+                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                }
+                inicializarFuncionesPorSeccion(sectionId);
+            }
+            else if (sectionId === 'gastos') {
+                // ESTE BLOQUE ES PARA GASTOS
+                const inputFecha = document.getElementById('ex-fecha');
+                if (inputFecha) inputFecha.value = new Date().toISOString().split('T')[0];
+
+                const mesSel = document.getElementById('ex-mes');
+                if (mesSel) {
+                    mesSel.value = new Date().getMonth();
+                    AppState.filtrosActuales.mes = parseInt(mesSel.value);
+                }
+                inicializarFuncionesPorSeccion(sectionId);
+            }
+
+            // D. SINCRONIZACIÓN DE DATOS
+            // Definimos las variables AQUÍ, en el mismo nivel que el resto de la función showSection
+            const movs = AppState.movimientos || [];
+            const cats = AppState.categorias || [];
+
+            const faltanMovimientos = (movs.length === 0);
+            const faltanCategorias = (cats.length === 0);
+
+            setTimeout(() => {
+                // Usamos las variables que ya declaramos arriba de forma segura
+                if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
+                    inicializarSincronizacion().then(() => {
+                        AppState.cargado = true;
+                        // Solo renderizamos UNA VEZ cuando ya tenemos los datos frescos
+                        inicializarFuncionesPorSeccion(sectionId);
+                        if (typeof toggleLoading === 'function') toggleLoading(false);
+                    });
+                } else {
+                    // Si ya estaban cargados, renderizamos normal
+                    inicializarFuncionesPorSeccion(sectionId);
+                    if (typeof toggleLoading === 'function') toggleLoading(false);
+                }
+            }, 150);
+        });
 
     } catch (error) {
-        console.error("Error al cargar:", error);
-        if (typeof toggleLoading === 'function') toggleLoading(false);
+        if (loadId === currentLoadId) {
+            console.error("Error al cargar la sección:", error);
+            if (typeof toggleLoading === 'function') toggleLoading(false);
+        }
     }
 }
 
