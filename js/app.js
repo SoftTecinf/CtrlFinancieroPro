@@ -117,7 +117,7 @@ async function showSection(sectionId) {
 
         // 3. Control de concurrencia
         if (loadId !== currentLoadId) return;
-        
+
         // CORRECCIÓN: Primero inyectamos el HTML limpio en el DOM
         container.innerHTML = html;
 
@@ -186,14 +186,14 @@ async function showSection(sectionId) {
                     inicializarSincronizacion().then(() => {
                         AppState.cargado = true;
                         inicializarFuncionesPorSeccion(sectionId); // Llena selects de categorías con datos nuevos
-                        refrescarVistaActual(); 
+                        refrescarVistaActual();
                         if (typeof toggleLoading === 'function') toggleLoading(false);
                     });
                 } else {
                     // 🔥 CORRECCIÓN AQUÍ: Aunque los datos ya existan en caché, 
                     // debemos volver a llenar los selects de categorías del nuevo HTML
-                    inicializarFuncionesPorSeccion(sectionId); 
-                    refrescarVistaActual(); 
+                    inicializarFuncionesPorSeccion(sectionId);
+                    refrescarVistaActual();
                     if (typeof toggleLoading === 'function') toggleLoading(false);
                 }
             }, 150);
@@ -251,7 +251,7 @@ function refrescarVistaActual() {
 
     if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
-    } 
+    }
     else if (seccionId === 'nav-gastos') {
         // Actualizamos filtros de estado desde los selects
         const m = document.getElementById('ex-mes');
@@ -260,27 +260,27 @@ function refrescarVistaActual() {
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
-    } 
+    }
     else if (seccionId === 'nav-resumen') {
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
-        
+
         actualizarResumen(); // Esta función procesa tus textos y datos numéricos
     }
 
-// 3. Gráficos
+    // 3. Gráficos en refrescarVistaActual
     requestAnimationFrame(() => {
-        // Ejecuta el gráfico de la pantalla principal si existe el elemento
         if (typeof window.actualizarGraficoDistribucion === 'function') {
             window.actualizarGraficoDistribucion();
         }
 
-        // 🔥 EJECUTA EL GRÁFICO DE RESUMEN
-        // Al ser autónoma, sólo la llamamos si la función existe en el entorno
-        if (typeof window.renderizarGraficoResumen === 'function') {
-            window.renderizarGraficoResumen(); 
+        // 🔥 LLAMADA A TU FUNCIÓN RESTAURADA
+        if (seccionId === 'resumen' || seccionId === 'analisis' || seccionId === 'nav-resumen') {
+            if (typeof actualizarResumen === 'function') {
+                actualizarResumen();
+            }
         }
     });
 }
