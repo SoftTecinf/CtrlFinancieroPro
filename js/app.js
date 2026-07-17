@@ -238,6 +238,17 @@ function inicializarFuncionesPorSeccion(sectionId) {
 }
 
 function refrescarVistaActual() {
+    // 🔥 ACTUALIZAR FECHA DE LA CABECERA (Evita que desaparezca con F5 en Análisis)
+    // Nota: Busca en tu HTML el ID exacto del span/p que acompaña al texto "HOLA, SOPORTE"
+    const contenedorFecha = document.getElementById('header-fecha') || 
+                            document.getElementById('fecha-actual') || 
+                            document.getElementById('txt-fecha');
+    
+    if (contenedorFecha) {
+        const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        contenedorFecha.innerText = new Date().toLocaleDateString('es-MX', opciones).toUpperCase();
+    }
+
     // 1. SIEMPRE actualizar los indicadores globales (Home, Hoy, Ingresos/Gastos Mes)
     if (typeof actualizarHome === 'function') {
         actualizarHome();
@@ -277,7 +288,7 @@ function refrescarVistaActual() {
             window.actualizarGraficoDistribucion();
         }
 
-        // 🔥 LADO DE ANÁLISIS: Llama a tu formato original de barras
+        // LADO DE ANÁLISIS: Llama a tu formato original de barras
         if (seccionId === 'resumen' || seccionId === 'analisis' || seccionId === 'nav-resumen') {
             if (typeof window.actualizarResumen === 'function') {
                 window.actualizarResumen();
