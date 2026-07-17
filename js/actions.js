@@ -419,6 +419,7 @@ function obtenerMovimientosFiltrados() {
         async function exportarFiltradoXLSX(tipo) {
             const ahora = new Date();
             const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo);
+            alert(filtrados);
             if (!filtrados.length) return alert("Sin movimientos.");
             const { mes, año } = obtenerPeriodoActual();
             const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
