@@ -195,34 +195,30 @@ function actualizarHome() {
     }
 }
 
-let miChartResumenInstance = null;
+function actualizarResumen() {
+    // 1. Buscamos los elementos con seguridad
+    const elMes = document.getElementById('res-mes');
+    const elAnio = document.getElementById('res-año');
 
-function renderizarGraficoResumen(datosFiltrados) {
-    const canvas = document.getElementById('chartResumen');
-    if (!canvas) return; // Si el canvas no está en el DOM actual, salimos
+    // Validación de seguridad: si no existen, no hacemos nada (evita el crash)
+    if (!elMes || !elAnio) return;
 
-    const ctx = canvas.getContext('2d');
+    // Extraemos valores
+    const mesSeleccionado = parseInt(elMes.value); // El valor real del select
+    const añoSeleccionado = parseInt(elAnio.value);
 
-    // 2. ¡EL TRUCO CLAVE!: Si ya existía un gráfico en memoria, lo destruimos
-    if (miChartResumenInstance !== null) {
-        miChartResumenInstance.destroy(); 
-    }
-
-    // 3. Creamos el gráfico desde cero en el NUEVO elemento canvas
-    miChartResumenInstance = new Chart(ctx, {
-        type: 'doughnut', // O el tipo de gráfico que estés usando (bar, line, etc.)
-        data: {
-            labels: datosFiltrados.categorias,
-            datasets: [{
-                data: datosFiltrados.montos,
-                backgroundColor: ['#4F46E5', '#10B981', '#EF4444', '#F59E0B']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
+    // Filtro robusto: compara sin hacer cálculos matemáticos extras
+    const movsPeriodo = window.AppState.movimientos.filter(m => {
+        const d = new Date(m.fecha);
+        // Si tu fecha está en formato 'YYYY-MM-DD', cuidado con la zona horaria.
+        // Usar .getUTCMonth() o .getMonth() depende de cómo guardaste la fecha.
+        return d.getMonth() === mesSeleccionado && d.getFullYear() === añoSeleccionado;
     });
+
+    // 3. Calcular Utilidad
+    const ingresos = movsPeriodo.filter(m => m.tipo === 'ingreso').reduce((acc, m) => acc + Number(m.monto), 0);
+    const gastos = movsPeriodo.filter(m => m.tipo === 'gasto').reduce((acc, m) => acc + Number(m.monto), 0);
+    const utilidad = ingresos - gastos;
 
     // 4. Actualizar UI
     const elBalance = document.getElementById('resumen-balance-total');
