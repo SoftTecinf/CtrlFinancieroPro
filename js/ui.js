@@ -280,43 +280,53 @@ function actualizarHome() {
         window.EstadoFinanciero = { ingresos: ingM, gastos: gasM };
 
         // ==========================================
-        // 3. Render del gráfico Donut (CONTROL TOTAL)
+        // 3. Render del gráfico Donut (CONTROL TOTAL + INDICADORES)
         // ==========================================
         const canvasH = document.getElementById('chartHome');
         if (canvasH) {
-            // 🔥 SOLUCIÓN DEFINITIVA: Buscar si ya existe una instancia de gráfico en este canvas
-            // Chart.getChart es la API oficial de Chart.js para recuperar el gráfico existente
+            // Limpieza robusta del canvas
             const chartExistente = Chart.getChart(canvasH);
-            if (chartExistente) {
-                chartExistente.destroy();
-            }
+            if (chartExistente) chartExistente.destroy();
 
-            // Ahora que el lienzo está garantizado como libre, dibujamos
             const ctx = canvasH.getContext('2d');
-            
-            const hayDatos = (ingM > 0 || gasM > 0);
-            const dataDonut = hayDatos ? [ingM, gasM] : [1, 1];
-            const colorsDonut = hayDatos ? ['#D6C7B3', '#45423E'] : ['#E5E7EB', '#E5E7EB'];
 
-            window.chartH = new Chart(ctx, { 
-                type: 'doughnut', 
-                data: { 
-                    labels: ['Ingresos', 'Gastos'], 
-                    datasets: [{ 
-                        data: dataDonut, 
-                        backgroundColor: colorsDonut,
-                        borderWidth: 0 
-                    }] 
-                }, 
-                options: { 
-                    cutout: '75%', 
+            const hayDatos = (ingM > 0 || gasM > 0);
+            // Colores fijos para que no se pierdan los indicadores
+            const COLOR_INGRESO = '#D6C7B3';
+            const COLOR_GASTO = '#45423E';
+
+            window.chartH = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ingresos', 'Gastos'],
+                    datasets: [{
+                        data: hayDatos ? [ingM, gasM] : [1, 1],
+                        backgroundColor: hayDatos ? [COLOR_INGRESO, COLOR_GASTO] : ['#E5E7EB', '#E5E7EB'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
+                    plugins: {
                         legend: { display: false },
-                        tooltip: { enabled: hayDatos }
-                    } 
-                } 
+                        tooltip: {
+                            enabled: hayDatos,
+                            callbacks: {
+                                // Aquí recuperamos los indicadores de valor
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    // Usamos la misma función de formateo que tenías arriba
+                                    const valor = context.parsed;
+                                    label += typeof fMXN === 'function' ? fMXN(valor) : `$${valor.toFixed(2)}`;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
