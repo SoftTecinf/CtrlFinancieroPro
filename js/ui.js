@@ -3,13 +3,13 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // Leemos directo del DOM si existen los inputs para evitar que falle el filtro
+    // Obtenemos los valores directo de los inputs del DOM
     const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
-    const domInicio = document.getElementById(`${pref}-fecha-inicio`)?.value;
-    const domFin = document.getElementById(`${pref}-fecha-fin`)?.value;
+    const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
+    const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
-    const fechaInicioStr = domInicio || AppState.filtrosActuales?.inicio || '';
-    const fechaFinStr = domFin || AppState.filtrosActuales?.fin || '';
+    const fechaInicioStr = inputInicio?.value || AppState.filtrosActuales?.inicio || '';
+    const fechaFinStr = inputFin?.value || AppState.filtrosActuales?.fin || '';
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
@@ -17,6 +17,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
+        // Limpiamos la fecha del movimiento para extraer solo YYYY-MM-DD
         const fechaMovStr = m.fecha.split('T')[0];
 
         if (fechaInicioStr && fechaFinStr) {
@@ -527,33 +528,34 @@ function inicializarFiltros() {
         if (inputInicio && inputFin) {
             if (!inputInicio.value) inputInicio.value = primerDiaMes;
             if (!inputFin.value) inputFin.value = fechaHoySistema;
-
-            // Usamos 'input' además de 'change' para que actúe en tiempo real al mover fechas
-            const dispararRefresco = () => {
-                if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
-                AppState.filtrosActuales.inicio = inputInicio.value;
-                AppState.filtrosActuales.fin = inputFin.value;
-                
-                if (typeof refrescarVistaActual === 'function') {
-                    refrescarVistaActual();
-                } else {
-                    if (typeof actualizarResumen === 'function') actualizarResumen();
-                }
-            };
-
-            inputInicio.removeEventListener('input', dispararRefresco);
-            inputFin.removeEventListener('input', dispararRefresco);
-
-            inputInicio.addEventListener('input', dispararRefresco);
-            inputFin.addEventListener('input', dispararRefresco);
-            inputInicio.addEventListener('change', dispararRefresco);
-            inputFin.addEventListener('change', dispararRefresco);
         }
     });
 
     if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
     if (!AppState.filtrosActuales.inicio) AppState.filtrosActuales.inicio = primerDiaMes;
     if (!AppState.filtrosActuales.fin) AppState.filtrosActuales.fin = fechaHoySistema;
+
+    // --- AQUÍ COLOCAS EL ESCUCHADOR GENERAL PARA LOS INPUTS DE FECHA ---
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.addEventListener('change', () => {
+            if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
+            
+            // Sincronizamos el valor con AppState según el input que se mueva
+            const prefijoInput = input.id.split('-')[0]; // 'in' o 'ex'
+            if (input.id.includes('inicio')) {
+                AppState.filtrosActuales.inicio = input.value;
+            } else if (input.id.includes('fin')) {
+                AppState.filtrosActuales.fin = input.value;
+            }
+
+            // Refrescamos la vista activa
+            if (typeof refrescarVistaActual === 'function') {
+                refrescarVistaActual();
+            } else if (typeof actualizarResumen === 'function') {
+                actualizarResumen();
+            }
+        });
+    });
 }
 
 function formatCurrency(input, hiddenId) {
