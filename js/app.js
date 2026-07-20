@@ -302,7 +302,7 @@ function refrescarVistaActual() {
 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
-    else if (seccionId === 'nav-resumen') {
+    else if (seccionId === 'nav-analisis' || seccionId === 'nav-resumen') {
         const inputInicio = document.getElementById('an-fecha-inicio');
         const inputFin = document.getElementById('an-fecha-fin');
 
