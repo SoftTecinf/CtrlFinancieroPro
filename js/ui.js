@@ -3,18 +3,63 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // Filtramos directamente por el tipo de movimiento de forma exacta
+    // 1. Obtenemos las fechas seleccionadas en los inputs de arriba
+    const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
+    const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
+    const inputFin = document.getElementById(`${pref}-fecha-fin`);
+
+    // Valores por defecto si los inputs están vacíos (mes actual)
+    const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+    const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
+    const diaActual = String(hoy.getDate()).padStart(2, '0');
+    
+    const defectoInicio = `${añoActual}-${mesActual}-01`;
+    const defectoFin = `${añoActual}-${mesActual}-${diaActual}`;
+
+    if (inputInicio && !inputInicio.value) inputInicio.value = defectoInicio;
+    if (inputFin && !inputFin.value) inputFin.value = defectoFin;
+
+    const fechaInicioStr = inputInicio ? inputInicio.value : defectoInicio;
+    const fechaFinStr = inputFin ? inputFin.value : defectoFin;
+
+    // 2. Filtramos estrictamente por tipo Y por rango de fechas
     const filtrados = todosLosMovimientos.filter(m => {
+        if (!m.fecha) return false;
+
         const tipoMov = (m.tipo || '').toLowerCase().trim();
-        return tipoMov === tipoNormalizado;
+        if (tipoMov !== tipoNormalizado) return false;
+
+        // Extraemos la fecha del movimiento en formato YYYY-MM-DD de forma segura
+        let fechaMovStr = '';
+        if (typeof m.fecha === 'string') {
+            fechaMovStr = m.fecha.split('T')[0];
+        } else {
+            const d = new Date(m.fecha);
+            if (!isNaN(d.getTime())) {
+                const y = d.getFullYear();
+                const mo = String(d.getMonth() + 1).padStart(2, '0');
+                const da = String(d.getDate()).padStart(2, '0');
+                fechaMovStr = `${y}-${mo}-${da}`;
+            } else {
+                fechaMovStr = String(m.fecha).substring(0, 10);
+            }
+        }
+
+        // Aplicamos la validación del rango de fechas
+        if (fechaInicioStr && fechaFinStr) {
+            return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
+        }
+
+        return true;
     }).reverse();
 
-    // Actualizamos el contador usando el ID real de la vista
+    // 3. Actualizamos el contador con el número de elementos filtrados
     const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
     const countEl = document.getElementById(realCountId) || document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // Apuntamos al contenedor real descubierto ('lista-ingresos' o 'lista-gastos')
+    // 4. Renderizamos el resultado en el contenedor correspondiente
     const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
     const cont = document.getElementById(realContId) || document.getElementById(contId);
     
