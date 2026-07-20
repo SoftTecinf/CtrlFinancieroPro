@@ -72,6 +72,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     cont.innerHTML = htmlAcumulado;
 }
+
 function actualizarSelectsCategorias() {
     const inSel = document.getElementById('in-categoria');
     const exSel = document.getElementById('ex-categoria');
