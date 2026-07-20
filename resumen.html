@@ -1,10 +1,17 @@
 <section id="sec-resumen">
     <div class="flex flex-wrap justify-end items-center mb-6 gap-2">
-        <div class="toolbar-group">
-            <select id="res-mes" onchange="refrescarVistaActual()"
-                class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
-            <select id="res-año" onchange="refrescarVistaActual()"
-                class="bg-white px-3 py-2 rounded-lg text-[10px] font-bold shadow-sm border-none"></select>
+        <!-- Filtros de fecha estándar -->
+        <div class="flex items-center gap-3">
+            <div class="flex items-center bg-white border rounded-xl px-3 py-2 shadow-sm">
+                <span class="text-[10px] font-bold text-stone-400 mr-2 uppercase">Del:</span>
+                <input type="date" id="an-fecha-inicio"
+                    class="text-xs bg-transparent outline-none font-semibold text-stone-700">
+            </div>
+            <div class="flex items-center bg-white border rounded-xl px-3 py-2 shadow-sm">
+                <span class="text-[10px] font-bold text-stone-400 mr-2 uppercase">Al:</span>
+                <input type="date" id="an-fecha-fin"
+                    class="text-xs bg-transparent outline-none font-semibold text-stone-700">
+            </div>
         </div>
         <button onclick="generarLibroContable()" class="btn-export">📊 Generar Reporte Financiero</button>
     </div>
