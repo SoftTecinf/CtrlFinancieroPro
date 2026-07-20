@@ -27,7 +27,6 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
-        // Extracción segura de la fecha sin importar si es string con T, objeto o timestamp
         let fechaMovStr = '';
         if (typeof m.fecha === 'string') {
             fechaMovStr = m.fecha.split('T')[0];
@@ -50,10 +49,15 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         return true;
     }).reverse();
 
-    const countEl = document.getElementById(countId);
+    // Buscamos el contador usando el ID real que arrojó la consola (count-in / count-ex) o el que se pasó por parámetro
+    const realCountId = document.getElementById(`count-${pref}`) ? `count-${pref}` : countId;
+    const countEl = document.getElementById(realCountId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    const cont = document.getElementById(contId);
+    // Buscamos el contenedor de la lista de forma flexible
+    const realContId = document.getElementById(`lista-${tipoNormalizado}s`) ? `lista-${tipoNormalizado}s` : contId;
+    const cont = document.getElementById(realContId) || document.querySelector('#app-container div:not(:empty)');
+    
     if (!cont) return;
 
     if (filtrados.length === 0) {
