@@ -444,44 +444,44 @@ async function generarLibroContable() {
 
 async function exportarFiltradoXLSX(tipo) {
     const ahora = new Date();
-    const mesActual = ahora.getMonth(); // 0-11
-    const añoActual = ahora.getFullYear();
-    const diaActual = ahora.getDate();
+    
+    // 1. Obtener el mes y año seleccionados en los filtros de la interfaz
+    const { mes, año } = obtenerPeriodoActual(); 
+    // Nota: 'mes' suele ser un número de 0 a 11 (0 = Enero, 6 = Julio, etc.) o el índice correspondiente.
 
-    // 1. Obtener todos los movimientos y filtrar estrictamente por tipo, año y mes actual del sistema
+    // 2. Obtener todos los movimientos y filtrar por tipo, mes y año del filtro
     const todosLosMovimientos = obtenerMovimientosFiltrados();
     
     const filtrados = todosLosMovimientos.filter(m => {
-        // Asumiendo que m.fecha viene en formato tipo "DD/MM/YYYY" o similar, 
-        // o si ya es un objeto Date / string analizable:
-        const partesFecha = m.fecha.split('/'); // Si es formato DD/MM/YYYY
+        // Asumiendo formato de fecha "DD/MM/YYYY" en tus movimientos
+        const partesFecha = m.fecha.split('/'); 
         const diaM = parseInt(partesFecha[0], 10);
         const mesM = parseInt(partesFecha[1], 10) - 1; // Ajustar mes JS (0-11)
         const añoM = parseInt(partesFecha[2], 10);
 
         const esDelTipo = m.tipo.toLowerCase() === tipo.toLowerCase();
-        const esDelMesActual = (mesM === mesActual && añoM === añoActual);
         
-        // Opcional: Si solo quieres hasta la fecha actual exacta del sistema
-        const esHastaHoy = añoM < añoActual || (añoM === añoActual && mesM < mesActual) || (añoM === añoActual && mesM === mesActual && diaM <= diaActual);
+        // Rango: Todo el mes seleccionado en el filtro (desde el día 1 en adelante para ese mes y año)
+        const esDelMesSeleccionado = (añoM === año && mesM === mes);
 
-        return esDelTipo && esDelMesActual && esHastaHoy;
+        return esDelTipo && esDelMesSeleccionado;
     });
 
-    console.warn("Entra a exportar cantidad de registros filtrados: " + filtrados.length);
-    if (!filtrados.length) return alert("Sin movimientos para el periodo actual.");
-
+    console.warn(`Entra a exportar registros para ${mesesSelected = mes} de ${año}: ` + filtrados.length);
+    
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    if (!filtrados.length) return alert(`Sin movimientos para ${meses[mes]} de ${año}.`);
+
     const workbook = new ExcelJS.Workbook();
     const ws = workbook.addWorksheet('Detalle');
     let filaFil = 1;
 
     filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
-    filaFil = Encabezado(ws, "PERIODO DE " + meses[mesActual] + " " + añoActual, filaFil);
+    filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
     filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
     filaFil++;
     
-    // Corregido: Usar la variable 'tipo' en lugar de quemar 'gasto'
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(ws, filtrados);
     }
@@ -490,7 +490,7 @@ async function exportarFiltradoXLSX(tipo) {
     // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
     // ==========================================
     if (typeof descargarArchivo === 'function') {
-        descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mesActual] + "_" + añoActual);
+        descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + "_" + año);
     } else {
         console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
     }
