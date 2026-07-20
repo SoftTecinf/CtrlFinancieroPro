@@ -125,7 +125,7 @@ function editMode(id, active) {
     }
 }
 
-function saveEdit(id) {
+async function saveEdit(id) {
     try {
         const inputEl = document.getElementById(`input-${id}`);
         if (!inputEl) return;
@@ -139,19 +139,34 @@ function saveEdit(id) {
         if (index !== -1) {
             const nombreAnterior = window.AppState.categorias[index].nombre;
 
-            if (nombreAnterior === nuevoNombre) return;
+            if (nombreAnterior === nuevoNombre) {
+                // Si es exactamente igual, simplemente salimos del modo edición
+                if (typeof abrirVistaAjustesInteligente === 'function') abrirVistaAjustesInteligente();
+                return;
+            }
 
             // 2. Actualizar el nombre en el catálogo de categorías local
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
 
-            // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS (Lo que faltaba)
-            // Asegúrate de cambiar 'actualizarCategoriaEnNube' por el nombre de la función 
-            // que usas en tu proyecto para mandar datos a Google Apps Script.
-            if (typeof actualizarCategoriaEnNube === 'function') {
-                actualizarCategoriaEnNube(id, nuevoNombre);
-            } else if (typeof sincronizarConGoogle === 'function') {
-                sincronizarConGoogle();
+            // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "actualizarCategoria",
+                        id: id,
+                        nombre: nuevoNombre
+                    })
+                });
+                const resultado = await response.json();
+                if (resultado.success) {
+                    console.log("✅ Categoría actualizada en la nube correctamente.");
+                } else {
+                    console.error("❌ Error en la nube:", resultado.message);
+                }
+            } catch (error) {
+                console.error("❌ Error de red al sincronizar con Google Sheets:", error);
             }
 
             // 4. EL ESCUDO EN CASCADA: Actualizar movimientos existentes en memoria
@@ -169,11 +184,18 @@ function saveEdit(id) {
                 });
             }
 
-            // 5. Forzar el redibujado inmediato y seguro de la UI
+            // 5. Restablecer la variable global de edición para que regresen los botones principales
+            if (typeof editandoId !== 'undefined') {
+                editandoId = null;
+            }
+
+            // 6. Forzar el redibujado inmediato y seguro de la UI y los ajustes
+            if (typeof abrirVistaAjustesInteligente === 'function') abrirVistaAjustesInteligente();
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof actualizarResumen === 'function') actualizarResumen();
 
             console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
+            
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
             }
