@@ -443,6 +443,7 @@ async function generarLibroContable() {
 }
 
 async function exportarFiltradoXLSX(tipo) {
+    console.warn("Entra a exportar");
     const ahora = new Date();
     const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo);
     if (!filtrados.length) return alert("Sin movimientos.");
