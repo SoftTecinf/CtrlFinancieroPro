@@ -225,13 +225,12 @@ async function agregarCategoria() {
 async function eliminarCategoria(id) {
     if (!window.AppState) return;
 
-    // 1. Encontrar la categoría antes de borrarla para verificar si tiene movimientos o informar en consola
     const categoriaAEliminar = window.AppState.categorias.find(c => String(c.id) === String(id));
     if (!categoriaAEliminar) return;
 
     const nombreCat = categoriaAEliminar.nombre;
 
-    // 🛑 VALIDACIÓN OPCIONAL: Evitar borrar si hay movimientos que usen esta categoría
+    // Validación: Evitar borrar si hay movimientos asociados
     const tieneMovimientos = window.AppState.movimientos && window.AppState.movimientos.some(m => {
         if (!m) return false;
         const catMov = (m.cat || m.categoria || "").trim().toUpperCase();
@@ -239,7 +238,7 @@ async function eliminarCategoria(id) {
     });
 
     if (tieneMovimientos) {
-        alert(`No se puede eliminar la categoría "${nombreCat}" porque tiene movimientos de ingresos/gastos asociados.`);
+        alert(`No se puede eliminar la categoría "${nombreCat}" porque tiene movimientos asociados.`);
         return;
     }
 
@@ -247,17 +246,12 @@ async function eliminarCategoria(id) {
         return;
     }
 
-    // 2. Filtrar localmente el estado y actualizar el almacenamiento
+    // 1. Filtrar localmente el estado y actualizar almacenamiento
     window.AppState.categorias = window.AppState.categorias.filter(c => String(c.id) !== String(id));
     localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
-    
-    if (typeof guardarEstadoGlobal === 'function') {
-        guardarEstadoGlobal();
-    } else {
-        localStorage.setItem('financiero_state', JSON.stringify(window.AppState));
-    }
+    localStorage.setItem('financiero_state', JSON.stringify(window.AppState));
 
-    // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
+    // 2. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -276,12 +270,12 @@ async function eliminarCategoria(id) {
         console.error("❌ Error de red al intentar eliminar la categoría:", error);
     }
 
-    // 4. Refrescar interfaz de manera segura
-    if (typeof actualizarSelectsCategorias === 'function') {
-        actualizarSelectsCategorias();
-    }
+    // 3. 🔄 REFRESCAR LA PANTALLA DE INMEDIATO
     if (typeof abrirVistaAjustesInteligente === 'function') {
         abrirVistaAjustesInteligente();
+    }
+    if (typeof actualizarSelectsCategorias === 'function') {
+        actualizarSelectsCategorias();
     }
     if (typeof refrescarVistaActual === 'function') {
         refrescarVistaActual();
