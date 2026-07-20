@@ -140,16 +140,28 @@ async function saveEdit(id) {
             const nombreAnterior = window.AppState.categorias[index].nombre;
 
             if (nombreAnterior === nuevoNombre) {
-                // Si es exactamente igual, simplemente salimos del modo edición
                 if (typeof abrirVistaAjustesInteligente === 'function') abrirVistaAjustesInteligente();
                 return;
             }
 
-            // 2. Actualizar el nombre en el catálogo de categorías local
+            // 🛑 2. NUEVA VALIDACIÓN: Comprobar si existen movimientos con esta categoría
+            const tieneMovimientosAsociados = window.AppState.movimientos && window.AppState.movimientos.some(m => {
+                if (!m) return false;
+                const catMov = (m.cat || m.categoria || "").trim().toUpperCase();
+                return catMov === nombreAnterior.trim().toUpperCase();
+            });
+
+            if (tieneMovimientosAsociados) {
+                alert(`No se puede modificar la categoría "${nombreAnterior}" porque ya cuenta con registros de movimientos asociados.`);
+                if (typeof abrirVistaAjustesInteligente === 'function') abrirVistaAjustesInteligente();
+                return;
+            }
+
+            // 3. Actualizar el nombre en el catálogo de categorías local si pasó la validación
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
 
-            // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
+            // 4. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -169,21 +181,6 @@ async function saveEdit(id) {
                 console.error("❌ Error de red al sincronizar con Google Sheets:", error);
             }
 
-            // 4. EL ESCUDO EN CASCADA: Actualizar movimientos existentes en memoria
-            if (window.AppState.movimientos && Array.isArray(window.AppState.movimientos)) {
-                window.AppState.movimientos = window.AppState.movimientos.map(m => {
-                    if (!m) return m;
-
-                    if (m.cat && m.cat.toUpperCase() === nombreAnterior.toUpperCase()) {
-                        m.cat = nuevoNombre;
-                    }
-                    if (m.categoria && m.categoria.toUpperCase() === nombreAnterior.toUpperCase()) {
-                        m.categoria = nuevoNombre;
-                    }
-                    return m;
-                });
-            }
-
             // 5. Restablecer la variable global de edición para que regresen los botones principales
             if (typeof editandoId !== 'undefined') {
                 editandoId = null;
@@ -194,7 +191,7 @@ async function saveEdit(id) {
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof actualizarResumen === 'function') actualizarResumen();
 
-            console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
+            console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}".`);
             
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
