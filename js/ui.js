@@ -67,13 +67,18 @@ function actualizarSelectsCategorias() {
     const listaCategorias = window.AppState?.categorias || [];
 
     if (inSel) {
-        inSel.innerHTML = '';
+        // 1. Ponemos la opción por defecto obligatoria para ingresos
+        inSel.innerHTML = `<option value="SELECCIONAR CATEGORIA" disabled selected>SELECCIONAR CATEGORÍA</option>`;
+        
         listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => {
             inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
     }
+
     if (exSel) {
-        exSel.innerHTML = '';
+        // 2. Ponemos la opción por defecto obligatoria para gastos
+        exSel.innerHTML = `<option value="SELECCIONAR CATEGORIA" disabled selected>SELECCIONAR CATEGORÍA</option>`;
+        
         listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => {
             exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
