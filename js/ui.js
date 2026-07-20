@@ -183,6 +183,32 @@ function saveEdit(id) {
         console.error("Error crítico en saveEdit de categorías:", error);
     }
 }
+
+async function actualizarCategoriaEnNube(id, nuevoNombre) {
+    // Reemplaza esta URL con la URL de implementación web de tu Google Apps Script
+    const URL_APPS_SCRIPT = "TU_URL_DE_GOOGLE_APPS_SCRIPT"; 
+
+    try {
+        const respuesta = await fetch(URL_APPS_SCRIPT, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "actualizarCategoria",
+                id: id,
+                nombre: nuevoNombre
+            })
+        });
+
+        const resultado = await respuesta.json();
+        
+        if (resultado.success) {
+            console.log("✅ Categoría sincronizada con Google Sheets correctamente.");
+        } else {
+            console.error("❌ Error en la nube al actualizar categoría:", resultado.message);
+        }
+    } catch (error) {
+        console.error("❌ Error de red al intentar actualizar en Google Sheets:", error);
+    }
+}
 // Variables globales seguras para los gráficos
 window.chartH = window.chartH || null;
 window.chartR = window.chartR || null;
