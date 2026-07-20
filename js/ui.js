@@ -3,23 +3,37 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // Obtenemos los valores directo de los inputs del DOM
+    // 1. Identificamos el prefijo correcto según la vista ('in' para ingresos, 'ex' para gastos)
     const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
     const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
     const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
-    const fechaInicioStr = inputInicio?.value || AppState.filtrosActuales?.inicio || '';
-    const fechaFinStr = inputFin?.value || AppState.filtrosActuales?.fin || '';
+    // 2. Si los inputs existen en el HTML pero están vacíos, les inyectamos el mes actual por defecto
+    const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+    const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
+    const diaActual = String(hoy.getDate()).padStart(2, '0');
+    
+    const defectoInicio = `${añoActual}-${mesActual}-01`;
+    const defectoFin = `${añoActual}-${mesActual}-${diaActual}`;
 
+    if (inputInicio && !inputInicio.value) inputInicio.value = defectoInicio;
+    if (inputFin && !inputFin.value) inputFin.value = defectoFin;
+
+    const fechaInicioStr = inputInicio ? inputInicio.value : (AppState.filtrosActuales?.inicio || defectoInicio);
+    const fechaFinStr = inputFin ? inputFin.value : (AppState.filtrosActuales?.fin || defectoFin);
+
+    // 3. Filtramos los movimientos de forma segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
-        // Limpiamos la fecha del movimiento para extraer solo YYYY-MM-DD
+        // Limpiamos la fecha del movimiento (quitando la hora si la trae, ej. '2026-07-20T...')
         const fechaMovStr = m.fecha.split('T')[0];
 
+        // Comparamos el rango de fechas estándar YYYY-MM-DD
         if (fechaInicioStr && fechaFinStr) {
             return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
         }
@@ -27,9 +41,11 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         return true;
     }).reverse();
 
+    // 4. Actualizamos el contador en pantalla
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
+    // 5. Renderizamos el listado o el mensaje de "Sin registros"
     const cont = document.getElementById(contId);
     if (!cont) return;
 
