@@ -141,46 +141,30 @@ function saveEdit(id) {
 
             if (nombreAnterior === nuevoNombre) return;
 
-            // 2. Actualizar el nombre en el catálogo de categorías local
+            // 1. Actualizar el nombre localmente
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
 
-            // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS (Lo que faltaba)
-            // Asegúrate de cambiar 'actualizarCategoriaEnNube' por el nombre de la función 
-            // que usas en tu proyecto para mandar datos a Google Apps Script.
-            if (typeof actualizarCategoriaEnNube === 'function') {
-                actualizarCategoriaEnNube(id, nuevoNombre);
-            } else if (typeof sincronizarConGoogle === 'function') {
-                sincronizarConGoogle();
+            // 2. Sincronización con la nube
+            await enviarAccionGoogle({
+                action: "actualizarCategoria",
+                id: id,
+                nombre: nuevoNombre
+            });
+
+            // 3. 🔥 REDIBUJAR LA VISTA DE CATEGORÍAS PARA RESTAURAR LOS BOTONES Y TEXTOS
+            if (typeof renderCategoriasConfig === 'function') {
+                renderCategoriasConfig();
             }
 
-            // 4. EL ESCUDO EN CASCADA: Actualizar movimientos existentes en memoria
-            if (window.AppState.movimientos && Array.isArray(window.AppState.movimientos)) {
-                window.AppState.movimientos = window.AppState.movimientos.map(m => {
-                    if (!m) return m;
-
-                    if (m.cat && m.cat.toUpperCase() === nombreAnterior.toUpperCase()) {
-                        m.cat = nuevoNombre;
-                    }
-                    if (m.categoria && m.categoria.toUpperCase() === nombreAnterior.toUpperCase()) {
-                        m.categoria = nuevoNombre;
-                    }
-                    return m;
-                });
-            }
-
-            // 5. Forzar el redibujado inmediato y seguro de la UI
+            // 4. Actualizar el resto de la interfaz y cascada
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof actualizarResumen === 'function') actualizarResumen();
-
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
             }
 
             console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
-            if (typeof refrescarVistaActual === 'function') {
-                refrescarVistaActual();
-            }
         }
     } catch (error) {
         console.error("Error crítico en saveEdit de categorías:", error);
