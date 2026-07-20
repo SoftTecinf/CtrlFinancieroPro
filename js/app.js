@@ -305,6 +305,15 @@ function refrescarVistaActual() {
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
         actualizarResumen(); 
+    }else if (seccionId === 'nav-analisis' || seccionId === 'analisis') {
+        const m = document.getElementById('an-mes');
+        const a = document.getElementById('an-año');
+        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
+
+        if (typeof actualizarAnalisisFinanciero === 'function') {
+            actualizarAnalisisFinanciero();
+        }
     }
 
     // 3. Gráficos dentro de refrescarVistaActual
