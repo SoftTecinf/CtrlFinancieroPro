@@ -447,31 +447,41 @@ async function exportarFiltradoXLSX(tipo) {
     
     // 1. Obtener el mes y año seleccionados en los filtros de la interfaz
     const { mes, año } = obtenerPeriodoActual(); 
-    // Nota: 'mes' suele ser un número de 0 a 11 (0 = Enero, 6 = Julio, etc.) o el índice correspondiente.
+    // 'mes' es un número de 0 a 11 (0 = Enero, 6 = Julio, etc.)
 
-    // 2. Obtener todos los movimientos y filtrar por tipo, mes y año del filtro
+    // 2. Obtener todos los movimientos
     const todosLosMovimientos = obtenerMovimientosFiltrados();
     
     const filtrados = todosLosMovimientos.filter(m => {
-        // Asumiendo formato de fecha "DD/MM/YYYY" en tus movimientos
-        const partesFecha = m.fecha.split('/'); 
-        const diaM = parseInt(partesFecha[0], 10);
-        const mesM = parseInt(partesFecha[1], 10) - 1; // Ajustar mes JS (0-11)
-        const añoM = parseInt(partesFecha[2], 10);
+        if (!m.fecha) return false;
+
+        let mesM, añoM;
+
+        // Validar si la fecha viene con guiones (YYYY-MM-DD) o barras (DD/MM/YYYY)
+        if (m.fecha.includes('-')) {
+            const partes = m.fecha.split('-');
+            añoM = parseInt(partes[0], 10);
+            mesM = parseInt(partes[1], 10) - 1; // Ajustar mes JS (0-11)
+        } else if (m.fecha.includes('/')) {
+            const partes = m.fecha.split('/');
+            // Asumiendo formato DD/MM/YYYY
+            mesM = parseInt(partes[1], 10) - 1; 
+            añoM = parseInt(partes[2], 10);
+        } else {
+            return false;
+        }
 
         const esDelTipo = m.tipo.toLowerCase() === tipo.toLowerCase();
-        
-        // Rango: Todo el mes seleccionado en el filtro (desde el día 1 en adelante para ese mes y año)
         const esDelMesSeleccionado = (añoM === año && mesM === mes);
 
         return esDelTipo && esDelMesSeleccionado;
     });
 
-    console.warn(`Entra a exportar registros para ${mesesSelected = mes} de ${año}: ` + filtrados.length);
+    console.warn(`Registros encontrados para ${tipo} en el periodo: ` + filtrados.length);
     
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
-    if (!filtrados.length) return alert(`Sin movimientos para ${meses[mes]} de ${año}.`);
+    if (!filtrados.length) return alert(`Sin movimientos de ${tipo} para ${meses[mes]} de ${año}.`);
 
     const workbook = new ExcelJS.Workbook();
     const ws = workbook.addWorksheet('Detalle');
