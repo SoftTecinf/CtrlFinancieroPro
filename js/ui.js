@@ -5,16 +5,28 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
     const tipoNormalizado = tipo.toLowerCase().trim();
 
+    // Obtenemos los valores de fecha seleccionados en los inputs (o usamos los del AppState)
+    const fechaInicioStr = AppState.filtrosActuales?.inicio || AppState.filtrosActuales?.['in_inicio'] || '';
+    const fechaFinStr = AppState.filtrosActuales?.fin || AppState.filtrosActuales?.['in_fin'] || '';
+
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
+        const tipoMov = (m.tipo || '').toLowerCase().trim();
+        if (tipoMov !== tipoNormalizado) return false;
+
+        // Si hay rangos de fecha configurados, filtramos por intervalo de texto (YYYY-MM-DD)
+        if (fechaInicioStr && fechaFinStr) {
+            const fechaMovStr = m.fecha.split('T')[0];
+            return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
+        }
+
+        // Respaldo por mes y año por si el filtro global no está inicializado
         const d = new Date(m.fecha);
         const añoMov = d.getFullYear();
         const mesMov = d.getMonth();
-        const tipoMov = (m.tipo || '').toLowerCase().trim();
 
-        return tipoMov === tipoNormalizado &&
-            mesMov === AppState.filtrosActuales.mes &&
+        return mesMov === AppState.filtrosActuales.mes &&
             añoMov === AppState.filtrosActuales.año;
     }).reverse();
 
@@ -60,7 +72,6 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     cont.innerHTML = htmlAcumulado;
 }
-
 function actualizarSelectsCategorias() {
     const inSel = document.getElementById('in-categoria');
     const exSel = document.getElementById('ex-categoria');
