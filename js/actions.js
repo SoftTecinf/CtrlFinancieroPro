@@ -457,8 +457,20 @@ async function exportarFiltradoXLSX(tipo) {
     filaFil = Encabezado(ws, "PERIODO DE " + meses[mes] + " " + año, filaFil);
     filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', }), filaFil);
     filaFil++;
-    llenarTablaDetalle(ws, filtrados, filaFil);
-    descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + " " + año);
+    
+    if (typeof llenarTablaDetalle === 'function') {
+        llenarTablaDetalle(ws, filtrados.filter(m => m.tipo === 'gasto'));
+    }
+
+
+    // ==========================================
+    // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
+    // ==========================================
+    if (typeof descargarArchivo === 'function') {
+        descargarArchivo(workbook, "Detalle_" + tipo + meses[mes] + "_" + año);
+    } else {
+        console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
+    }
 }
 
 // ========================================================
