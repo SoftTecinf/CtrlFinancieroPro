@@ -299,25 +299,13 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-resumen') {
-        // Soportamos tanto selects como inputs de fecha directos
-        const m = document.getElementById('an-mes');
-        const a = document.getElementById('an-año');
-        const fechaInicio = document.getElementById('an-fecha-inicio');
+        const m = document.getElementById('res-mes');
+        const a = document.getElementById('res-año');
+        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
-        if (m && a) {
-            window.AppState.filtrosActuales.mes = parseInt(m.value);
-            window.AppState.filtrosActuales.año = parseInt(a.value);
-        } else if (fechaInicio && fechaInicio.value) {
-            // Si usas el input de fecha, extraemos el mes y año automáticamente de ahí
-            const d = new Date(fechaInicio.value + 'T00:00:00');
-            if (!isNaN(d.getTime())) {
-                window.AppState.filtrosActuales.mes = d.getMonth();
-                window.AppState.filtrosActuales.año = d.getFullYear();
-            }
-        }
-
-        if (typeof actualizarAnalisisFinanciero === 'function') {
-            aktualizarAnalisisFinanciero(); // o actualizarAnalisisFinanciero()
+        if (typeof actualizarResumen === 'function') {
+            actualizarResumen(); 
         }
     }
 
