@@ -153,7 +153,7 @@ async function eliminarMovimiento(id) {
 
 }
 
-function agregarCategoria() {
+async function agregarCategoria() {
     const inputCat = document.getElementById('nueva-cat-nombre');
     const selectTipo = document.getElementById('nueva-cat-tipo');
     if (!inputCat || !selectTipo) return;
@@ -163,11 +163,63 @@ function agregarCategoria() {
 
     if (!nom || !window.AppState) return;
 
-    window.AppState.categorias.push({ id: Date.now(), nombre: nom, tipo });
+    // Validar que no exista ya una categoría con el mismo nombre y tipo para evitar duplicados
+    const existe = window.AppState.categorias.some(c => c.nombre.toUpperCase() === nom && c.tipo === tipo);
+    if (existe) {
+        alert("Esta categoría ya existe.");
+        return;
+    }
+
+    const nuevaCat = {
+        id: Date.now(),
+        nombre: nom,
+        tipo: tipo
+    };
+
+    // 1. Agregar localmente
+    window.AppState.categorias.push(nuevaCat);
+    
+    // Asegurar que se guarde en la estructura global de almacenamiento que lee tu app
     localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
+    if (typeof guardarEstadoGlobal === 'function') {
+        guardarEstadoGlobal();
+    } else {
+        localStorage.setItem('financiero_state', JSON.stringify(window.AppState));
+    }
+
     inputCat.value = '';
 
-    if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+    // 2. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "agregarCategoria",
+                id: nuevaCat.id,
+                nombre: nuevaCat.nombre,
+                tipo: nuevaCat.tipo
+            })
+        });
+        const resultado = await response.json();
+        if (resultado.success) {
+            console.log("✅ Categoría agregada en la nube correctamente.");
+        } else {
+            console.error("❌ Error en la nube al agregar categoría:", resultado.message);
+        }
+    } catch (error) {
+        console.error("❌ Error de red al sincronizar la nueva categoría:", error);
+    }
+
+    // 3. Refrescar interfaz
+    if (typeof actualizarSelectsCategorias === 'function') {
+        actualizarSelectsCategorias();
+    }
+    if (typeof abrirVistaAjustesInteligente === 'function') {
+        abrirVistaAjustesInteligente();
+    }
+    if (typeof refrescarVistaActual === 'function') {
+        refrescarVistaActual();
+    }
 }
 
 function eliminarCategoria(id) {
