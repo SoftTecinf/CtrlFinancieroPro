@@ -443,71 +443,60 @@ async function generarLibroContable() {
 }
 
 async function exportarFiltradoXLSX(tipo) {
-    const ahora = new Date();
-    
-    // 1. Obtener el mes y año seleccionados en los filtros de la interfaz
     const { mes, año } = obtenerPeriodoActual(); 
-    // 'mes' es un número de 0 a 11 (0 = Enero, 6 = Julio, etc.)
-
-    // 2. Obtener todos los movimientos
     const todosLosMovimientos = obtenerMovimientosFiltrados();
-    
+
+    console.group(`🔍 DIAGNÓSTICO DE FILTRADO (${tipo.toUpperCase()})`);
+    console.log(`Mes seleccionado en filtro: ${mes + 1} (Índice JS: ${mes}), Año: ${año}`);
+    console.log(`Total de movimientos obtenidos para evaluar:`, todosLosMovimientos);
+
     const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
+        if (!m.fecha) {
+            console.warn(`Movimiento sin fecha ID: ${m.id}`, m);
+            return false;
+        }
 
         let mesM, añoM;
 
-        // Validar si la fecha viene con guiones (YYYY-MM-DD) o barras (DD/MM/YYYY)
         if (m.fecha.includes('-')) {
             const partes = m.fecha.split('-');
             añoM = parseInt(partes[0], 10);
-            mesM = parseInt(partes[1], 10) - 1; // Ajustar mes JS (0-11)
+            mesM = parseInt(partes[1], 10) - 1;
         } else if (m.fecha.includes('/')) {
             const partes = m.fecha.split('/');
-            // Asumiendo formato DD/MM/YYYY
             mesM = parseInt(partes[1], 10) - 1; 
             añoM = parseInt(partes[2], 10);
         } else {
+            console.warn(`Formato de fecha desconocido: ${m.fecha}`);
             return false;
         }
 
         const esDelTipo = m.tipo.toLowerCase() === tipo.toLowerCase();
         const esDelMesSeleccionado = (añoM === año && mesM === mes);
+        const pasaFiltro = esDelTipo && esDelMesSeleccionado;
 
-        return esDelTipo && esDelMesSeleccionado;
+        console.log(`[Movimiento] Fecha original: "${m.fecha}" | Tipo: "${m.tipo}" --> ¿Pasa el filtro? `, {
+            esDelTipo,
+            esDelMesSeleccionado,
+            mesCalculado: mesM + 1,
+            añoCalculado: añoM,
+            resultado: pasaFiltro
+        });
+
+        return pasaFiltro;
     });
 
-    console.warn(`Registros encontrados para ${tipo} en el periodo: ` + filtrados.length);
-    
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    
-    if (!filtrados.length) return alert(`Sin movimientos de ${tipo} para ${meses[mes]} de ${año}.`);
+    console.log(`Total registros que pasaron el filtro: ${filtrados.length}`);
+    console.groupEnd();
 
-    const workbook = new ExcelJS.Workbook();
-    const ws = workbook.addWorksheet('Detalle');
-    let filaFil = 1;
-
-    filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
-    filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
-    filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
-    filaFil++;
-    
-    if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(ws, filtrados);
+    if (!filtrados.length) {
+        return alert(`Diagnóstico: No pasaron registros para ${tipo} en el periodo.`);
     }
 
-    // ==========================================
-    // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
-    // ==========================================
-    if (typeof descargarArchivo === 'function') {
-        descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + "_" + año);
-    } else {
-        console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
-    }
+    // El resto de tu lógica de exportación continúa aquí...
 }
 
-// Exponer globalmente para que el HTML la reconozca en el onclick
-window.exportarFiltradoXLSX = exportarFiltradoXLSX;
+window.exportarFiltradoXLSX = exportarFiltradoXLSX;tradoXLSX;
 
 // ========================================================
 // --- FUNCIONES AUXILIARES PARA GENERACIÓN DE EXCEL ---
