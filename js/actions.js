@@ -375,7 +375,7 @@ async function generarLibroContable() {
     // ==========================================
     const sheetBG = workbook.addWorksheet('Balance General');
     sheetBG.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
-    let filaBG = 1;BG = 1;
+    let filaBG = 1;
 
     filaBG = Encabezado(sheetBG, "BALANCE GENERAL", filaBG);
     filaBG = Encabezado(sheetBG, "FECHA DE CORTE: " + fechaReporte, filaBG);
@@ -406,7 +406,6 @@ async function generarLibroContable() {
     // --- PESTAÑA 3: DETALLE DE INGRESOS ---
     // ==========================================
     const wsIng = workbook.addWorksheet('Ingresos');
-    wsIng.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaIng = 1;
 
     filaIng = Encabezado(wsIng, "DETALLE DE INGRESOS", filaIng);
@@ -423,7 +422,6 @@ async function generarLibroContable() {
     // --- PESTAÑA 4: DETALLE DE GASTOS ---
     // ==========================================
     const wsGas = workbook.addWorksheet('Gastos');
-    wsGas.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaGas = 1;
 
     filaGas = Encabezado(wsGas, "DETALLE DE GASTOS", filaGas);
