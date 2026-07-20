@@ -133,26 +133,32 @@ function saveEdit(id) {
         const nuevoNombre = inputEl.value.trim().toUpperCase();
         if (!nuevoNombre || !window.AppState) return;
 
-        // 1. COMPARACIÓN SEGURA: Convertimos ambos a String para evitar fallos de Tipo (Número vs Texto)
+        // 1. COMPARACIÓN SEGURA: Convertimos ambos a String para evitar fallos de Tipo
         const index = window.AppState.categorias.findIndex(c => String(c.id) === String(id));
 
         if (index !== -1) {
             const nombreAnterior = window.AppState.categorias[index].nombre;
 
-            // Si el usuario no cambió el nombre, no hacemos nada extra
             if (nombreAnterior === nuevoNombre) return;
 
-            // 2. Actualizar el nombre en el catálogo de categorías
+            // 2. Actualizar el nombre en el catálogo de categorías local
             window.AppState.categorias[index].nombre = nuevoNombre;
             localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
 
-            // 3. 🔥 EL ESCUDO EN CASCADA: Actualizar movimientos existentes
-            // Buscamos todas las transacciones viejas que usaban el nombre anterior y las vinculamos al nuevo
+            // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS (Lo que faltaba)
+            // Asegúrate de cambiar 'actualizarCategoriaEnNube' por el nombre de la función 
+            // que usas en tu proyecto para mandar datos a Google Apps Script.
+            if (typeof actualizarCategoriaEnNube === 'function') {
+                actualizarCategoriaEnNube(id, nuevoNombre);
+            } else if (typeof sincronizarConGoogle === 'function') {
+                sincronizarConGoogle(); 
+            }
+
+            // 4. EL ESCUDO EN CASCADA: Actualizar movimientos existentes en memoria
             if (window.AppState.movimientos && Array.isArray(window.AppState.movimientos)) {
                 window.AppState.movimientos = window.AppState.movimientos.map(m => {
                     if (!m) return m;
 
-                    // Soporte híbrido por si usas m.cat o m.categoria en tu base de datos
                     if (m.cat && m.cat.toUpperCase() === nombreAnterior.toUpperCase()) {
                         m.cat = nuevoNombre;
                     }
@@ -161,16 +167,12 @@ function saveEdit(id) {
                     }
                     return m;
                 });
-
-                // Si manejas un localStorage de movimientos local, descomenta la siguiente línea para persistir el cambio:
-                // localStorage.setItem('movs_mxn', JSON.stringify(window.AppState.movimientos));
             }
 
-            // 4. Forzar el redibujado inmediato y seguro de la UI antes de refrescar la vista entera
+            // 5. Forzar el redibujado inmediato y seguro de la UI
             if (typeof actualizarHome === 'function') actualizarHome();
             if (typeof actualizarResumen === 'function') actualizarResumen();
 
-            // 5. Refrescar el contenedor principal de la vista actual
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
             }
@@ -181,7 +183,6 @@ function saveEdit(id) {
         console.error("Error crítico en saveEdit de categorías:", error);
     }
 }
-
 // Variables globales seguras para los gráficos
 window.chartH = window.chartH || null;
 window.chartR = window.chartR || null;
