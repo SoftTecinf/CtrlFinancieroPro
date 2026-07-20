@@ -1,13 +1,15 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
-
-    // Normalizamos el tipo recibido y el de los datos para evitar errores de comparación
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // Obtenemos los valores de fecha seleccionados en los inputs (o usamos los del AppState)
-    const fechaInicioStr = AppState.filtrosActuales?.inicio || AppState.filtrosActuales?.['in_inicio'] || '';
-    const fechaFinStr = AppState.filtrosActuales?.fin || AppState.filtrosActuales?.['in_fin'] || '';
+    // Leemos directo del DOM si existen los inputs para evitar que falle el filtro
+    const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
+    const domInicio = document.getElementById(`${pref}-fecha-inicio`)?.value;
+    const domFin = document.getElementById(`${pref}-fecha-fin`)?.value;
+
+    const fechaInicioStr = domInicio || AppState.filtrosActuales?.inicio || '';
+    const fechaFinStr = domFin || AppState.filtrosActuales?.fin || '';
 
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
@@ -15,19 +17,13 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
-        // Si hay rangos de fecha configurados, filtramos por intervalo de texto (YYYY-MM-DD)
+        const fechaMovStr = m.fecha.split('T')[0];
+
         if (fechaInicioStr && fechaFinStr) {
-            const fechaMovStr = m.fecha.split('T')[0];
             return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
         }
 
-        // Respaldo por mes y año por si el filtro global no está inicializado
-        const d = new Date(m.fecha);
-        const añoMov = d.getFullYear();
-        const mesMov = d.getMonth();
-
-        return mesMov === AppState.filtrosActuales.mes &&
-            añoMov === AppState.filtrosActuales.año;
+        return true;
     }).reverse();
 
     const countEl = document.getElementById(countId);
@@ -43,7 +39,6 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     let htmlAcumulado = '';
     filtrados.forEach(m => {
-        // Aseguramos que formatearFechaMX sea global (window.formatearFechaMX)
         const fechaLegible = (typeof window.formatearFechaMX === 'function')
             ? window.formatearFechaMX(m.fecha)
             : m.fecha.split('T')[0];
@@ -520,11 +515,9 @@ function inicializarFiltros() {
     const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
     const diaActual = String(hoy.getDate()).padStart(2, '0');
 
-    // Fechas por defecto: Desde el 1 del mes actual hasta el día de hoy del sistema
     const primerDiaMes = `${añoActual}-${mesActual}-01`;
     const fechaHoySistema = `${añoActual}-${mesActual}-${diaActual}`;
 
-    // Prefijos de las secciones que usan este rango (ej: ingresos, egresos, resumen)
     const prefijos = ['in', 'ex', 'res'];
 
     prefijos.forEach(pref => {
@@ -532,44 +525,35 @@ function inicializarFiltros() {
         const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
         if (inputInicio && inputFin) {
-            // Establecer valores por defecto solo si están vacíos para respetar cambios del usuario
             if (!inputInicio.value) inputInicio.value = primerDiaMes;
             if (!inputFin.value) inputFin.value = fechaHoySistema;
 
-            // Escuchar cambios en la fecha de inicio
-            inputInicio.addEventListener('change', (e) => {
+            // Usamos 'input' además de 'change' para que actúe en tiempo real al mover fechas
+            const dispararRefresco = () => {
                 if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
-                AppState.filtrosActuales[`${pref}_inicio`] = e.target.value;
+                AppState.filtrosActuales.inicio = inputInicio.value;
+                AppState.filtrosActuales.fin = inputFin.value;
                 
-                // Sincronizar con los demás inputs de inicio si existen
-                prefijos.forEach(p => {
-                    const otro = document.getElementById(`${p}-fecha-inicio`);
-                    if (otro) otro.value = e.target.value;
-                });
+                if (typeof refrescarVistaActual === 'function') {
+                    refrescarVistaActual();
+                } else {
+                    if (typeof actualizarResumen === 'function') actualizarResumen();
+                }
+            };
 
-                if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-            });
+            inputInicio.removeEventListener('input', dispararRefresco);
+            inputFin.removeEventListener('input', dispararRefresco);
 
-            // Escuchar cambios en la fecha de fin
-            inputFin.addEventListener('change', (e) => {
-                if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
-                AppState.filtrosActuales[`${pref}_fin`] = e.target.value;
-                
-                // Sincronizar con los demás inputs de fin si existen
-                prefijos.forEach(p => {
-                    const otro = document.getElementById(`${p}-fecha-fin`);
-                    if (otro) otro.value = e.target.value;
-                });
-
-                if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
-            });
+            inputInicio.addEventListener('input', dispararRefresco);
+            inputFin.addEventListener('input', dispararRefresco);
+            inputInicio.addEventListener('change', dispararRefresco);
+            inputFin.addEventListener('change', dispararRefresco);
         }
     });
 
-    // Sincronizamos AppState inicial con el rango del mes actual
     if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
-    AppState.filtrosActuales.inicio = primerDiaMes;
-    AppState.filtrosActuales.fin = fechaHoySistema;
+    if (!AppState.filtrosActuales.inicio) AppState.filtrosActuales.inicio = primerDiaMes;
+    if (!AppState.filtrosActuales.fin) AppState.filtrosActuales.fin = fechaHoySistema;
 }
 
 function formatCurrency(input, hiddenId) {
