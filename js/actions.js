@@ -337,7 +337,6 @@ async function generarLibroContable() {
     // --- PESTAÑA 1: ESTADO DE RESULTADOS ---
     // ==========================================
     const sheetER = workbook.addWorksheet('Estado de Resultados');
-    sheetER.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaER = 1;
 
     filaER = Encabezado(sheetER, "ESTADO DE RESULTADOS", filaER);
@@ -369,12 +368,12 @@ async function generarLibroContable() {
     const utilidad = totalIngresos - totalGastos;
     filaER = UtiNeta(sheetER, "UTILIDAD NETA DEL PERIODO", totalGastos, utilidad, filaER);
 
-
+    
+    sheetER.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     // ==========================================
     // --- PESTAÑA 2: BALANCE GENERAL ---
     // ==========================================
     const sheetBG = workbook.addWorksheet('Balance General');
-    sheetBG.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaBG = 1;
 
     filaBG = Encabezado(sheetBG, "BALANCE GENERAL", filaBG);
@@ -400,7 +399,8 @@ async function generarLibroContable() {
     filaBG = DatoRepCont(sheetBG, "Utilidades Acumuladas (Ingresos)", ingHist, filaBG);
     filaBG = DatoRepCont(sheetBG, "Gastos Acumulados", -1 * gasHist, filaBG);
     filaBG = UtiNeta(sheetBG, "TOTAL PATRIMONIO", ingHist - gasHist, ingHist - gasHist, filaBG);
-
+    
+    sheetBG.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
 
     // ==========================================
     // --- PESTAÑA 3: DETALLE DE INGRESOS ---
@@ -432,10 +432,7 @@ async function generarLibroContable() {
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), filaGas); // <-- Corregido con filaGas
     }
-    sheetER.properties.showGridLines = false;
-    sheetBG.properties.showGridLines = false;
-    wsIng.properties.showGridLines = false;
-    wsGas.properties.showGridLines = false;
+    
 
     // ==========================================
     // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
@@ -450,7 +447,7 @@ async function generarLibroContable() {
 window.generarLibroContable = generarLibroContable;
 
 async function exportarFiltradoXLSX(tipo) {
-    const { mes, año } = obtenerPeriodoActual();
+    const { mes, año } = obtenerPeriodoActual(); 
     const todosLosMovimientos = obtenerMovimientosFiltrados();
 
     console.group(`🔍 DIAGNÓSTICO DE FILTRADO (${tipo.toUpperCase()})`);
@@ -460,7 +457,7 @@ async function exportarFiltradoXLSX(tipo) {
         if (!m.fecha) return false;
 
         const fechaObj = new Date(m.fecha);
-
+        
         if (isNaN(fechaObj.getTime())) {
             console.warn(`Fecha inválida detectada:`, m.fecha);
             return false;
@@ -494,7 +491,7 @@ async function exportarFiltradoXLSX(tipo) {
     filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
     filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
     filaFil++; // Espacio adicional antes de la tabla
-
+    
     // Llamada con el tercer parámetro 'filaFil' para que pinte bien los datos
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(ws, filtrados, filaFil);
