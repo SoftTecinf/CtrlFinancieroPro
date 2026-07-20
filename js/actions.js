@@ -262,7 +262,7 @@ async function eliminarCategoria(id) {
         });
         const resultado = await response.json();
         if (resultado.success) {
-            console.log(`✅ Categoría "${nombreCat}" eliminada de la nube correctamente.`);
+            alert(`Categoría "${nombreCat}" eliminada de la nube correctamente.`);
         } else {
             console.error("❌ Error en la nube al eliminar categoría:", resultado.message);
         }
