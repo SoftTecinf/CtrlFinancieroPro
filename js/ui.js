@@ -1,63 +1,90 @@
 // --- RENDERIZADOS LOCALES ---
 function actualizarListadoIndividual(tipo, contId, countId) {
-    try {
-        let rawFiltrados = [];
-        if (typeof obtenerMovimientosFiltrados === 'function') {
-            rawFiltrados = obtenerMovimientosFiltrados() || [];
-        } else {
-            rawFiltrados = window.AppState?.movimientos || [];
-        }
+    const todosLosMovimientos = AppState.movimientos || [];
+    const tipoNormalizado = tipo.toLowerCase().trim();
 
-        const tipoNormalizado = tipo.toLowerCase().trim();
-        const filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean).filter(m => m.tipo === tipoNormalizado);
+    const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
+    const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
+    const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
-        // Actualizamos el contador dinámico en pantalla
-        const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
-        const countEl = document.getElementById(realCountId) || document.getElementById(countId);
-        if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
+    // Valores por defecto (mes actual)
+    const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+    const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
+    const diaActual = String(hoy.getDate()).padStart(2, '0');
+    
+    const defectoInicio = `${añoActual}-${mesActual}-01`;
+    const defectoFin = `${añoActual}-${mesActual}-${diaActual}`;
 
-        // Ubicamos el contenedor de la lista de forma segura
-        const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
-        const cont = document.getElementById(realContId) || document.getElementById(contId);
-        if (!cont) return;
+    if (inputInicio && !inputInicio.value) inputInicio.value = defectoInicio;
+    if (inputFin && !inputFin.value) inputFin.value = defectoFin;
 
-        if (filtrados.length === 0) {
-            cont.innerHTML = '<p class="opacity-20 text-center py-10 text-xs font-medium uppercase tracking-wider">Sin registros en este periodo.</p>';
-            return;
-        }
+    const fechaInicioStr = inputInicio ? inputInicio.value : defectoInicio;
+    const fechaFinStr = inputFin ? inputFin.value : defectoFin;
 
-        let htmlAcumulado = '';
-        [...filtrados].sort((a, b) => b.dateObj - a.dateObj).forEach(m => {
-            const fechaLegible = typeof window.formatearFechaMX === 'function' 
-                ? window.formatearFechaMX(m.fechaOriginal) 
-                : m.dateObj.toLocaleDateString('es-MX');
+    // Convertimos los límites del filtro a milisegundos para comparar matemáticamente (más seguro que strings)
+    const inicioTime = new Date(fechaInicioStr + 'T00:00:00').getTime();
+    const finTime = new Date(fechaFinStr + 'T23:59:59').getTime();
 
-            htmlAcumulado += `
-                <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm mb-2">
-                    <div class="flex-1">
-                        <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
-                        <p class="text-[9px] opacity-40 uppercase font-bold">${fechaLegible} | ${m.cat || 'General'}</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <p class="text-sm font-bold ${tipoNormalizado === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
-                            ${tipoNormalizado === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
-                        </p>
-                        <div class="flex gap-1">
-                            <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                            <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-        });
+    // Filtramos validando tipo y rango de tiempo exacto
+    const filtrados = todosLosMovimientos.filter(m => {
+        if (!m.fecha) return false;
 
-        cont.innerHTML = htmlAcumulado;
-    } catch (error) {
-        console.error("Error crítico en actualizarListadoIndividual:", error);
+        const tipoMov = (m.tipo || '').toLowerCase().trim();
+        if (tipoMov !== tipoNormalizado) return false;
+
+        // Convertimos la fecha del movimiento a timestamp
+        const movTime = new Date(m.fecha).getTime();
+        if (isNaN(movTime)) return false;
+
+        return movTime >= inicioTime && movTime <= finTime;
+    }).reverse();
+
+    // Actualizamos el contador
+    const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
+    const countEl = document.getElementById(realCountId) || document.getElementById(countId);
+    if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
+
+    // Renderizamos en el contenedor correcto
+    const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
+    const cont = document.getElementById(realContId) || document.getElementById(contId);
+    
+    if (!cont) return;
+
+    if (filtrados.length === 0) {
+        cont.innerHTML = '<p class="opacity-20 text-center py-10">Sin registros.</p>';
+        return;
     }
+
+    let htmlAcumulado = '';
+    filtrados.forEach(m => {
+        const fechaLegible = (typeof window.formatearFechaMX === 'function')
+            ? window.formatearFechaMX(m.fecha)
+            : String(m.fecha).split('T')[0];
+
+        htmlAcumulado += `
+            <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm mb-2">
+                <div class="flex-1">
+                    <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
+                    <p class="text-[9px] opacity-40 uppercase font-bold">${fechaLegible} | ${m.cat || 'General'}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <p class="text-sm font-bold ${tipoNormalizado === 'gasto' ? 'text-rose-400' : 'text-stone-600'}">
+                        ${tipoNormalizado === 'gasto' ? '-' : '+'}${fMXN(m.monto)}
+                    </p>
+                    <div class="flex gap-1">
+                        <button onclick="prepararEdicion(${m.id}, '${tipo}')" class="p-2 hover:bg-stone-200 rounded-full transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7E6A" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button onclick="eliminarMovimiento(${m.id})" class="p-2 hover:bg-rose-100 rounded-full transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    cont.innerHTML = htmlAcumulado;
 }
 
 function actualizarSelectsCategorias() {
