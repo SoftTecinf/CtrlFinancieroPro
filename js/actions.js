@@ -509,7 +509,7 @@ async function exportarFiltradoXLSX(tipo) {
 window.exportarFiltradoXLSX = exportarFiltradoXLSX;
 
 function llenarTablaDetalle(ws, datos, filaLle) {
-    // Configuramos el encabezado
+    // Configuramos el encabezado de la tabla en la fila indicada
     const head = ws.getRow(filaLle);
     head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
 
@@ -519,11 +519,10 @@ function llenarTablaDetalle(ws, datos, filaLle) {
         c.alignment = { horizontal: 'center' };
     });
 
-    // Commit de la fila de encabezado
     head.commit();
-    filaLle++;
+    filaLle++; // Pasamos a la siguiente fila para los registros
 
-    // Llenamos los datos
+    // Llenamos los datos de los movimientos filtrados
     datos.forEach((d, i) => {
         const r = ws.getRow(filaLle);
         r.values = [d.fecha, d.cat, d.desc, d.monto];
@@ -535,6 +534,7 @@ function llenarTablaDetalle(ws, datos, filaLle) {
             cell.font = { size: 12, color: { argb: 'FF45423E' } };
             cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
 
+            // Alinear y dar formato de moneda a la columna de monto (Columna 4)
             if (colNumber === 4) {
                 cell.numFmt = '"$"#,##0.00';
                 cell.alignment = { horizontal: 'right' };
@@ -545,8 +545,12 @@ function llenarTablaDetalle(ws, datos, filaLle) {
         filaLle++;
     });
 
+    // Ajustar el ancho automático de las columnas para que no se encimen los datos
     ws.columns.forEach(c => c.width = 22);
 }
+
+// Exponer globalmente si es necesario
+window.llenarTablaDetalle = llenarTablaDetalle;
 // ========================================================
 // --- FUNCIONES AUXILIARES PARA GENERACIÓN DE EXCEL ---
 // ========================================================
