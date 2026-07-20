@@ -412,7 +412,7 @@ async function generarLibroContable() {
     filaIng++;
 
     if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'));
+        llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'), filaIng); // <-- Corregido con filaIng
     }
 
 
@@ -428,7 +428,7 @@ async function generarLibroContable() {
     filaGas++;
 
     if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'));
+        llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), filaGas); // <-- Corregido con filaGas
     }
 
 
@@ -441,6 +441,8 @@ async function generarLibroContable() {
         console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
     }
 }
+
+window.generarLibroContable = generarLibroContable;
 
 async function exportarFiltradoXLSX(tipo) {
     const { mes, año } = obtenerPeriodoActual(); 
