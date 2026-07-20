@@ -503,74 +503,61 @@ function toggleLoading(show) {
 }
 
 function inicializarFiltros() {
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const añoActual = new Date().getFullYear();
-    const mesActual = new Date().getMonth(); // 6 para Julio
-    const selectsMes = ['in-mes', 'ex-mes', 'res-mes'];
-    const selectsAnio = ['in-año', 'ex-año', 'res-año'];
+    const hoy = new Date();
+    const añoActual = hoy.getFullYear();
+    const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
+    const diaActual = String(hoy.getDate()).padStart(2, '0');
 
-    // 1. Llenamos y seteamos valores
-    selectsMes.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = '';
-            meses.forEach((m, i) => {
-                let opt = document.createElement('option');
-                opt.value = i;
-                opt.innerHTML = m;
-                sel.appendChild(opt);
-            });
-            sel.value = mesActual;
+    // Fechas por defecto: Desde el 1 del mes actual hasta el día de hoy del sistema
+    const primerDiaMes = `${añoActual}-${mesActual}-01`;
+    const fechaHoySistema = `${añoActual}-${mesActual}-${diaActual}`;
 
-            // ESCUCHA: Si el usuario cambia el mes, refrescamos la vista
-            sel.addEventListener('change', (e) => {
-                // 1. Guardamos el nuevo valor en el estado global
-                AppState.filtrosActuales.mes = parseInt(e.target.value);
+    // Prefijos de las secciones que usan este rango (ej: ingresos, egresos, resumen)
+    const prefijos = ['in', 'ex', 'res'];
 
-                // 2. (Opcional) Sincronizamos los otros selects de mes para que todos digan lo mismo
-                selectsMes.forEach(id => {
-                    const otroSel = document.getElementById(id);
-                    if (otroSel) otroSel.value = e.target.value;
+    prefijos.forEach(pref => {
+        const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
+        const inputFin = document.getElementById(`${pref}-fecha-fin`);
+
+        if (inputInicio && inputFin) {
+            // Establecer valores por defecto solo si están vacíos para respetar cambios del usuario
+            if (!inputInicio.value) inputInicio.value = primerDiaMes;
+            if (!inputFin.value) inputFin.value = fechaHoySistema;
+
+            // Escuchar cambios en la fecha de inicio
+            inputInicio.addEventListener('change', (e) => {
+                if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
+                AppState.filtrosActuales[`${pref}_inicio`] = e.target.value;
+                
+                // Sincronizar con los demás inputs de inicio si existen
+                prefijos.forEach(p => {
+                    const otro = document.getElementById(`${p}-fecha-inicio`);
+                    if (otro) otro.value = e.target.value;
                 });
 
-                // 3. Refrescamos la vista
-                refrescarVistaActual();
+                if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+            });
+
+            // Escuchar cambios en la fecha de fin
+            inputFin.addEventListener('change', (e) => {
+                if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
+                AppState.filtrosActuales[`${pref}_fin`] = e.target.value;
+                
+                // Sincronizar con los demás inputs de fin si existen
+                prefijos.forEach(p => {
+                    const otro = document.getElementById(`${p}-fecha-fin`);
+                    if (otro) otro.value = e.target.value;
+                });
+
+                if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
             });
         }
     });
 
-    selectsAnio.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = '';
-            for (let i = añoActual; i >= añoActual - 4; i--) {
-                let opt = document.createElement('option');
-                opt.value = i;
-                opt.innerHTML = i;
-                sel.appendChild(opt);
-            }
-            sel.value = añoActual;
-
-            // ESCUCHA: Si el usuario cambia el año, refrescamos la vista
-            sel.addEventListener('change', (e) => {
-                // 1. Guardamos el nuevo valor en el estado global
-                AppState.filtrosActuales.año = parseInt(e.target.value);
-
-                // 2. (Opcional) Sincronizamos los otros selects de año
-                selectsAnio.forEach(id => {
-                    const otroSel = document.getElementById(id);
-                    if (otroSel) otroSel.value = e.target.value;
-                });
-
-                // 3. Refrescamos la vista
-                refrescarVistaActual();
-            });
-        }
-    });
-
-    // 2. Sincronizamos AppState inicial
-    AppState.filtrosActuales.mes = mesActual;
-    AppState.filtrosActuales.año = añoActual;
+    // Sincronizamos AppState inicial con el rango del mes actual
+    if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
+    AppState.filtrosActuales.inicio = primerDiaMes;
+    AppState.filtrosActuales.fin = fechaHoySistema;
 }
 
 function formatCurrency(input, hiddenId) {
