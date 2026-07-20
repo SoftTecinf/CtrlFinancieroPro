@@ -299,13 +299,6 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-resumen') {
-        const m = document.getElementById('res-mes');
-        const a = document.getElementById('res-año');
-        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
-        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
-
-        actualizarResumen(); 
-    }else if (seccionId === 'nav-analisis' || seccionId === 'analisis') {
         const m = document.getElementById('an-mes');
         const a = document.getElementById('an-año');
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
