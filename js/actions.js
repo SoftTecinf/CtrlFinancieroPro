@@ -32,13 +32,32 @@ async function guardarRegistro(tipo) {
         return;
     }
 
+    // 🛑 1. VALIDACIÓN DE CATEGORÍA OBLIGATORIA
+    const selectCat = document.getElementById(`${pref}-categoria`);
+    const valorCategoria = selectCat ? selectCat.value.trim().toLowerCase() : "";
+    
+    if (!valorCategoria || valorCategoria === "" || valorCategoria === "seleccionar categoria" || valorCategoria === "seleccionarcategoria") {
+        alert("Por favor, selecciona una categoría válida.");
+        return;
+    }
+
+    // 🛑 2. VALIDACIÓN DE CONCEPTO EXCLUSIVA PARA GASTOS
+    const inputDesc = document.getElementById(`${pref}-desc`);
+    const textoDesc = inputDesc ? inputDesc.value.trim().toUpperCase() : "";
+
+    if (tipo === 'gasto' && !textoDesc) {
+        alert("El campo de concepto es obligatorio para los registros de gastos.");
+        if (inputDesc) inputDesc.focus();
+        return;
+    }
+
     const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
         tipo,
         fecha: document.getElementById(`${pref}-fecha`).value,
-        cat: document.getElementById(`${pref}-categoria`).value,
-        desc: document.getElementById(`${pref}-desc`).value.trim().toUpperCase() || 'SIN NOMBRE',
+        cat: selectCat.value.trim().toUpperCase(),
+        desc: textoDesc || 'SIN NOMBRE',
         monto
     };
 
@@ -63,13 +82,10 @@ async function guardarRegistro(tipo) {
     try {
         const res = await FetchAPI("guardarMovimiento", { data: nuevaData });
         if (!res.success) throw new Error(res.message);
-        // --- AQUÍ AÑADIMOS LA ACTUALIZACIÓN ---
-        // 1. Sincronizamos con el servidor para obtener los datos más recientes
+        
+        // --- Sincronización y limpieza ---
         await inicializarSincronizacion();
-        // 2. Refrescamos la vista para que el balance del día y las listas se redibujen
-        //alert("Proceso éxitoso.");
         refrescarVistaActual();
-        // ---------------------------------------
         limpiarFormulario(tipo);
     } catch (error) {
         console.error("Error:", error);
