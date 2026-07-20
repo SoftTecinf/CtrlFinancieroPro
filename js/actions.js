@@ -452,7 +452,6 @@ async function exportarFiltradoXLSX(tipo) {
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
-        // Convertir m.fecha a un objeto Date real de forma segura (funciona si ya es Date o String)
         const fechaObj = new Date(m.fecha);
         
         if (isNaN(fechaObj.getTime())) {
@@ -487,12 +486,18 @@ async function exportarFiltradoXLSX(tipo) {
     filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
     filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
     filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
-    filaFil++;
+    filaFil++; // Espacio adicional antes de la tabla
     
+    // Llamada con el tercer parámetro 'filaFil' para que pinte bien los datos
     if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(ws, filtrados);
+        llenarTablaDetalle(ws, filtrados, filaFil);
+    } else {
+        console.error("❌ Error: La función 'llenarTablaDetalle' no está definida.");
     }
 
+    // ==========================================
+    // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
+    // ==========================================
     if (typeof descargarArchivo === 'function') {
         descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + "_" + año);
     } else {
@@ -500,44 +505,45 @@ async function exportarFiltradoXLSX(tipo) {
     }
 }
 
+// Exponer globalmente para que el HTML la reconozca en el onclick
 window.exportarFiltradoXLSX = exportarFiltradoXLSX;
 
-        function llenarTablaDetalle(ws, datos, filaLle) {
-        // Configuramos el encabezado
-        const head = ws.getRow(filaLle);
-        head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
-        
-        head.eachCell(c => {
-            c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
-            c.alignment = { horizontal: 'center' };
+function llenarTablaDetalle(ws, datos, filaLle) {
+    // Configuramos el encabezado
+    const head = ws.getRow(filaLle);
+    head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
+
+    head.eachCell(c => {
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+        c.alignment = { horizontal: 'center' };
+    });
+
+    // Commit de la fila de encabezado
+    head.commit();
+    filaLle++;
+
+    // Llenamos los datos
+    datos.forEach((d, i) => {
+        const r = ws.getRow(filaLle);
+        r.values = [d.fecha, d.cat, d.desc, d.monto];
+
+        const colorFila = (i % 2 === 0) ? 'FFF2ECE5' : 'FFB9AB97';
+
+        r.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFila } };
+            cell.font = { size: 12, color: { argb: 'FF45423E' } };
+            cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
+
+            if (colNumber === 4) {
+                cell.numFmt = '"$"#,##0.00';
+                cell.alignment = { horizontal: 'right' };
+            }
         });
-        
-        // Commit de la fila de encabezado
-        head.commit();
+
+        r.commit();
         filaLle++;
-
-        // Llenamos los datos
-        datos.forEach((d, i) => {
-            const r = ws.getRow(filaLle);
-            r.values = [d.fecha, d.cat, d.desc, d.monto];
-            
-            const colorFila = (i % 2 === 0) ? 'FFF2ECE5' : 'FFB9AB97';
-            
-            r.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFila } };
-                cell.font = { size: 12, color: { argb: 'FF45423E' } };
-                cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
-                
-                if (colNumber === 4) {
-                    cell.numFmt = '"$"#,##0.00';
-                    cell.alignment = { horizontal: 'right' };
-                }
-            });
-
-            r.commit();
-            filaLle++;
-        });
+    });
 
     ws.columns.forEach(c => c.width = 22);
 }
