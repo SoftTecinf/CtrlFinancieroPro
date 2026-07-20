@@ -414,7 +414,7 @@ async function generarLibroContable() {
     filaIng++;
 
     if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'), filaIng); // <-- Corregido con filaIng
+        llenarTablaDetalle(wsIng, filtrados.filter(m => m.tipo === 'ingreso'), filaIng, "Ingresos");
     }
 
 
@@ -430,7 +430,7 @@ async function generarLibroContable() {
     filaGas++;
 
     if (typeof llenarTablaDetalle === 'function') {
-        llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), filaGas); // <-- Corregido con filaGas
+        llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), filaGas, "Gastos");
     }
     
 
@@ -510,26 +510,42 @@ async function exportarFiltradoXLSX(tipo) {
 }
 
 // Exponer globalmente para que el HTML la reconozca en el onclick
-function llenarTablaDetalle(ws, datos, filaLle) {
-    ws.views = [{ showGridLines: false }];
-    // Configuramos el encabezado de la tabla en la fila indicada
+function llenarTablaDetalle(ws, datos, filaLle, tipoReporte) {
+    // 1. TÍTULO DE LA SECCIÓN (Estilo idéntico al Estado de Resultados)
+    const tituloFila = ws.getRow(filaLle);
+    const nombreTitulo = tipoReporte ? tipoReporte.toUpperCase() : "DETALLE";
+    tituloFila.values = [nombreTitulo];
+    
+    tituloFila.eachCell(c => {
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+        c.alignment = { horizontal: 'left', vertical: 'middle' };
+    });
+    
+    // Opcional: Combinar celdas de la barra de título del ancho de la tabla (de columna A a D)
+    ws.mergeCells(`A${filaLle}:D${filaLle}`);
+    tituloFila.commit();
+    filaLle++;
+
+    // 2. ENCABEZADOS DE LAS COLUMNAS
     const head = ws.getRow(filaLle);
     head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
 
     head.eachCell(c => {
-        c.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+        c.font = { bold: true, color: { argb: 'FF45423E' }, size: 11 };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2ECE5' } };
         c.alignment = { horizontal: 'center' };
     });
 
     head.commit();
-    filaLle++; // Pasamos a la siguiente fila para los registros
+    filaLle++; 
 
-    // Llenamos los datos de los movimientos filtrados
+    // 3. LLENADO DE DATOS Y CÁLCULO DE TOTALES
+    let sumaTotal = 0;
+
     datos.forEach((d, i) => {
         const r = ws.getRow(filaLle);
 
-        // Convertir la fecha al formato formal DD/MM/YYYY para que luzca ordenada en el Excel
         let fechaFormateada = d.fecha;
         if (d.fecha) {
             const fechaObj = new Date(d.fecha);
@@ -542,15 +558,15 @@ function llenarTablaDetalle(ws, datos, filaLle) {
         }
 
         r.values = [fechaFormateada, d.cat, d.desc, d.monto];
+        sumaTotal += Number(d.monto) || 0;
 
         const colorFila = (i % 2 === 0) ? 'FFF2ECE5' : 'FFB9AB97';
 
         r.eachCell({ includeEmpty: true }, (cell, colNumber) => {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colorFila } };
-            cell.font = { size: 12, color: { argb: 'FF45423E' } };
+            cell.font = { size: 11, color: { argb: 'FF45423E' } };
             cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
 
-            // Alinear la fecha al centro y dar formato de moneda a la columna de monto (Columna 4)
             if (colNumber === 1) {
                 cell.alignment = { horizontal: 'center' };
             }
@@ -564,8 +580,32 @@ function llenarTablaDetalle(ws, datos, filaLle) {
         filaLle++;
     });
 
-    // Ajustar el ancho automático de las columnas
-    ws.columns.forEach(c => c.width = 22);
+    // 4. FILA DE TOTALES AL ESTILO DEL REPORTE FINANCIERO
+    const filaTotal = ws.getRow(filaLle);
+    filaTotal.values = [`(+) TOTAL ${nombreTitulo}`, '', '', sumaTotal];
+
+    // Combinar las primeras tres columnas para el texto del total
+    ws.mergeCells(`A${filaLle}:C${filaLle}`);
+
+    filaTotal.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7E705B' } };
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
+
+        if (colNumber === 1) {
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        }
+        if (colNumber === 4) {
+            cell.numFmt = '"$"#,##0.00';
+            cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        }
+    });
+
+    filaTotal.commit();
+    
+    // Ancho óptimo de columnas y limpieza de cuadrícula
+    ws.columns.forEach(c => c.width = 24);
+    ws.views = [{ showGridLines: false }];
 }
 
 window.llenarTablaDetalle = llenarTablaDetalle;
