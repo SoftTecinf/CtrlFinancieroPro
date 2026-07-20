@@ -432,7 +432,10 @@ async function generarLibroContable() {
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(wsGas, filtrados.filter(m => m.tipo === 'gasto'), filaGas); // <-- Corregido con filaGas
     }
-
+    sheetER.properties.showGridLines = false;
+    sheetBG.properties.showGridLines = false;
+    wsIng.properties.showGridLines = false;
+    wsGas.properties.showGridLines = false;
 
     // ==========================================
     // --- DESCARGA AUTOMÁTICA DEL ARCHIVO ---
@@ -447,7 +450,7 @@ async function generarLibroContable() {
 window.generarLibroContable = generarLibroContable;
 
 async function exportarFiltradoXLSX(tipo) {
-    const { mes, año } = obtenerPeriodoActual(); 
+    const { mes, año } = obtenerPeriodoActual();
     const todosLosMovimientos = obtenerMovimientosFiltrados();
 
     console.group(`🔍 DIAGNÓSTICO DE FILTRADO (${tipo.toUpperCase()})`);
@@ -457,7 +460,7 @@ async function exportarFiltradoXLSX(tipo) {
         if (!m.fecha) return false;
 
         const fechaObj = new Date(m.fecha);
-        
+
         if (isNaN(fechaObj.getTime())) {
             console.warn(`Fecha inválida detectada:`, m.fecha);
             return false;
@@ -491,7 +494,7 @@ async function exportarFiltradoXLSX(tipo) {
     filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
     filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
     filaFil++; // Espacio adicional antes de la tabla
-    
+
     // Llamada con el tercer parámetro 'filaFil' para que pinte bien los datos
     if (typeof llenarTablaDetalle === 'function') {
         llenarTablaDetalle(ws, filtrados, filaFil);
