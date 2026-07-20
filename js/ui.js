@@ -3,10 +3,12 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
+    // Determinamos el prefijo de los inputs de fecha ('in' para ingresos, 'ex' para gastos)
     const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
     const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
     const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
+    // Valores por defecto (mes actual) si están vacíos
     const hoy = new Date();
     const añoActual = hoy.getFullYear();
     const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -18,9 +20,10 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     if (inputInicio && !inputInicio.value) inputInicio.value = defectoInicio;
     if (inputFin && !inputFin.value) inputFin.value = defectoFin;
 
-    const fechaInicioStr = inputInicio ? inputInicio.value : (AppState.filtrosActuales?.inicio || defectoInicio);
-    const fechaFinStr = inputFin ? inputFin.value : (AppState.filtrosActuales?.fin || defectoFin);
+    const fechaInicioStr = inputInicio ? inputInicio.value : defectoInicio;
+    const fechaFinStr = inputFin ? inputFin.value : defectoFin;
 
+    // Filtramos los movimientos de forma segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
@@ -49,14 +52,14 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         return true;
     }).reverse();
 
-    // Buscamos el contador usando el ID real que arrojó la consola (count-in / count-ex) o el que se pasó por parámetro
-    const realCountId = document.getElementById(`count-${pref}`) ? `count-${pref}` : countId;
-    const countEl = document.getElementById(realCountId);
+    // Actualizamos el contador usando el ID real que arrojó la consola
+    const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
+    const countEl = document.getElementById(realCountId) || document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // Buscamos el contenedor de la lista de forma flexible
-    const realContId = document.getElementById(`lista-${tipoNormalizado}s`) ? `lista-${tipoNormalizado}s` : contId;
-    const cont = document.getElementById(realContId) || document.querySelector('#app-container div:not(:empty)');
+    // Apuntamos directo al contenedor real de la lista descubierto en el DOM
+    const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
+    const cont = document.getElementById(realContId) || document.getElementById(contId);
     
     if (!cont) return;
 
