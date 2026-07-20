@@ -202,7 +202,7 @@ async function agregarCategoria() {
         });
         const resultado = await response.json();
         if (resultado.success) {
-            console.log("✅ Categoría agregada en la nube correctamente.");
+            alert("Categoría agregada en la nube correctamente.");
         } else {
             console.error("❌ Error en la nube al agregar categoría:", resultado.message);
         }
@@ -222,12 +222,70 @@ async function agregarCategoria() {
     }
 }
 
-function eliminarCategoria(id) {
+async function eliminarCategoria(id) {
     if (!window.AppState) return;
-    window.AppState.categorias = window.AppState.categorias.filter(c => c.id !== id);
-    localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
 
-    if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
+    // 1. Encontrar la categoría antes de borrarla para verificar si tiene movimientos o informar en consola
+    const categoriaAEliminar = window.AppState.categorias.find(c => String(c.id) === String(id));
+    if (!categoriaAEliminar) return;
+
+    const nombreCat = categoriaAEliminar.nombre;
+
+    // 🛑 VALIDACIÓN OPCIONAL: Evitar borrar si hay movimientos que usen esta categoría
+    const tieneMovimientos = window.AppState.movimientos && window.AppState.movimientos.some(m => {
+        if (!m) return false;
+        const catMov = (m.cat || m.categoria || "").trim().toUpperCase();
+        return catMov === nombreCat.trim().toUpperCase();
+    });
+
+    if (tieneMovimientos) {
+        alert(`No se puede eliminar la categoría "${nombreCat}" porque tiene movimientos de ingresos/gastos asociados.`);
+        return;
+    }
+
+    if (!confirm(`¿Estás segura de que deseas eliminar la categoría "${nombreCat}"?`)) {
+        return;
+    }
+
+    // 2. Filtrar localmente el estado y actualizar el almacenamiento
+    window.AppState.categorias = window.AppState.categorias.filter(c => String(c.id) !== String(id));
+    localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
+    
+    if (typeof guardarEstadoGlobal === 'function') {
+        guardarEstadoGlobal();
+    } else {
+        localStorage.setItem('financiero_state', JSON.stringify(window.AppState));
+    }
+
+    // 3. 🔥 SINCRONIZACIÓN CON GOOGLE SHEETS
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "eliminarCategoria",
+                id: id
+            })
+        });
+        const resultado = await response.json();
+        if (resultado.success) {
+            console.log(`✅ Categoría "${nombreCat}" eliminada de la nube correctamente.`);
+        } else {
+            console.error("❌ Error en la nube al eliminar categoría:", resultado.message);
+        }
+    } catch (error) {
+        console.error("❌ Error de red al intentar eliminar la categoría:", error);
+    }
+
+    // 4. Refrescar interfaz de manera segura
+    if (typeof actualizarSelectsCategorias === 'function') {
+        actualizarSelectsCategorias();
+    }
+    if (typeof abrirVistaAjustesInteligente === 'function') {
+        abrirVistaAjustesInteligente();
+    }
+    if (typeof refrescarVistaActual === 'function') {
+        refrescarVistaActual();
+    }
 }
 
 function borrarTodo() {
