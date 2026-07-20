@@ -3,61 +3,18 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // Determinamos el prefijo de los inputs de fecha ('in' para ingresos, 'ex' para gastos)
-    const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
-    const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
-    const inputFin = document.getElementById(`${pref}-fecha-fin`);
-
-    // Valores por defecto (mes actual) si están vacíos
-    const hoy = new Date();
-    const añoActual = hoy.getFullYear();
-    const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
-    const diaActual = String(hoy.getDate()).padStart(2, '0');
-    
-    const defectoInicio = `${añoActual}-${mesActual}-01`;
-    const defectoFin = `${añoActual}-${mesActual}-${diaActual}`;
-
-    if (inputInicio && !inputInicio.value) inputInicio.value = defectoInicio;
-    if (inputFin && !inputFin.value) inputFin.value = defectoFin;
-
-    const fechaInicioStr = inputInicio ? inputInicio.value : defectoInicio;
-    const fechaFinStr = inputFin ? inputFin.value : defectoFin;
-
-    // Filtramos los movimientos de forma segura
+    // Filtramos directamente por el tipo de movimiento de forma exacta
     const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) return false;
-
         const tipoMov = (m.tipo || '').toLowerCase().trim();
-        if (tipoMov !== tipoNormalizado) return false;
-
-        let fechaMovStr = '';
-        if (typeof m.fecha === 'string') {
-            fechaMovStr = m.fecha.split('T')[0];
-        } else {
-            const d = new Date(m.fecha);
-            if (!isNaN(d.getTime())) {
-                const y = d.getFullYear();
-                const mo = String(d.getMonth() + 1).padStart(2, '0');
-                const da = String(d.getDate()).padStart(2, '0');
-                fechaMovStr = `${y}-${mo}-${da}`;
-            } else {
-                fechaMovStr = String(m.fecha).substring(0, 10);
-            }
-        }
-
-        if (fechaInicioStr && fechaFinStr) {
-            return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
-        }
-
-        return true;
+        return tipoMov === tipoNormalizado;
     }).reverse();
 
-    // Actualizamos el contador usando el ID real que arrojó la consola
+    // Actualizamos el contador usando el ID real de la vista
     const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
     const countEl = document.getElementById(realCountId) || document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // Apuntamos directo al contenedor real de la lista descubierto en el DOM
+    // Apuntamos al contenedor real descubierto ('lista-ingresos' o 'lista-gastos')
     const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
     const cont = document.getElementById(realContId) || document.getElementById(contId);
     
@@ -75,7 +32,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
             : String(m.fecha).split('T')[0];
 
         htmlAcumulado += `
-            <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
+            <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm mb-2">
                 <div class="flex-1">
                     <p class="text-sm font-semibold uppercase text-stone-700">${m.desc || 'Sin descripción'}</p>
                     <p class="text-[9px] opacity-40 uppercase font-bold">${fechaLegible} | ${m.cat || 'General'}</p>
