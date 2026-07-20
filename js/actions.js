@@ -506,8 +506,6 @@ async function exportarFiltradoXLSX(tipo) {
 }
 
 // Exponer globalmente para que el HTML la reconozca en el onclick
-window.exportarFiltradoXLSX = exportarFiltradoXLSX;
-
 function llenarTablaDetalle(ws, datos, filaLle) {
     // Configuramos el encabezado de la tabla en la fila indicada
     const head = ws.getRow(filaLle);
@@ -525,7 +523,20 @@ function llenarTablaDetalle(ws, datos, filaLle) {
     // Llenamos los datos de los movimientos filtrados
     datos.forEach((d, i) => {
         const r = ws.getRow(filaLle);
-        r.values = [d.fecha, d.cat, d.desc, d.monto];
+
+        // Convertir la fecha al formato formal DD/MM/YYYY para que luzca ordenada en el Excel
+        let fechaFormateada = d.fecha;
+        if (d.fecha) {
+            const fechaObj = new Date(d.fecha);
+            if (!isNaN(fechaObj.getTime())) {
+                const dia = String(fechaObj.getDate()).padStart(2, '0');
+                const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+                const anio = fechaObj.getFullYear();
+                fechaFormateada = `${dia}/${mes}/${anio}`;
+            }
+        }
+
+        r.values = [fechaFormateada, d.cat, d.desc, d.monto];
 
         const colorFila = (i % 2 === 0) ? 'FFF2ECE5' : 'FFB9AB97';
 
@@ -534,7 +545,10 @@ function llenarTablaDetalle(ws, datos, filaLle) {
             cell.font = { size: 12, color: { argb: 'FF45423E' } };
             cell.border = { bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
 
-            // Alinear y dar formato de moneda a la columna de monto (Columna 4)
+            // Alinear la fecha al centro y dar formato de moneda a la columna de monto (Columna 4)
+            if (colNumber === 1) {
+                cell.alignment = { horizontal: 'center' };
+            }
             if (colNumber === 4) {
                 cell.numFmt = '"$"#,##0.00';
                 cell.alignment = { horizontal: 'right' };
@@ -545,11 +559,10 @@ function llenarTablaDetalle(ws, datos, filaLle) {
         filaLle++;
     });
 
-    // Ajustar el ancho automático de las columnas para que no se encimen los datos
+    // Ajustar el ancho automático de las columnas
     ws.columns.forEach(c => c.width = 22);
 }
 
-// Exponer globalmente si es necesario
 window.llenarTablaDetalle = llenarTablaDetalle;
 // ========================================================
 // --- FUNCIONES AUXILIARES PARA GENERACIÓN DE EXCEL ---
