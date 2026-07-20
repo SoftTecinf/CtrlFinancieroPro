@@ -337,6 +337,7 @@ async function generarLibroContable() {
     // --- PESTAÑA 1: ESTADO DE RESULTADOS ---
     // ==========================================
     const sheetER = workbook.addWorksheet('Estado de Resultados');
+    sheetER.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaER = 1;
 
     filaER = Encabezado(sheetER, "ESTADO DE RESULTADOS", filaER);
@@ -373,7 +374,8 @@ async function generarLibroContable() {
     // --- PESTAÑA 2: BALANCE GENERAL ---
     // ==========================================
     const sheetBG = workbook.addWorksheet('Balance General');
-    let filaBG = 1;
+    sheetBG.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
+    let filaBG = 1;BG = 1;
 
     filaBG = Encabezado(sheetBG, "BALANCE GENERAL", filaBG);
     filaBG = Encabezado(sheetBG, "FECHA DE CORTE: " + fechaReporte, filaBG);
@@ -404,6 +406,7 @@ async function generarLibroContable() {
     // --- PESTAÑA 3: DETALLE DE INGRESOS ---
     // ==========================================
     const wsIng = workbook.addWorksheet('Ingresos');
+    wsIng.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaIng = 1;
 
     filaIng = Encabezado(wsIng, "DETALLE DE INGRESOS", filaIng);
@@ -420,6 +423,7 @@ async function generarLibroContable() {
     // --- PESTAÑA 4: DETALLE DE GASTOS ---
     // ==========================================
     const wsGas = workbook.addWorksheet('Gastos');
+    wsGas.views = [{ showGridLines: false }]; // <-- Oculta las líneas de cuadrícula
     let filaGas = 1;
 
     filaGas = Encabezado(wsGas, "DETALLE DE GASTOS", filaGas);
@@ -509,6 +513,7 @@ async function exportarFiltradoXLSX(tipo) {
 
 // Exponer globalmente para que el HTML la reconozca en el onclick
 function llenarTablaDetalle(ws, datos, filaLle) {
+    ws.views = [{ showGridLines: false }];
     // Configuramos el encabezado de la tabla en la fila indicada
     const head = ws.getRow(filaLle);
     head.values = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'MONTO'];
