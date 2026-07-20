@@ -303,13 +303,21 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-resumen') {
-        const m = document.getElementById('res-mes');
-        const a = document.getElementById('res-año');
-        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
-        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
+        const inputInicio = document.getElementById('an-fecha-inicio');
+        const inputFin = document.getElementById('an-fecha-fin');
 
-        if (typeof actualizarResumen === 'function') {
-            actualizarResumen(); 
+        // Si el usuario seleccionó fechas en los inputs de análisis, actualizamos el estado
+        if (inputInicio && inputInicio.value) {
+            window.AppState.filtrosActuales.inicio = inputInicio.value;
+        }
+        if (inputFin && inputFin.value) {
+            window.AppState.filtrosActuales.fin = inputFin.value;
+        }
+
+        if (typeof actualizarAnalisisFinanciero === 'function') {
+            actualizarAnalisisFinanciero();
+        } else if (typeof actualizarResumen === 'function') {
+            actualizarResumen();
         }
     }
 
