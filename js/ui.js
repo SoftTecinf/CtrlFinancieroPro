@@ -3,12 +3,11 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // 1. Obtenemos las fechas seleccionadas en los inputs de arriba
     const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
     const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
     const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
-    // Valores por defecto si los inputs están vacíos (mes actual)
+    // Valores por defecto (mes actual)
     const hoy = new Date();
     const añoActual = hoy.getFullYear();
     const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -23,43 +22,30 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const fechaInicioStr = inputInicio ? inputInicio.value : defectoInicio;
     const fechaFinStr = inputFin ? inputFin.value : defectoFin;
 
-    // 2. Filtramos estrictamente por tipo Y por rango de fechas
+    // Convertimos los límites del filtro a milisegundos para comparar matemáticamente (más seguro que strings)
+    const inicioTime = new Date(fechaInicioStr + 'T00:00:00').getTime();
+    const finTime = new Date(fechaFinStr + 'T23:59:59').getTime();
+
+    // Filtramos validando tipo y rango de tiempo exacto
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
-        // Extraemos la fecha del movimiento en formato YYYY-MM-DD de forma segura
-        let fechaMovStr = '';
-        if (typeof m.fecha === 'string') {
-            fechaMovStr = m.fecha.split('T')[0];
-        } else {
-            const d = new Date(m.fecha);
-            if (!isNaN(d.getTime())) {
-                const y = d.getFullYear();
-                const mo = String(d.getMonth() + 1).padStart(2, '0');
-                const da = String(d.getDate()).padStart(2, '0');
-                fechaMovStr = `${y}-${mo}-${da}`;
-            } else {
-                fechaMovStr = String(m.fecha).substring(0, 10);
-            }
-        }
+        // Convertimos la fecha del movimiento a timestamp
+        const movTime = new Date(m.fecha).getTime();
+        if (isNaN(movTime)) return false;
 
-        // Aplicamos la validación del rango de fechas
-        if (fechaInicioStr && fechaFinStr) {
-            return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
-        }
-
-        return true;
+        return movTime >= inicioTime && movTime <= finTime;
     }).reverse();
 
-    // 3. Actualizamos el contador con el número de elementos filtrados
+    // Actualizamos el contador
     const realCountId = tipoNormalizado === 'ingreso' ? 'count-in' : 'count-ex';
     const countEl = document.getElementById(realCountId) || document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // 4. Renderizamos el resultado en el contenedor correspondiente
+    // Renderizamos en el contenedor correcto
     const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
     const cont = document.getElementById(realContId) || document.getElementById(contId);
     
