@@ -3,12 +3,10 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const todosLosMovimientos = AppState.movimientos || [];
     const tipoNormalizado = tipo.toLowerCase().trim();
 
-    // 1. Identificamos el prefijo correcto según la vista ('in' para ingresos, 'ex' para gastos)
     const pref = tipoNormalizado === 'ingreso' ? 'in' : 'ex';
     const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
     const inputFin = document.getElementById(`${pref}-fecha-fin`);
 
-    // 2. Si los inputs existen en el HTML pero están vacíos, les inyectamos el mes actual por defecto
     const hoy = new Date();
     const añoActual = hoy.getFullYear();
     const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -23,17 +21,28 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const fechaInicioStr = inputInicio ? inputInicio.value : (AppState.filtrosActuales?.inicio || defectoInicio);
     const fechaFinStr = inputFin ? inputFin.value : (AppState.filtrosActuales?.fin || defectoFin);
 
-    // 3. Filtramos los movimientos de forma segura
     const filtrados = todosLosMovimientos.filter(m => {
         if (!m.fecha) return false;
 
         const tipoMov = (m.tipo || '').toLowerCase().trim();
         if (tipoMov !== tipoNormalizado) return false;
 
-        // Limpiamos la fecha del movimiento (quitando la hora si la trae, ej. '2026-07-20T...')
-        const fechaMovStr = m.fecha.split('T')[0];
+        // Extracción segura de la fecha sin importar si es string con T, objeto o timestamp
+        let fechaMovStr = '';
+        if (typeof m.fecha === 'string') {
+            fechaMovStr = m.fecha.split('T')[0];
+        } else {
+            const d = new Date(m.fecha);
+            if (!isNaN(d.getTime())) {
+                const y = d.getFullYear();
+                const mo = String(d.getMonth() + 1).padStart(2, '0');
+                const da = String(d.getDate()).padStart(2, '0');
+                fechaMovStr = `${y}-${mo}-${da}`;
+            } else {
+                fechaMovStr = String(m.fecha).substring(0, 10);
+            }
+        }
 
-        // Comparamos el rango de fechas estándar YYYY-MM-DD
         if (fechaInicioStr && fechaFinStr) {
             return fechaMovStr >= fechaInicioStr && fechaMovStr <= fechaFinStr;
         }
@@ -41,11 +50,9 @@ function actualizarListadoIndividual(tipo, contId, countId) {
         return true;
     }).reverse();
 
-    // 4. Actualizamos el contador en pantalla
     const countEl = document.getElementById(countId);
     if (countEl) countEl.innerText = `${filtrados.length} MOVIMIENTOS`;
 
-    // 5. Renderizamos el listado o el mensaje de "Sin registros"
     const cont = document.getElementById(contId);
     if (!cont) return;
 
@@ -58,7 +65,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     filtrados.forEach(m => {
         const fechaLegible = (typeof window.formatearFechaMX === 'function')
             ? window.formatearFechaMX(m.fecha)
-            : m.fecha.split('T')[0];
+            : String(m.fecha).split('T')[0];
 
         htmlAcumulado += `
             <div class="p-4 bg-gray-50/50 rounded-xl border border-white flex justify-between items-center group transition-all hover:bg-white hover:shadow-sm">
