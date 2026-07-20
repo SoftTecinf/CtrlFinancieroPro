@@ -443,9 +443,9 @@ async function generarLibroContable() {
 }
 
 async function exportarFiltradoXLSX(tipo) {
-    console.warn("Entra a exportar");
     const ahora = new Date();
     const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo);
+    console.warn("Entra a exportar: "+filtrados);
     if (!filtrados.length) return alert("Sin movimientos.");
     const { mes, año } = obtenerPeriodoActual();
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
