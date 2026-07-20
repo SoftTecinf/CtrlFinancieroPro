@@ -144,13 +144,13 @@ function agregarCategoria() {
 
     const nom = inputCat.value.trim().toUpperCase();
     const tipo = selectTipo.value;
-    
+
     if (!nom || !window.AppState) return;
-    
+
     window.AppState.categorias.push({ id: Date.now(), nombre: nom, tipo });
     localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
     inputCat.value = '';
-    
+
     if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
 }
 
@@ -158,14 +158,14 @@ function eliminarCategoria(id) {
     if (!window.AppState) return;
     window.AppState.categorias = window.AppState.categorias.filter(c => c.id !== id);
     localStorage.setItem('cats_mxn', JSON.stringify(window.AppState.categorias));
-    
+
     if (typeof refrescarVistaActual === 'function') refrescarVistaActual();
 }
 
 function borrarTodo() {
-    if (confirm("⚠️ ¿Estás completamente seguro de borrar TODO el historial y las configuraciones del sistema? Esta acción no se puede deshacer.")) { 
-        localStorage.clear(); 
-        location.reload(); 
+    if (confirm("⚠️ ¿Estás completamente seguro de borrar TODO el historial y las configuraciones del sistema? Esta acción no se puede deshacer.")) {
+        localStorage.clear();
+        location.reload();
     }
 }
 
@@ -275,13 +275,13 @@ function obtenerPeriodoActual() {
     // Detecta la sección activa del estado global seguro
     const seccion = window.AppState?.seccionActual || 'home';
     let pref = seccion === 'ingresos' ? 'in' : (seccion === 'gastos' ? 'ex' : 'res');
-    
+
     const mesEl = document.getElementById(`${pref}-mes`);
     const anioEl = document.getElementById(`${pref}-año`);
-    
-    return { 
-        mes: mesEl ? parseInt(mesEl.value) : new Date().getMonth(), 
-        año: anioEl ? parseInt(anioEl.value) : new Date().getFullYear() 
+
+    return {
+        mes: mesEl ? parseInt(mesEl.value) : new Date().getMonth(),
+        año: anioEl ? parseInt(anioEl.value) : new Date().getFullYear()
     };
 }
 
@@ -440,6 +440,24 @@ async function generarLibroContable() {
     } else {
         console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
     }
+}
+
+async function exportarFiltradoXLSX(tipo) {
+    const ahora = new Date();
+    const filtrados = obtenerMovimientosFiltrados().filter(m => m.tipo === tipo);
+    if (!filtrados.length) return alert("Sin movimientos.");
+    const { mes, año } = obtenerPeriodoActual();
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet('Detalle');
+    let filaFil = 1;
+
+    filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
+    filaFil = Encabezado(ws, "PERIODO DE " + meses[mes] + " " + año, filaFil);
+    filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', }), filaFil);
+    filaFil++;
+    llenarTablaDetalle(ws, filtrados, filaFil);
+    descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + " " + año);
 }
 
 // ========================================================
