@@ -447,41 +447,25 @@ async function exportarFiltradoXLSX(tipo) {
     const todosLosMovimientos = obtenerMovimientosFiltrados();
 
     console.group(`🔍 DIAGNÓSTICO DE FILTRADO (${tipo.toUpperCase()})`);
-    console.log(`Mes seleccionado en filtro: ${mes + 1} (Índice JS: ${mes}), Año: ${año}`);
-    console.log(`Total de movimientos obtenidos para evaluar:`, todosLosMovimientos);
+    console.log(`Mes seleccionado en filtro: ${mes}, Año: ${año}`);
 
     const filtrados = todosLosMovimientos.filter(m => {
-        if (!m.fecha) {
-            console.warn(`Movimiento sin fecha ID: ${m.id}`, m);
+        if (!m.fecha) return false;
+
+        // Convertir m.fecha a un objeto Date real de forma segura (funciona si ya es Date o String)
+        const fechaObj = new Date(m.fecha);
+        
+        if (isNaN(fechaObj.getTime())) {
+            console.warn(`Fecha inválida detectada:`, m.fecha);
             return false;
         }
 
-        let mesM, añoM;
-
-        if (m.fecha.includes('-')) {
-            const partes = m.fecha.split('-');
-            añoM = parseInt(partes[0], 10);
-            mesM = parseInt(partes[1], 10) - 1;
-        } else if (m.fecha.includes('/')) {
-            const partes = m.fecha.split('/');
-            mesM = parseInt(partes[1], 10) - 1; 
-            añoM = parseInt(partes[2], 10);
-        } else {
-            console.warn(`Formato de fecha desconocido: ${m.fecha}`);
-            return false;
-        }
+        const mesM = fechaObj.getMonth();       // 0 a 11
+        const añoM = fechaObj.getFullYear();   // ej. 2026
 
         const esDelTipo = m.tipo.toLowerCase() === tipo.toLowerCase();
         const esDelMesSeleccionado = (añoM === año && mesM === mes);
         const pasaFiltro = esDelTipo && esDelMesSeleccionado;
-
-        console.log(`[Movimiento] Fecha original: "${m.fecha}" | Tipo: "${m.tipo}" --> ¿Pasa el filtro? `, {
-            esDelTipo,
-            esDelMesSeleccionado,
-            mesCalculado: mesM + 1,
-            añoCalculado: añoM,
-            resultado: pasaFiltro
-        });
 
         return pasaFiltro;
     });
@@ -489,15 +473,34 @@ async function exportarFiltradoXLSX(tipo) {
     console.log(`Total registros que pasaron el filtro: ${filtrados.length}`);
     console.groupEnd();
 
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
     if (!filtrados.length) {
-        return alert(`Diagnóstico: No pasaron registros para ${tipo} en el periodo.`);
+        return alert(`Sin movimientos de ${tipo} para ${meses[mes]} de ${año}.`);
     }
 
-    // El resto de tu lógica de exportación continúa aquí...
+    const ahora = new Date();
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet('Detalle');
+    let filaFil = 1;
+
+    filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
+    filaFil = Encabezado(ws, "PERIODO: " + meses[mes].toUpperCase() + " " + año, filaFil);
+    filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
+    filaFil++;
+    
+    if (typeof llenarTablaDetalle === 'function') {
+        llenarTablaDetalle(ws, filtrados);
+    }
+
+    if (typeof descargarArchivo === 'function') {
+        descargarArchivo(workbook, "Detalle_" + tipo + "_" + meses[mes] + "_" + año);
+    } else {
+        console.error("❌ Error: La función 'descargarArchivo' no está definida en los módulos globales.");
+    }
 }
 
-window.exportarFiltradoXLSX = exportarFiltradoXLSX;tradoXLSX;
-
+window.exportarFiltradoXLSX = exportarFiltradoXLSX;
 // ========================================================
 // --- FUNCIONES AUXILIARES PARA GENERACIÓN DE EXCEL ---
 // ========================================================
