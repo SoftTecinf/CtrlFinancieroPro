@@ -151,7 +151,7 @@ function saveEdit(id) {
             if (typeof actualizarCategoriaEnNube === 'function') {
                 actualizarCategoriaEnNube(id, nuevoNombre);
             } else if (typeof sincronizarConGoogle === 'function') {
-                sincronizarConGoogle(); 
+                sincronizarConGoogle();
             }
 
             // 4. EL ESCUDO EN CASCADA: Actualizar movimientos existentes en memoria
@@ -178,6 +178,9 @@ function saveEdit(id) {
             }
 
             console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}" y vinculada en cascada.`);
+            if (typeof refrescarVistaActual === 'function') {
+                refrescarVistaActual();
+            }
         }
     } catch (error) {
         console.error("Error crítico en saveEdit de categorías:", error);
@@ -186,7 +189,7 @@ function saveEdit(id) {
 
 async function actualizarCategoriaEnNube(id, nuevoNombre) {
     // Reemplaza esta URL con la URL de implementación web de tu Google Apps Script
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec"; 
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
 
     try {
         const respuesta = await fetch(URL_APPS_SCRIPT, {
@@ -199,7 +202,7 @@ async function actualizarCategoriaEnNube(id, nuevoNombre) {
         });
 
         const resultado = await respuesta.json();
-        
+
         if (resultado.success) {
             console.log("✅ Categoría sincronizada con Google Sheets correctamente.");
         } else {
@@ -503,11 +506,11 @@ function inicializarFiltros() {
             sel.addEventListener('change', (e) => {
                 // 1. Guardamos el nuevo valor en el estado global
                 AppState.filtrosActuales.mes = parseInt(e.target.value);
-                
+
                 // 2. (Opcional) Sincronizamos los otros selects de mes para que todos digan lo mismo
                 selectsMes.forEach(id => {
                     const otroSel = document.getElementById(id);
-                    if(otroSel) otroSel.value = e.target.value;
+                    if (otroSel) otroSel.value = e.target.value;
                 });
 
                 // 3. Refrescamos la vista
@@ -532,11 +535,11 @@ function inicializarFiltros() {
             sel.addEventListener('change', (e) => {
                 // 1. Guardamos el nuevo valor en el estado global
                 AppState.filtrosActuales.año = parseInt(e.target.value);
-                
+
                 // 2. (Opcional) Sincronizamos los otros selects de año
                 selectsAnio.forEach(id => {
                     const otroSel = document.getElementById(id);
-                    if(otroSel) otroSel.value = e.target.value;
+                    if (otroSel) otroSel.value = e.target.value;
                 });
 
                 // 3. Refrescamos la vista
