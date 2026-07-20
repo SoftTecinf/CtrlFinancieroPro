@@ -47,7 +47,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     // Renderizamos en el contenedor correcto
     const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
-    const cont = document.getElementById(realContId) || document.getElementById(contId);
+    const cont = document.getElementById(realContId) || document.getElementById(countId);
     
     if (!cont) return;
 
@@ -86,6 +86,22 @@ function actualizarListadoIndividual(tipo, contId, countId) {
 
     cont.innerHTML = htmlAcumulado;
 }
+
+// Enlace automático de los eventos de cambio para los inputs de fecha
+document.addEventListener('DOMContentLoaded', () => {
+    ['in', 'ex'].forEach(pref => {
+        const inicio = document.getElementById(`${pref}-fecha-inicio`);
+        const fin = document.getElementById(`${pref}-fecha-fin`);
+        const tipo = pref === 'in' ? 'ingreso' : 'gasto';
+
+        if (inicio) {
+            inicio.addEventListener('change', () => actualizarListadoIndividual(tipo));
+        }
+        if (fin) {
+            fin.addEventListener('change', () => actualizarListadoIndividual(tipo));
+        }
+    });
+});
 
 function actualizarSelectsCategorias() {
     const inSel = document.getElementById('in-categoria');
