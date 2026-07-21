@@ -451,16 +451,29 @@ function actualizarResumen() {
         const { inicio, fin } = window.AppState?.filtrosActuales || {};
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
 
+        console.log("🔍 Rango activo:", { inicio, fin });
+        console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
+
         if (inicio && fin) {
             const inicioTime = new Date(inicio + 'T00:00:00').getTime();
             const finTime = new Date(fin + 'T23:59:59').getTime();
 
             filtrados = filtrados.filter(m => {
-                if (!m.dateObj || isNaN(m.dateObj.getTime())) return false;
+                if (!m.dateObj || isNaN(m.dateObj.getTime())) {
+                    console.warn("⚠️ Movimiento sin fecha válida:", m);
+                    return false;
+                }
                 const t = m.dateObj.getTime();
-                return t >= inicioTime && t <= finTime;
+                const pasa = t >= inicioTime && t <= finTime;
+                
+                // Descomenta la siguiente línea si quieres ver cada movimiento evaluado:
+                // console.log(`Movimiento fecha: ${m.dateObj.toISOString()} | ¿Pasa?: ${pasa}`);
+                
+                return pasa;
             });
         }
+
+        console.log("✅ Movimientos después de filtrar por fecha:", filtrados.length);
 
         let ing = 0, gas = 0;
 
