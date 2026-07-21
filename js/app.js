@@ -303,6 +303,7 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-analisis' || seccionId === 'nav-resumen') {
+        console.warn(seccionId);
         const inputInicio = document.getElementById('an-fecha-inicio');
         const inputFin = document.getElementById('an-fecha-fin');
 
@@ -335,6 +336,8 @@ function refrescarVistaActual() {
 }
 
 function obtenerMovimientosFiltrados() {
+            console.warn("Entra");
+
     const movimientos = window.AppState?.movimientos || [];
     
     // Detectamos dinámicamente si estamos en análisis o en ingresos/gastos
