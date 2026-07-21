@@ -439,14 +439,9 @@ function actualizarHome() {
 function actualizarResumen() {
     try {
         console.warn("Entrando a actualizarResumen - ejecutando filtro...");
-
-        // 🔥 FORZAMOS LA LLAMADA AQUÍ
-        let rawFiltrados = [];
-        if (typeof obtenerMovimientosFiltrados === 'function') {
-            rawFiltrados = obtenerMovimientosFiltrados() || [];
-        } else {
-            rawFiltrados = window.AppState?.movimientos || [];
-        }
+        
+        // 🎯 APUNTAMOS DIRECTAMENTE A LA FUENTE REAL DE LOS DATOS
+        let rawFiltrados = window.AppState?.movimientos || [];
 
         const { inicio, fin } = window.AppState?.filtrosActuales || {};
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
@@ -455,21 +450,17 @@ function actualizarResumen() {
         console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
 
         if (inicio && fin) {
-            // Convertimos el rango de los inputs a enteros limpios YYYYMMDD
             const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
             const numFin = parseInt(fin.replace(/-/g, ''), 10);
 
             filtrados = filtrados.filter(m => {
-                // Verificamos que m.dateObj exista y sea una fecha válida
                 if (!m.dateObj || isNaN(m.dateObj.getTime())) return false;
 
-                // Extraemos directamente de dateObj el año, mes y día de forma local y segura
                 const anio = m.dateObj.getFullYear();
                 const mes = String(m.dateObj.getMonth() + 1).padStart(2, '0');
                 const dia = String(m.dateObj.getDate()).padStart(2, '0');
                 const numMovimiento = parseInt(`${anio}${mes}${dia}`, 10);
 
-                // Comparamos los enteros (ej: 20260714 >= 20260701 && 20260714 <= 20260721)
                 return numMovimiento >= numInicio && numMovimiento <= numFin;
             });
         }
