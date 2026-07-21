@@ -334,6 +334,37 @@ function refrescarVistaActual() {
     });
 }
 
+function obtenerMovimientosFiltrados() {
+    const movimientos = window.AppState?.movimientos || [];
+    
+    // Detectamos dinámicamente si estamos en análisis o en ingresos/gastos
+    const activeBtn = document.querySelector('.nav-active');
+    const seccionId = activeBtn ? activeBtn.id : '';
+
+    let prefijo = 'in'; // Por defecto
+    if (seccionId.includes('analisis') || document.getElementById('an-fecha-inicio')) {
+        prefijo = 'an';
+    }
+
+    const inputInicio = document.getElementById(`${prefijo}-fecha-inicio`);
+    const inputFin = document.getElementById(`${prefijo}-fecha-fin`);
+
+    // Si los inputs tienen valores, filtramos por ese rango
+    if (inputInicio && inputInicio.value && inputFin && inputFin.value) {
+        const inicioTime = new Date(inputInicio.value + 'T00:00:00').getTime();
+        const finTime = new Date(inputFin.value + 'T23:59:59').getTime();
+
+        return movimientos.filter(m => {
+            if (!m.fecha) return false;
+            const movTime = new Date(m.fecha).getTime();
+            if (isNaN(movTime)) return false;
+            return movTime >= inicioTime && movTime <= finTime;
+        });
+    }
+
+    return movimientos;
+}
+
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
     const valor = parseFloat(monto);
