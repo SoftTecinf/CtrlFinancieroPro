@@ -438,6 +438,9 @@ function actualizarHome() {
 
 function actualizarResumen() {
     try {
+        console.warn("Entrando a actualizarResumen - ejecutando filtro...");
+        
+        // 🔥 FORZAMOS LA LLAMADA AQUÍ
         let rawFiltrados = [];
         if (typeof obtenerMovimientosFiltrados === 'function') {
             rawFiltrados = obtenerMovimientosFiltrados() || [];
@@ -445,13 +448,9 @@ function actualizarResumen() {
             rawFiltrados = window.AppState?.movimientos || [];
         }
 
-        // 🔥 CORRECCIÓN: Si normalizarMovimiento descarta fechas por mes fijo, 
-        // procesamos los datos asegurando que conserven el rango del input.
         const { inicio, fin } = window.AppState?.filtrosActuales || {};
-        
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
 
-        // Filtro de seguridad estricto por rango de inputs de fecha
         if (inicio && fin) {
             const inicioTime = new Date(inicio + 'T00:00:00').getTime();
             const finTime = new Date(fin + 'T23:59:59').getTime();
