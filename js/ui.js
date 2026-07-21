@@ -437,6 +437,8 @@ function actualizarHome() {
 }
 
 function actualizarResumen() {
+        console.warn("actualizarResumen");
+
     try {
         let rawFiltrados = [];
         if (typeof obtenerMovimientosFiltrados === 'function') {
