@@ -342,10 +342,8 @@ function refrescarVistaActual() {
 function obtenerMovimientosFiltrados() {
     const movimientos = window.AppState?.movimientos || [];
     
-    // Obtenemos los valores de inicio y fin desde el estado global sincronizado
     const { inicio, fin } = window.AppState?.filtrosActuales || {};
 
-    // Si hay un rango de fechas definido, filtramos estrictamente
     if (inicio && fin) {
         const inicioTime = new Date(inicio + 'T00:00:00').getTime();
         const finTime = new Date(fin + 'T23:59:59').getTime();
@@ -353,8 +351,21 @@ function obtenerMovimientosFiltrados() {
         return movimientos.filter(m => {
             if (!m.fecha) return false;
             
-            // Convertimos la fecha del movimiento al formato comparable
-            const movTime = new Date(m.fecha).getTime();
+            let movTime = NaN;
+            
+            // Si la fecha viene en formato latino "DD/MM/YYYY" (ej: "17/07/2026")
+            if (typeof m.fecha === 'string' && m.fecha.includes('/')) {
+                const partes = m.fecha.split('/');
+                if (partes.length === 3) {
+                    // Reorganizamos a "YYYY-MM-DDTHH:mm:ss"
+                    const fechaIso = `${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`;
+                    movTime = new Date(fechaIso).getTime();
+                }
+            } else {
+                // Si ya viene en formato estándar o tipo fecha ISO
+                movTime = new Date(m.fecha).getTime();
+            }
+
             if (isNaN(movTime)) return false;
 
             return movTime >= inicioTime && movTime <= finTime;
