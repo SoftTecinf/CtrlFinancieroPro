@@ -448,23 +448,25 @@ function actualizarResumen() {
             rawFiltrados = window.AppState?.movimientos || [];
         }
 
-        const { inicio, fin } = window.AppState?.filtrosActuales || {};
+const { inicio, fin } = window.AppState?.filtrosActuales || {};
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
 
         console.log("🔍 Rango activo:", { inicio, fin });
         console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
+        if (filtrados.length > 0) {
+            console.log("🕵️ Ejemplo del primer movimiento normalizado:", filtrados[0]);
+        }
 
         if (inicio && fin) {
             const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
             const numFin = parseInt(fin.replace(/-/g, ''), 10);
 
             filtrados = filtrados.filter(m => {
-                // Si el movimiento trae su fecha original limpia (ej: "2026-06-15")
-                let fechaOriginalStr = m.fechaOriginal || m.fecha;
-                if (!fechaOriginalStr) return false;
+                // Buscamos la fecha en cualquier propiedad donde normalizarMovimiento la haya guardado
+                let fechaStr = m.fechaOriginal || m.fecha || m.dateStr || (m.dateObj ? m.dateObj.toISOString() : '');
+                if (!fechaStr) return false;
 
-                // Limpiamos la cadena para dejarla puramente en formato YYYYMMDD numérico
-                const soloFecha = String(fechaOriginalStr).split('T')[0];
+                const soloFecha = String(fechaStr).split('T')[0];
                 const numMovimiento = parseInt(soloFecha.replace(/-/g, ''), 10);
 
                 if (isNaN(numMovimiento)) return false;
@@ -474,7 +476,7 @@ function actualizarResumen() {
         }
 
         console.log("✅ Movimientos después de filtrar por fecha:", filtrados.length);
-        
+
         let ing = 0, gas = 0;
 
         filtrados.forEach(m => {
