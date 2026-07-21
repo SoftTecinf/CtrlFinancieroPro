@@ -12,7 +12,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     const añoActual = hoy.getFullYear();
     const mesActual = String(hoy.getMonth() + 1).padStart(2, '0');
     const diaActual = String(hoy.getDate()).padStart(2, '0');
-    
+
     const defectoInicio = `${añoActual}-${mesActual}-01`;
     const defectoFin = `${añoActual}-${mesActual}-${diaActual}`;
 
@@ -48,7 +48,7 @@ function actualizarListadoIndividual(tipo, contId, countId) {
     // Renderizamos en el contenedor correcto
     const realContId = tipoNormalizado === 'ingreso' ? 'lista-ingresos' : 'lista-gastos';
     const cont = document.getElementById(realContId) || document.getElementById(contId);
-    
+
     if (!cont) return;
 
     if (filtrados.length === 0) {
@@ -95,7 +95,7 @@ function actualizarSelectsCategorias() {
     if (inSel) {
         // 1. Ponemos la opción por defecto obligatoria para ingresos
         inSel.innerHTML = `<option value="SELECCIONAR CATEGORIA" disabled selected>SELECCIONAR CATEGORÍA</option>`;
-        
+
         listaCategorias.filter(c => c.tipo === 'ingreso').forEach(c => {
             inSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
@@ -104,7 +104,7 @@ function actualizarSelectsCategorias() {
     if (exSel) {
         // 2. Ponemos la opción por defecto obligatoria para gastos
         exSel.innerHTML = `<option value="SELECCIONAR CATEGORIA" disabled selected>SELECCIONAR CATEGORÍA</option>`;
-        
+
         listaCategorias.filter(c => c.tipo === 'gasto').forEach(c => {
             exSel.innerHTML += `<option value="${c.nombre}">${c.nombre.toUpperCase()}</option>`;
         });
@@ -223,7 +223,7 @@ async function saveEdit(id) {
             if (typeof actualizarResumen === 'function') actualizarResumen();
 
             console.log(`Categoría "${nombreAnterior}" actualizada con éxito a "${nuevoNombre}".`);
-            
+
             if (typeof refrescarVistaActual === 'function') {
                 refrescarVistaActual();
             }
@@ -439,7 +439,7 @@ function actualizarHome() {
 function actualizarResumen() {
     try {
         console.warn("Entrando a actualizarResumen - ejecutando filtro...");
-        
+
         // 🔥 FORZAMOS LA LLAMADA AQUÍ
         let rawFiltrados = [];
         if (typeof obtenerMovimientosFiltrados === 'function') {
@@ -455,29 +455,26 @@ function actualizarResumen() {
         console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
 
         if (inicio && fin) {
-            // Convertimos el rango de los inputs a enteros limpios YYYYMMDD (Ej: 20260601)
             const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
             const numFin = parseInt(fin.replace(/-/g, ''), 10);
 
             filtrados = filtrados.filter(m => {
-                if (!m.dateObj || isNaN(m.dateObj.getTime())) {
-                    console.warn("⚠️ Movimiento sin fecha válida:", m);
-                    return false;
-                }
+                // Si el movimiento trae su fecha original limpia (ej: "2026-06-15")
+                let fechaOriginalStr = m.fechaOriginal || m.fecha;
+                if (!fechaOriginalStr) return false;
 
-                // Extraemos año, mes y día del movimiento de forma segura en formato numérico
-                const anio = m.dateObj.getFullYear();
-                const mes = String(m.dateObj.getMonth() + 1).padStart(2, '0');
-                const dia = String(m.dateObj.getDate()).padStart(2, '0');
-                const numMovimiento = parseInt(`${anio}${mes}${dia}`, 10);
+                // Limpiamos la cadena para dejarla puramente en formato YYYYMMDD numérico
+                const soloFecha = String(fechaOriginalStr).split('T')[0];
+                const numMovimiento = parseInt(soloFecha.replace(/-/g, ''), 10);
 
-                // Comparamos peras con peras (números enteros de fecha)
-                const pasa = numMovimiento >= numInicio && numMovimiento <= numFin;
-                return pasa;
+                if (isNaN(numMovimiento)) return false;
+
+                return numMovimiento >= numInicio && numMovimiento <= numFin;
             });
         }
 
         console.log("✅ Movimientos después de filtrar por fecha:", filtrados.length);
+        
         let ing = 0, gas = 0;
 
         filtrados.forEach(m => {
@@ -594,7 +591,7 @@ function inicializarFiltros() {
 
         input.addEventListener('change', () => {
             if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
-            
+
             // Sincronizamos el valor con AppState sin importar si es 'in', 'ex' o 'an'
             if (input.id.includes('inicio')) {
                 AppState.filtrosActuales.inicio = input.value;
