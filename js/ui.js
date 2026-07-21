@@ -455,26 +455,29 @@ function actualizarResumen() {
         console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
 
         if (inicio && fin) {
-            const inicioTime = new Date(inicio + 'T00:00:00').getTime();
-            const finTime = new Date(fin + 'T23:59:59').getTime();
+            // Convertimos el rango de los inputs a enteros limpios YYYYMMDD (Ej: 20260601)
+            const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
+            const numFin = parseInt(fin.replace(/-/g, ''), 10);
 
             filtrados = filtrados.filter(m => {
                 if (!m.dateObj || isNaN(m.dateObj.getTime())) {
                     console.warn("⚠️ Movimiento sin fecha válida:", m);
                     return false;
                 }
-                const t = m.dateObj.getTime();
-                const pasa = t >= inicioTime && t <= finTime;
-                
-                // Descomenta la siguiente línea si quieres ver cada movimiento evaluado:
-                // console.log(`Movimiento fecha: ${m.dateObj.toISOString()} | ¿Pasa?: ${pasa}`);
-                
+
+                // Extraemos año, mes y día del movimiento de forma segura en formato numérico
+                const anio = m.dateObj.getFullYear();
+                const mes = String(m.dateObj.getMonth() + 1).padStart(2, '0');
+                const dia = String(m.dateObj.getDate()).padStart(2, '0');
+                const numMovimiento = parseInt(`${anio}${mes}${dia}`, 10);
+
+                // Comparamos peras con peras (números enteros de fecha)
+                const pasa = numMovimiento >= numInicio && numMovimiento <= numFin;
                 return pasa;
             });
         }
 
         console.log("✅ Movimientos después de filtrar por fecha:", filtrados.length);
-
         let ing = 0, gas = 0;
 
         filtrados.forEach(m => {
