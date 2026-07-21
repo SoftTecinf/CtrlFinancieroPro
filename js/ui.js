@@ -448,29 +448,28 @@ function actualizarResumen() {
             rawFiltrados = window.AppState?.movimientos || [];
         }
 
-const { inicio, fin } = window.AppState?.filtrosActuales || {};
+        const { inicio, fin } = window.AppState?.filtrosActuales || {};
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
 
         console.log("🔍 Rango activo:", { inicio, fin });
         console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
-        if (filtrados.length > 0) {
-            console.log("🕵️ Ejemplo del primer movimiento normalizado:", filtrados[0]);
-        }
 
         if (inicio && fin) {
+            // Convertimos el rango de los inputs a enteros limpios YYYYMMDD
             const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
             const numFin = parseInt(fin.replace(/-/g, ''), 10);
 
             filtrados = filtrados.filter(m => {
-                // Buscamos la fecha en cualquier propiedad donde normalizarMovimiento la haya guardado
-                let fechaStr = m.fechaOriginal || m.fecha || m.dateStr || (m.dateObj ? m.dateObj.toISOString() : '');
-                if (!fechaStr) return false;
+                // Verificamos que m.dateObj exista y sea una fecha válida
+                if (!m.dateObj || isNaN(m.dateObj.getTime())) return false;
 
-                const soloFecha = String(fechaStr).split('T')[0];
-                const numMovimiento = parseInt(soloFecha.replace(/-/g, ''), 10);
+                // Extraemos directamente de dateObj el año, mes y día de forma local y segura
+                const anio = m.dateObj.getFullYear();
+                const mes = String(m.dateObj.getMonth() + 1).padStart(2, '0');
+                const dia = String(m.dateObj.getDate()).padStart(2, '0');
+                const numMovimiento = parseInt(`${anio}${mes}${dia}`, 10);
 
-                if (isNaN(numMovimiento)) return false;
-
+                // Comparamos los enteros (ej: 20260714 >= 20260701 && 20260714 <= 20260721)
                 return numMovimiento >= numInicio && numMovimiento <= numFin;
             });
         }
