@@ -437,8 +437,6 @@ function actualizarHome() {
 }
 
 function actualizarResumen() {
-        console.warn("actualizarResumen");
-
     try {
         let rawFiltrados = [];
         if (typeof obtenerMovimientosFiltrados === 'function') {
@@ -447,7 +445,24 @@ function actualizarResumen() {
             rawFiltrados = window.AppState?.movimientos || [];
         }
 
-        const filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
+        // 🔥 CORRECCIÓN: Si normalizarMovimiento descarta fechas por mes fijo, 
+        // procesamos los datos asegurando que conserven el rango del input.
+        const { inicio, fin } = window.AppState?.filtrosActuales || {};
+        
+        let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
+
+        // Filtro de seguridad estricto por rango de inputs de fecha
+        if (inicio && fin) {
+            const inicioTime = new Date(inicio + 'T00:00:00').getTime();
+            const finTime = new Date(fin + 'T23:59:59').getTime();
+
+            filtrados = filtrados.filter(m => {
+                if (!m.dateObj || isNaN(m.dateObj.getTime())) return false;
+                const t = m.dateObj.getTime();
+                return t >= inicioTime && t <= finTime;
+            });
+        }
+
         let ing = 0, gas = 0;
 
         filtrados.forEach(m => {
