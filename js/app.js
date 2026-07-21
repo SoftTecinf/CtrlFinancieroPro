@@ -340,7 +340,7 @@ function refrescarVistaActual() {
 }
 
 function obtenerMovimientosFiltrados() {
-    console.warn("Entra");
+    console.warn("obtenerMovimientosFiltrados");
     const movimientos = window.AppState?.movimientos || [];
     
     const { inicio, fin } = window.AppState?.filtrosActuales || {};
