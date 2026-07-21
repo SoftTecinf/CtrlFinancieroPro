@@ -318,6 +318,7 @@ function refrescarVistaActual() {
     else if (seccionId === 'nav-resumen' || seccionId === 'nav-analisis') {
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
+        console.warn("m, "+ "a");
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
@@ -340,6 +341,7 @@ function refrescarVistaActual() {
 }
 
 function obtenerMovimientosFiltrados() {
+    console.warn("Entra");
     const movimientos = window.AppState?.movimientos || [];
     
     // Detectamos dinámicamente si estamos en análisis o en ingresos/gastos
