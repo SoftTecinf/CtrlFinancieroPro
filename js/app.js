@@ -310,15 +310,20 @@ function refrescarVistaActual() {
     else if (seccionId === 'nav-gastos') {
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
+        console.warn(seccionId+", "+m+", "+a);
+
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
-    else if (seccionId === 'nav-resumen' || seccionId === 'nav-analisis') {
+    else if (seccionId === 'nav-resumen') {
+        console.warn(res-mes+", "+res-año);
+
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
-        console.warn(m+", "+a);
+        console.warn(seccionId+", "+m+", "+a);
+
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
