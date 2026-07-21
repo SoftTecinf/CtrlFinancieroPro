@@ -339,10 +339,9 @@ function refrescarVistaActual() {
     });
 }
 
-function obtenerMovimientosFiltrados() {
-    console.warn("obtenerMovimientosFiltrados");
+window.obtenerMovimientosFiltrados = function() {
+    console.warn("¡Entró a obtenerMovimientosFiltrados!");
     const movimientos = window.AppState?.movimientos || [];
-    
     const { inicio, fin } = window.AppState?.filtrosActuales || {};
 
     if (inicio && fin) {
@@ -353,17 +352,17 @@ function obtenerMovimientosFiltrados() {
             if (!m.fecha) return false;
             
             let movTime = NaN;
-            
-            // Si la fecha viene en formato latino "DD/MM/YYYY" (ej: "17/07/2026")
-            if (typeof m.fecha === 'string' && m.fecha.includes('/')) {
-                const partes = m.fecha.split('/');
+            let fechaStr = String(m.fecha).trim();
+
+            if (fechaStr.includes('-')) {
+                const soloFecha = fechaStr.split('T')[0];
+                movTime = new Date(soloFecha + 'T00:00:00').getTime();
+            } else if (fechaStr.includes('/')) {
+                const partes = fechaStr.split('/');
                 if (partes.length === 3) {
-                    // Reorganizamos a "YYYY-MM-DDTHH:mm:ss"
-                    const fechaIso = `${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`;
-                    movTime = new Date(fechaIso).getTime();
+                    movTime = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`).getTime();
                 }
             } else {
-                // Si ya viene en formato estándar o tipo fecha ISO
                 movTime = new Date(m.fecha).getTime();
             }
 
