@@ -339,7 +339,7 @@ function refrescarVistaActual() {
     });
 }
 
-/*function obtenerMovimientosFiltrados() {
+function obtenerMovimientosFiltrados() {
     console.warn("obtenerMovimientosFiltrados");
     const movimientos = window.AppState?.movimientos || [];
     
@@ -374,7 +374,7 @@ function refrescarVistaActual() {
     }
 
     return movimientos;
-}*/
+}
 
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
