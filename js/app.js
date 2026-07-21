@@ -246,22 +246,22 @@ function refrescarVistaActual() {
     ['res', 'ex', 'in', 'an'].forEach(pref => {
         const m = document.getElementById(`${pref}-mes`);
         const a = document.getElementById(`${pref}-año`);
-        
+
         if (m && !m.value) m.value = mesActual;
         if (a && !a.value) a.value = anioActual;
     });
 
     // 🔥 RASTREADOR DINÁMICO DE FECHA (Busca el saludo "HOLA," en el HTML)
     try {
-        let contenedorFecha = document.getElementById('header-fecha') || 
-                            document.getElementById('fecha-actual') || 
-                            document.getElementById('txt-fecha') ||
-                            document.getElementById('fecha-sistema');
-        
+        let contenedorFecha = document.getElementById('header-fecha') ||
+            document.getElementById('fecha-actual') ||
+            document.getElementById('txt-fecha') ||
+            document.getElementById('fecha-sistema');
+
         if (!contenedorFecha) {
             const todosLosElementos = document.querySelectorAll('p, span, div, small, h4');
             const saludoUser = Array.from(todosLosElementos).find(el => el.innerText && el.innerText.toUpperCase().includes('HOLA,'));
-            
+
             if (saludoUser) {
                 if (saludoUser.nextElementSibling) {
                     contenedorFecha = saludoUser.nextElementSibling;
@@ -286,12 +286,25 @@ function refrescarVistaActual() {
         actualizarHome();
     }
 
+    // 2. Lógica específica por sección
     const activeBtn = document.querySelector('.nav-active');
-    if (!activeBtn) return;
+    const seccionId = activeBtn ? activeBtn.id : '';
 
-    const seccionId = activeBtn.id;
+    // 🔥 DETECCIÓN DIRECTA: Si los inputs de análisis están visibles en el DOM, los leemos de inmediato
+    const inputInicioAnálisis = document.getElementById('an-fecha-inicio');
+    const inputFinAnálisis = document.getElementById('an-fecha-fin');
 
-    if (seccionId === 'nav-ingresos') {
+    if (inputInicioAnálisis && inputInicioAnálisis.value && inputFinAnálisis && inputFinAnálisis.value) {
+        window.AppState.filtrosActuales.inicio = inputInicioAnálisis.value;
+        window.AppState.filtrosActuales.fin = inputFinAnálisis.value;
+
+        if (typeof actualizarAnalisisFinanciero === 'function') {
+            actualizarAnalisisFinanciero();
+        } else if (typeof actualizarResumen === 'function') {
+            actualizarResumen();
+        }
+    }
+    else if (seccionId === 'nav-ingresos') {
         actualizarListadoIndividual('ingreso', 'lista-ingresos', 'count-in');
     }
     else if (seccionId === 'nav-gastos') {
@@ -302,22 +315,13 @@ function refrescarVistaActual() {
 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
-    else if (seccionId === 'nav-analisis' || seccionId === 'nav-resumen') {
-        console.warn(seccionId);
-        const inputInicio = document.getElementById('an-fecha-inicio');
-        const inputFin = document.getElementById('an-fecha-fin');
+    else if (seccionId === 'nav-resumen' || seccionId === 'nav-analisis') {
+        const m = document.getElementById('res-mes');
+        const a = document.getElementById('res-año');
+        if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
+        if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
-        // Si el usuario seleccionó fechas en los inputs de análisis, actualizamos el estado
-        if (inputInicio && inputInicio.value) {
-            window.AppState.filtrosActuales.inicio = inputInicio.value;
-        }
-        if (inputFin && inputFin.value) {
-            window.AppState.filtrosActuales.fin = inputFin.value;
-        }
-
-        if (typeof actualizarAnalisisFinanciero === 'function') {
-            actualizarAnalisisFinanciero();
-        } else if (typeof actualizarResumen === 'function') {
+        if (typeof actualizarResumen === 'function') {
             actualizarResumen();
         }
     }
@@ -335,38 +339,6 @@ function refrescarVistaActual() {
     });
 }
 
-function obtenerMovimientosFiltrados() {
-            console.warn("Entra");
-
-    const movimientos = window.AppState?.movimientos || [];
-    
-    // Detectamos dinámicamente si estamos en análisis o en ingresos/gastos
-    const activeBtn = document.querySelector('.nav-active');
-    const seccionId = activeBtn ? activeBtn.id : '';
-
-    let prefijo = 'in'; // Por defecto
-    if (seccionId.includes('analisis') || document.getElementById('an-fecha-inicio')) {
-        prefijo = 'an';
-    }
-
-    const inputInicio = document.getElementById(`${prefijo}-fecha-inicio`);
-    const inputFin = document.getElementById(`${prefijo}-fecha-fin`);
-
-    // Si los inputs tienen valores, filtramos por ese rango
-    if (inputInicio && inputInicio.value && inputFin && inputFin.value) {
-        const inicioTime = new Date(inputInicio.value + 'T00:00:00').getTime();
-        const finTime = new Date(inputFin.value + 'T23:59:59').getTime();
-
-        return movimientos.filter(m => {
-            if (!m.fecha) return false;
-            const movTime = new Date(m.fecha).getTime();
-            if (isNaN(movTime)) return false;
-            return movTime >= inicioTime && movTime <= finTime;
-        });
-    }
-
-    return movimientos;
-}
 
 function fMXN(monto) {
     // Convertimos a número, si no es válido, usamos 0
