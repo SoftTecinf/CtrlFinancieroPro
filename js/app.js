@@ -318,7 +318,7 @@ function refrescarVistaActual() {
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-resumen') {
-        console.warn(res-mes+", "+res-año);
+        console.warn(document.getElementById('res-mes')+", "+ document.getElementById('res-año'));
 
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
