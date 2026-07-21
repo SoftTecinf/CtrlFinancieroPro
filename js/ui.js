@@ -537,7 +537,8 @@ function inicializarFiltros() {
     const primerDiaMes = `${añoActual}-${mesActual}-01`;
     const fechaHoySistema = `${añoActual}-${mesActual}-${diaActual}`;
 
-    const prefijos = ['in', 'ex', 'res'];
+    // 🔥 INCLUIMOS 'an' AQUÍ PARA QUE LOS DETECTE DE INMEDIATO
+    const prefijos = ['in', 'ex', 'res', 'an'];
 
     prefijos.forEach(pref => {
         const inputInicio = document.getElementById(`${pref}-fecha-inicio`);
@@ -553,13 +554,16 @@ function inicializarFiltros() {
     if (!AppState.filtrosActuales.inicio) AppState.filtrosActuales.inicio = primerDiaMes;
     if (!AppState.filtrosActuales.fin) AppState.filtrosActuales.fin = fechaHoySistema;
 
-    // --- AQUÍ COLOCAS EL ESCUCHADOR GENERAL PARA LOS INPUTS DE FECHA ---
+    // --- ESCUCHADOR GENERAL PARA TODOS LOS INPUTS DE FECHA ---
     document.querySelectorAll('input[type="date"]').forEach(input => {
+        // Evitamos duplicar escuchadores si la función se ejecuta varias veces
+        if (input.dataset.escuchadorActivo) return;
+        input.dataset.escuchadorActivo = "true";
+
         input.addEventListener('change', () => {
             if (!AppState.filtrosActuales) AppState.filtrosActuales = {};
             
-            // Sincronizamos el valor con AppState según el input que se mueva
-            const prefijoInput = input.id.split('-')[0]; // 'in' o 'ex'
+            // Sincronizamos el valor con AppState sin importar si es 'in', 'ex' o 'an'
             if (input.id.includes('inicio')) {
                 AppState.filtrosActuales.inicio = input.value;
             } else if (input.id.includes('fin')) {
