@@ -438,16 +438,11 @@ function actualizarHome() {
 
 function actualizarResumen() {
     try {
-        console.warn("Entrando a actualizarResumen - ejecutando filtro...");
-        
         // 🎯 APUNTAMOS DIRECTAMENTE A LA FUENTE REAL DE LOS DATOS
         let rawFiltrados = window.AppState?.movimientos || [];
 
         const { inicio, fin } = window.AppState?.filtrosActuales || {};
         let filtrados = rawFiltrados.map(normalizarMovimiento).filter(Boolean);
-
-        console.log("🔍 Rango activo:", { inicio, fin });
-        console.log("📦 Total movimientos antes de filtrar:", filtrados.length);
 
         if (inicio && fin) {
             const numInicio = parseInt(inicio.replace(/-/g, ''), 10);
@@ -464,8 +459,6 @@ function actualizarResumen() {
                 return numMovimiento >= numInicio && numMovimiento <= numFin;
             });
         }
-
-        console.log("✅ Movimientos después de filtrar por fecha:", filtrados.length);
 
         let ing = 0, gas = 0;
 
