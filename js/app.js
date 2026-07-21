@@ -310,20 +310,14 @@ function refrescarVistaActual() {
     else if (seccionId === 'nav-gastos') {
         const m = document.getElementById('ex-mes');
         const a = document.getElementById('ex-año');
-        console.warn(seccionId+", "+m+", "+a);
-
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
         actualizarListadoIndividual('gasto', 'lista-gastos', 'count-ex');
     }
     else if (seccionId === 'nav-resumen') {
-        console.warn(document.getElementById('res-mes')+", "+ document.getElementById('res-año'));
-
         const m = document.getElementById('res-mes');
         const a = document.getElementById('res-año');
-        console.warn(seccionId+", "+m+", "+a);
-
         if (m) window.AppState.filtrosActuales.mes = parseInt(m.value);
         if (a) window.AppState.filtrosActuales.año = parseInt(a.value);
 
@@ -343,6 +337,31 @@ function refrescarVistaActual() {
             }
         }
     });
+}
+
+function obtenerMovimientosFiltrados() {
+    const movimientos = window.AppState?.movimientos || [];
+    
+    // Obtenemos los valores de inicio y fin desde el estado global sincronizado
+    const { inicio, fin } = window.AppState?.filtrosActuales || {};
+
+    // Si hay un rango de fechas definido, filtramos estrictamente
+    if (inicio && fin) {
+        const inicioTime = new Date(inicio + 'T00:00:00').getTime();
+        const finTime = new Date(fin + 'T23:59:59').getTime();
+
+        return movimientos.filter(m => {
+            if (!m.fecha) return false;
+            
+            // Convertimos la fecha del movimiento al formato comparable
+            const movTime = new Date(m.fecha).getTime();
+            if (isNaN(movTime)) return false;
+
+            return movTime >= inicioTime && movTime <= finTime;
+        });
+    }
+
+    return movimientos;
 }
 
 function fMXN(monto) {
