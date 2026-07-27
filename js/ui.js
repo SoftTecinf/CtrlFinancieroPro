@@ -264,11 +264,8 @@ async function saveEdit(id) {
 }
 
 async function actualizarCategoriaEnNube(id, nuevoNombre) {
-    // Reemplaza esta URL con la URL de implementación web de tu Google Apps Script
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzvR903lBMnhRitzGVTj6E1XnIukpaOI7UZZM540_LX9Hdo7maew-vKKK-s_jDs7OGLvQ/exec";
-
     try {
-        const respuesta = await fetch(URL_APPS_SCRIPT, {
+        const respuesta = await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({
                 action: "actualizarCategoria",
@@ -288,6 +285,7 @@ async function actualizarCategoriaEnNube(id, nuevoNombre) {
         console.error("❌ Error de red al intentar actualizar en Google Sheets:", error);
     }
 }
+
 // Variables globales seguras para los gráficos
 window.chartH = window.chartH || null;
 window.chartR = window.chartR || null;
