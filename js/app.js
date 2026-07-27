@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
-const API_URL = "https://script.google.com/macros/s/AKfycbw7BCRmlIEhrRb_xkj57BlDi-JvAxHU94PQe8FykPsSv0LcFM9yOQpSBAxZ0Xg2hKMI/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwRDYP0H0vHWFS5ifehCVAIxoeNV28OgnV8BbzCozgSmuOOZCCU5qn9nut9538k7V4g/exec";
 
 let editandoId = null;
 let chartH, chartR;
