@@ -14,14 +14,12 @@
     <link rel="stylesheet" href="./css/styles.css">
 </head>
 
-<body class="min-h-screen pb-24 md:pt-24 md:pb-10 bg-[#FAF9F6]">
-    
-    <!-- HEADER UNIFICADO: Título a la izquierda, Filtros y Exportar a la derecha -->
+<body class="min-h-screen pb-24 md:pt-24 md:pb-10">
     <header id="main-header" class="w-full">
-        <div class="max-w-5xl mx-auto px-6 mt-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="max-w-5xl mx-auto px-6 mt-6">
 
-            <!-- SECCIÓN IZQUIERDA: Logo, Título y Bienvenida -->
             <div class="flex items-start gap-4">
+
                 <div class="w-10 h-10 bg-stone-800 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M12 2L2 7L12 12L22 7L12 2Z" />
@@ -39,7 +37,7 @@
                         <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">
                             Hola, <span id="user-display" class="text-stone-600 font-extrabold">...</span>
                         </p>
-                        <div>
+                        <div class="mb-6">
                             <p id="fecha-sistema"
                                 class="hidden md:block text-[11px] font-bold uppercase tracking-widest text-stone-400 italic">
                             </p>
@@ -47,37 +45,16 @@
                     </div>
                 </div>
             </div>
-
-            <!-- SECCIÓN DERECHA: Filtros Globales y Botón de Exportar (Una sola barra limpia) -->
-            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-                <!-- Filtro Del -->
-                <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
-                    <span class="text-stone-400 font-medium mr-2">DEL:</span>
-                    <input type="date" id="filtro-del" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
-                </div>
-
-                <!-- Filtro Al -->
-                <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
-                    <span class="text-stone-400 font-medium mr-2">AL:</span>
-                    <input type="date" id="filtro-al" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
-                </div>
-
-                <!-- Botón Exportar -->
-                <button id="btn-exportar" class="flex items-center gap-1.5 bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 px-3.5 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
-                    <span>📊</span> Exportar Ingresos
-                </button>
-            </div>
-
-        </div>
+            </u>
     </header>
 
-    <!-- NAVEGACIÓN SUPERIOR / INFERIOR RESPONSIVA -->
-    <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-40">
+    <nav
+        class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 md:top-0 md:bottom-auto z-40">
         <div class="max-w-5xl mx-auto flex justify-around p-2 md:p-4" id="main-nav">
 
             <button id="nav-home" onclick="showSection('home')"
                 class="nav-btn nav-active flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -87,7 +64,7 @@
             </button>
             <button id="nav-ingresos" onclick="showSection('ingresos')"
                 class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -97,7 +74,7 @@
             </button>
             <button id="nav-gastos" onclick="showSection('gastos')"
                 class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -106,7 +83,7 @@
             </button>
             <button id="nav-resumen" onclick="showSection('resumen')"
                 class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
                         <line x1="12" y1="20" x2="12" y2="4"></line>
@@ -117,17 +94,20 @@
             </button>
             <button id="nav-config" onclick="showSection('config')"
                 class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
                     </svg>
                     <span>Ajustes</span>
                 </div>
             </button>
             <button id="nav-salir" onclick="cerrarSesion()"
-                class="nav-btn flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-                <div class="btn-content flex flex-col items-center">
+                class="nav-btn
+                     flex-1 py-4 flex flex-col items-center text-[10px] font-bold opacity-40 uppercase tracking-tighter">
+                <div class="btn-content">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                         <polyline points="16 17 21 12 16 7"></polyline>
@@ -139,7 +119,6 @@
         </div>
     </nav>
 
-    <!-- CONTENEDOR PRINCIPAL: Alineado perfectamente al ancho max-w-5xl -->
     <main id="app-container" class="max-w-5xl mx-auto px-6 pt-4 md:pt-16 pb-10">
         <section id="sec-home"></section>
         <section id="sec-ingresos"></section>
@@ -147,8 +126,6 @@
         <section id="sec-resumen"></section>
         <section id="sec-config"></section>
     </main>
-
-    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
