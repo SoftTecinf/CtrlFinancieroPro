@@ -18,17 +18,19 @@ window.AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 🛡️ CONTROL DE SESIÓN SEGURO
+    // 🛡️ CONTROL DE SESIÓN SEGURO: Si estamos en el login, no validamos sesión para evitar bucles
     if (window.location.pathname.includes('login.html')) {
         return;
     }
 
+    // 0. VALIDACIÓN DE SEGURIDAD (Control de Sesión para index.html)
     const sesionActiva = localStorage.getItem('usuarioLogueado') || localStorage.getItem('isLoggedIn');
     if (!sesionActiva) {
         window.location.replace("login.html");
         return;
     }
 
+    // 👤 OBTENER EL USUARIO ACTUAL (ej. 'kiara', 'soporte', etc.) para aislar su información
     const usuarioActual = (localStorage.getItem('usuarioLogueado') || 'default').toLowerCase();
 
     // 1. DEFINICIÓN DE TIEMPO
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.AppState = window.AppState || {};
     window.AppState.filtrosActuales = window.AppState.filtrosActuales || {};
 
-    // 3. RECUPERAR ESTADO EXCLUSIVO DEL USUARIO ACTIVO
+    // 3. RECUPERAR ESTADO EXCLUSIVO DEL USUARIO ACTIVO (Cache Primero con clave por usuario)
     const savedState = localStorage.getItem(`financiero_state_${usuarioActual}`);
     if (savedState) {
         try {
@@ -51,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 4. VALORES POR DEFECTO
+    // 4. APLICAR VALORES POR DEFECTO PARA RANGOS (Aislados por usuario en sessionStorage)
     const primerDiaMesStr = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
 
     if (!window.AppState.filtrosActuales.inicio) {
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.AppState.filtrosActuales.fin = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_fin`) || hoyStr;
     }
 
+    // Mantener compatibilidad si alguna sección sigue usando mes/año numéricos
     if (window.AppState.filtrosActuales.mes === undefined) {
         window.AppState.filtrosActuales.mes = ahora.getMonth();
     }
@@ -68,31 +71,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.AppState.filtrosActuales.año = ahora.getFullYear();
     }
 
-    // 5. ACTUALIZAR UI (Encabezado)
+    // 5. ACTUALIZAR UI (Encabezado y Sección)
     const headerDate = document.getElementById('fecha-header');
     if (headerDate) {
         const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         headerDate.innerText = ahora.toLocaleDateString('es-MX', opciones).toUpperCase();
     }
 
-    // 6. CARGAR LA ÚLTIMA SECCIÓN ACTIVA (Esto ya renderiza y acomoda sus propios filtros)
+    // Navegación persistente por usuario
     const ultimaSeccion = localStorage.getItem(`${usuarioActual}_ultima_seccion`) || 'home';
     await showSection(ultimaSeccion);
 
-    // 7. EJECUTAR REFRESCO INICIAL Y SINCRONIZACIÓN EN SEGUNDO PLANO
+    // Activar botón nav
+    const btn = document.getElementById(`nav-${ultimaSeccion}`);
+    if (btn) {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
+        btn.classList.add('nav-active');
+    }
+
+    // 6. SINCRONIZAR SELECTORES Y INPUTS DE FECHA EN LA UI
+    const state = window.AppState;
+
+    const inputAnInicio = document.getElementById('an-fecha-inicio');
+    const inputAnFin = document.getElementById('an-fecha-fin');
+    if (inputAnInicio) inputAnInicio.value = state.filtrosActuales.inicio;
+    if (inputAnFin) inputAnFin.value = state.filtrosActuales.fin;
+
+    const inputIngresoFecha = document.getElementById('in-fecha-inicio');
+    if (inputIngresoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`)) {
+        inputIngresoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
+    }
+
+    const inputGastoFecha = document.getElementById('ex-fecha-inicio');
+    if (inputGastoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`)) {
+        inputGastoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
+    }
+
+    // Sincronizar selectores tradicionales
+    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
+    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
+
+    selectoresMes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = state.filtrosActuales.mes;
+    });
+
+    selectoresAnio.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = state.filtrosActuales.año;
+    });
+
+    const inputFecha = document.getElementById('in-fecha');
+    if (inputFecha) {
+        inputFecha.value = hoyStr;
+    }
+
+    // 7. EJECUTAR REFRESCO INICIAL
     refrescarVistaActual();
 
-    if (typeof inicializarSincronizacion === 'function') {
-        inicializarSincronizacion().then(() => {
-            refrescarVistaActual();
-        });
-    }
+    // 8. SINCRONIZACIÓN EN SEGUNDO PLANO
+    inicializarSincronizacion().then(() => {
+        refrescarVistaActual();
+    });
 });
 
 // Variable global fuera de la función
 let currentLoadId = 0;
 async function showSection(sectionId) {
-    localStorage.setItem('ultima_seccion', sectionId);
+    const usuarioActual = (localStorage.getItem('usuarioLogueado') || 'default').toLowerCase();
+    // 🛠️ CORREGIDO: Usar la clave aislada por usuario para que F5 la encuentre correctamente
+    localStorage.setItem(`${usuarioActual}_ultima_seccion`, sectionId);
+    
     const container = document.getElementById('app-container');
     if (!container) return;
 
@@ -102,8 +151,6 @@ async function showSection(sectionId) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
     const activeBtn = document.getElementById(`nav-${sectionId}`);
     if (activeBtn) activeBtn.classList.add('nav-active');
-
-    // 🛑 QUITAMOS el toggleLoading(true) de aquí para que las pestañas vuelen sin avisos molestos.
 
     try {
         // 2. Fetch del HTML de la sección
@@ -125,11 +172,10 @@ async function showSection(sectionId) {
             if (typeof configurarEventosFiltros === 'function') configurarEventosFiltros();
 
             if (sectionId === 'home') {
-                // 1. Restaurar filtros guardados del Home (si aplica, por ejemplo, mes y año)
-                const mesGuardado = sessionStorage.getItem('filtro_home_mes');
-                const anioGuardado = sessionStorage.getItem('filtro_home_anio');
+                const mesGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_home_mes`);
+                const anioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_home_anio`);
 
-                const mesHomeEl = document.getElementById('ex-mes') || document.getElementById('res-mes'); // Ajusta el ID según tu HTML
+                const mesHomeEl = document.getElementById('ex-mes') || document.getElementById('res-mes');
                 const anioHomeEl = document.getElementById('ex-año') || document.getElementById('res-año');
 
                 if (mesHomeEl && mesGuardado !== null) {
@@ -151,24 +197,24 @@ async function showSection(sectionId) {
                 }, 200);
             }
             else if (sectionId === 'ingresos') {
-                const inicioGuardado = sessionStorage.getItem('filtro_ingresos_inicio');
-                const finGuardado = sessionStorage.getItem('filtro_ingresos_fin');
+                const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
+                const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_fin`);
                 if (inicioGuardado) { document.getElementById('in-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
                 if (finGuardado) { document.getElementById('in-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
 
                 inicializarFuncionesPorSeccion(sectionId);
             }
             else if (sectionId === 'gastos') {
-                const inicioGuardado = sessionStorage.getItem('filtro_gastos_inicio');
-                const finGuardado = sessionStorage.getItem('filtro_gastos_fin');
+                const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
+                const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_fin`);
                 if (inicioGuardado) { document.getElementById('ex-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
                 if (finGuardado) { document.getElementById('ex-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
 
                 inicializarFuncionesPorSeccion(sectionId);
             }
             else if (sectionId === 'resumen' || sectionId === 'analisis') {
-                const inicioGuardado = sessionStorage.getItem('filtro_analisis_inicio');
-                const finGuardado = sessionStorage.getItem('filtro_analisis_fin');
+                const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_inicio`);
+                const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_fin`);
                 if (inicioGuardado) { document.getElementById('an-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
                 if (finGuardado) { document.getElementById('an-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
 
@@ -182,7 +228,6 @@ async function showSection(sectionId) {
             const faltanCategorias = (cats.length === 0);
 
             setTimeout(() => {
-                // Solo si de verdad faltan datos y no se han cargado, mostramos carga de forma excepcional
                 if ((faltanMovimientos || faltanCategorias) && !AppState.cargado) {
                     if (typeof toggleLoading === 'function') toggleLoading(true);
                     inicializarSincronizacion().then(() => {
