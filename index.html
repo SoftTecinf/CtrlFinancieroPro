@@ -15,11 +15,12 @@
 </head>
 
 <body class="min-h-screen pb-24 md:pt-24 md:pb-10">
+    <!-- HEADER MODIFICADO CON FLEXBOX PARA ALINEAR TODO EN UNA SOLA LÍNEA -->
     <header id="main-header" class="w-full">
-        <div class="max-w-5xl mx-auto px-6 mt-6">
+        <div class="max-w-5xl mx-auto px-6 mt-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 
+            <!-- SECCIÓN IZQUIERDA: Logo, Título y Bienvenida -->
             <div class="flex items-start gap-4">
-
                 <div class="w-10 h-10 bg-stone-800 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M12 2L2 7L12 12L22 7L12 2Z" />
@@ -37,7 +38,7 @@
                         <p class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">
                             Hola, <span id="user-display" class="text-stone-600 font-extrabold">...</span>
                         </p>
-                        <div class="mb-6">
+                        <div>
                             <p id="fecha-sistema"
                                 class="hidden md:block text-[11px] font-bold uppercase tracking-widest text-stone-400 italic">
                             </p>
@@ -45,7 +46,28 @@
                     </div>
                 </div>
             </div>
-            </u>
+
+            <!-- SECCIÓN DERECHA: Filtros de Fecha y Botón (Donde integras tu segundo bloque) -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <!-- Filtro Del -->
+                <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
+                    <span class="text-stone-400 font-medium mr-2">DEL:</span>
+                    <input type="date" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
+                </div>
+
+                <!-- Filtro Al -->
+                <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
+                    <span class="text-stone-400 font-medium mr-2">AL:</span>
+                    <input type="date" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
+                </div>
+
+                <!-- Botón Exportar -->
+                <button class="flex items-center gap-1.5 bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 px-3.5 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+                    <span>📊</span> Exportar
+                </button>
+            </div>
+
+        </div>
     </header>
 
     <nav
