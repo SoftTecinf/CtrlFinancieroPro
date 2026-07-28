@@ -396,7 +396,7 @@ function prepararEdicion(id, tipo) {
         btnCancelar.classList.remove('hidden'); // Por si usa clase hidden de Tailwind
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    //window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const camposArchivos = [
         { url: mov.ticket, textoId: 'textoTicketActual' },
