@@ -731,33 +731,21 @@ function restaurarFiltrosIngresos() {
 }
 
 function formatCurrency(input, hiddenId) {
-    // 1. Guardar la posición actual del cursor antes de modificar el valor
-    let cursorPosition = input.selectionStart;
-    let oldLength = input.value.length;
-
-    // 2. Extraer solo los números
+    // 1. Extraer solo los dígitos numéricos
     let value = input.value.replace(/\D/g, "");
     let numericValue = value ? parseFloat(value) / 100 : 0;
     
-    // 3. Actualizar el input oculto
+    // 2. Actualizar el input oculto con el valor numérico real
     const hiddenInput = document.getElementById(hiddenId);
     if (hiddenInput) {
         hiddenInput.value = numericValue;
     }
 
-    // 4. Aplicar el formato de moneda al input visible
-    let formattedValue = numericValue.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) + " MXN";
-    input.value = formattedValue;
-
-    // 5. Restaurar la posición del cursor de forma inteligente
-    let newLength = input.value.length;
-    cursorPosition = cursorPosition + (newLength - oldLength);
-    
-    // Asegurar que el cursor no se salga de los límites
-    if (cursorPosition < 0) cursorPosition = 0;
-    if (cursorPosition > input.value.length) cursorPosition = input.value.length;
-    
-    input.setSelectionRange(cursorPosition, cursorPosition);
+    // 3. Aplicar el formato visual estándar (sin añadir texto extra "MXN" al final)
+    input.value = numericValue.toLocaleString('es-MX', { 
+        style: 'currency', 
+        currency: 'MXN' 
+    });
 }
 
 // Función de seguridad para actualizar elementos
