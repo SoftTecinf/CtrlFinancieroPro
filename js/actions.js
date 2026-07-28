@@ -82,7 +82,7 @@ async function guardarRegistro(tipo) {
     const comprobantePdf = await archivoABase64(filePdf);
     const comprobanteXml = await archivoABase64(fileXml);
     const usuarioActual = (localStorage.getItem('session_userName') || localStorage.getItem('session_user') || '').toLowerCase();
-    
+
     const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
@@ -353,18 +353,29 @@ function prepararEdicion(id, tipo) {
     }, 200);
 
     document.getElementById(`${pref}-desc`).value = mov.desc;
+    
+    // 🛠️ CORRECCIÓN DEL MONTO: Limpiamos cualquier símbolo anterior para evitar duplicaciones
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
 
     if (mask && hidden) {
-        hidden.value = mov.monto;
-        mask.value = Number(mov.monto).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        // Extraemos solo los números y puntos por si acaso 'mov.monto' trae formato previo
+        const montoLimpio = parseFloat(mov.monto.toString().replace(/[^0-9.]/g, '')) || 0;
+        hidden.value = montoLimpio;
+        mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
 
+    // 🛠️ CONFIGURACIÓN DEL BOTÓN PRINCIPAL
     const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn1) {
         btn1.innerText = "ACTUALIZAR REGISTRO";
         btn1.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
+    }
+
+    // 🛠️ MOSTRAR EL BOTÓN DE CANCELAR
+    const btnCancelar = document.getElementById(`btn-cancelar-${tipo}`);
+    if (btnCancelar) {
+        btnCancelar.style.display = 'block';
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -392,6 +403,40 @@ function prepararEdicion(id, tipo) {
             }
         }
     });
+}
+
+function cancelarEdicion(tipo) {
+    window.editandoId = null;
+    const pref = tipo === 'ingreso' ? 'in' : 'ex';
+
+    // 1. Limpiar los campos del formulario
+    document.getElementById(`${pref}-fecha`).value = '';
+    document.getElementById(`${pref}-categoria`).value = '';
+    document.getElementById(`${pref}-desc`).value = '';
+    
+    const mask = document.getElementById(`${pref}-monto-mask`);
+    const hidden = document.getElementById(`${pref}-monto-hidden`);
+    if (mask) mask.value = '';
+    if (hidden) hidden.value = '0';
+
+    // 2. Restaurar textos de los archivos a "No hay archivo"
+    ['textoTicketActual', 'textoPdfActual', 'textoXmlActual'].forEach(id => {
+        const span = document.getElementById(id);
+        if (span) span.innerHTML = `<span style="color: #6b7280; font-style: italic;">No hay archivo</span>`;
+    });
+
+    // 3. Restaurar el botón principal a "Guardar Registro"
+    const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    if (btn1) {
+        btn1.innerText = "GUARDAR REGISTRO";
+        btn1.classList.remove('ring-4', 'ring-amber-100', 'bg-amber-600');
+    }
+
+    // 4. Ocultar el botón de cancelar
+    const btnCancelar = document.getElementById(`btn-cancelar-${tipo}`);
+    if (btnCancelar) {
+        btnCancelar.style.display = 'none';
+    }
 }
 
 // ==========================================
