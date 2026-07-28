@@ -101,18 +101,6 @@ async function guardarRegistro(tipo) {
         facturaPdf: comprobantePdf,
         facturaXml: comprobanteXml
     };
-    const nuevaData = {
-        id: idMovi,
-        tipo,
-        userName: usuarioActual, // El nombre o identificador de quien registra
-        fecha: document.getElementById(`${pref}-fecha`).value,
-        cat: selectCat.value.trim().toUpperCase(),
-        desc: textoDesc || 'SIN NOMBRE',
-        monto,
-        ticket: comprobanteTicket,
-        facturaPdf: comprobantePdf,
-        facturaXml: comprobanteXml
-    };
 
     const esEdicion = !!window.editandoId;
     const estadoAnterior = JSON.stringify(AppState.movimientos);
