@@ -6,20 +6,24 @@
             <p class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Resumen y métricas del periodo</p>
         </div>
 
-        <!-- Filtros de fecha estándar -->
-        <div class="flex items-center gap-3">
-            <div class="flex items-center bg-white border rounded-xl px-3 py-2 shadow-sm">
-                <span class="text-[10px] font-bold text-stone-400 mr-2 uppercase">Del:</span>
-                <input type="date" id="an-fecha-inicio" onchange="guardarFiltrosAnalisis(); refrescarVistaActual();"
-                    class="text-xs bg-transparent outline-none font-semibold text-stone-700">
-            </div>
-            <div class="flex items-center bg-white border rounded-xl px-3 py-2 shadow-sm">
-                <span class="text-[10px] font-bold text-stone-400 mr-2 uppercase">Al:</span>
-                <input type="date" id="an-fecha-fin" onchange="guardarFiltrosAnalisis(); refrescarVistaActual();"
-                    class="text-xs bg-transparent outline-none font-semibold text-stone-700">
-            </div>
-            <button onclick="generarLibroContable()" class="btn-export">📊 Generar Reporte Financiero</button>
+       <div class="flex flex-wrap justify-end items-center mb-6 gap-2">
+        <!-- Filtro Del -->
+        <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
+            <span class="text-stone-400 font-medium mr-2">DEL:</span>
+            <input type="date" id="filtro-del" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
         </div>
+
+        <!-- Filtro Al -->
+        <div class="flex items-center bg-white border border-stone-300 rounded-full px-3 py-1.5 shadow-sm text-xs">
+            <span class="text-stone-400 font-medium mr-2">AL:</span>
+            <input type="date" id="filtro-al" class="bg-transparent text-stone-700 outline-none font-medium text-xs">
+        </div>
+
+        <!-- Botón Exportar -->
+        <button id="btn-exportar"
+            class="flex items-center gap-1.5 bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 px-3.5 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm transition-all">
+            <span>📊</span> Generar Reporte Financiero
+        </button>
     </div>
 
     <!-- resumen-balance-total Contenido de tus métricas, gráficos o utilidad del periodo -->
