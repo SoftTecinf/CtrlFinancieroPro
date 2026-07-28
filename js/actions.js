@@ -126,7 +126,7 @@ async function guardarRegistro(tipo) {
         if (document.getElementById('file-ticket')) document.getElementById('file-ticket').value = '';
         if (document.getElementById('file-pdf')) document.getElementById('file-pdf').value = '';
         if (document.getElementById('file-xml')) document.getElementById('file-xml').value = '';
-        
+
     } catch (error) {
         console.error("Error:", error);
         AppState.movimientos = JSON.parse(estadoAnterior);
@@ -146,7 +146,16 @@ function limpiarFormulario(tipo) {
 
     campos.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = (id.includes('hidden')) ? 0 : "";
+        if (el) {
+            if (id.includes('hidden')) {
+                el.value = 0;
+            } else if (id.includes('categoria')) {
+                // Seleccionamos la opción por defecto (el primer elemento o valor vacío)
+                el.selectedIndex = 0;
+            } else {
+                el.value = "";
+            }
+        }
     });
 
     window.editandoId = null;
@@ -307,7 +316,7 @@ async function eliminarCategoria(id) {
             })
         });
         clearTimeout(timeoutId);
-        
+
         await response.json();
 
         // ⏱️ Pausa visual fluida para que se aprecie el spinner
@@ -353,7 +362,7 @@ function prepararEdicion(id, tipo) {
     }, 200);
 
     document.getElementById(`${pref}-desc`).value = mov.desc;
-    
+
     // 🛠️ CORRECCIÓN DEL MONTO: Limpiamos cualquier símbolo anterior para evitar duplicaciones
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
@@ -601,7 +610,7 @@ async function exportarFiltradoXLSX(tipo) {
         filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
         filaFil = Encabezado(ws, periodoTexto, filaFil);
         filaFil = Encabezado(ws, "GENERADO EL " + ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), filaFil);
-        filaFil++; 
+        filaFil++;
 
         if (typeof llenarTablaDetalle === 'function') {
             llenarTablaDetalle(ws, filtrados, filaFil);
@@ -618,7 +627,7 @@ async function exportarFiltradoXLSX(tipo) {
     }
 }
 
-window.generarLibroContable = async function() {
+window.generarLibroContable = async function () {
     console.log("📥 Iniciando diagnóstico de fechas para Reporte Financiero...");
 
     const fechaInicioStr = document.getElementById('an-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
@@ -896,11 +905,11 @@ function UtiNeta(ws, tit, monto, utilidad, fila) {
     return fila + 1;
 }
 
-async function descargarArchivo(workbook, nombre) { 
-    const buffer = await workbook.xlsx.writeBuffer(); 
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); 
-    const link = document.createElement('a'); 
-    link.href = URL.createObjectURL(blob); 
-    link.download = `${nombre}.xlsx`; 
-    link.click(); 
+async function descargarArchivo(workbook, nombre) {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${nombre}.xlsx`;
+    link.click();
 }
