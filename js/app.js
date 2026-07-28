@@ -18,19 +18,17 @@ window.AppState = {
 
 // --- 1. INICIALIZACIÓN (Punto de entrada único) ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // 🛡️ CONTROL DE SESIÓN SEGURO: Si estamos en el login, no validamos sesión para evitar bucles
+    // 🛡️ CONTROL DE SESIÓN SEGURO
     if (window.location.pathname.includes('login.html')) {
         return;
     }
 
-    // 0. VALIDACIÓN DE SEGURIDAD (Control de Sesión para index.html)
     const sesionActiva = localStorage.getItem('usuarioLogueado') || localStorage.getItem('isLoggedIn');
     if (!sesionActiva) {
         window.location.replace("login.html");
         return;
     }
 
-    // 👤 OBTENER EL USUARIO ACTUAL (ej. 'kiara', 'soporte', etc.) para aislar su información
     const usuarioActual = (localStorage.getItem('usuarioLogueado') || 'default').toLowerCase();
 
     // 1. DEFINICIÓN DE TIEMPO
@@ -41,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.AppState = window.AppState || {};
     window.AppState.filtrosActuales = window.AppState.filtrosActuales || {};
 
-    // 3. RECUPERAR ESTADO EXCLUSIVO DEL USUARIO ACTIVO (Cache Primero con clave por usuario)
+    // 3. RECUPERAR ESTADO EXCLUSIVO DEL USUARIO ACTIVO
     const savedState = localStorage.getItem(`financiero_state_${usuarioActual}`);
     if (savedState) {
         try {
@@ -53,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 4. APLICAR VALORES POR DEFECTO PARA RANGOS (Aislados por usuario en sessionStorage)
+    // 4. VALORES POR DEFECTO
     const primerDiaMesStr = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
 
     if (!window.AppState.filtrosActuales.inicio) {
@@ -63,7 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.AppState.filtrosActuales.fin = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_fin`) || hoyStr;
     }
 
-    // Mantener compatibilidad si alguna sección sigue usando mes/año numéricos
     if (window.AppState.filtrosActuales.mes === undefined) {
         window.AppState.filtrosActuales.mes = ahora.getMonth();
     }
@@ -71,68 +68,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.AppState.filtrosActuales.año = ahora.getFullYear();
     }
 
-    // 5. ACTUALIZAR UI (Encabezado y Sección)
+    // 5. ACTUALIZAR UI (Encabezado)
     const headerDate = document.getElementById('fecha-header');
     if (headerDate) {
         const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         headerDate.innerText = ahora.toLocaleDateString('es-MX', opciones).toUpperCase();
     }
 
-    // Navegación persistente por usuario
+    // 6. CARGAR LA ÚLTIMA SECCIÓN ACTIVA (Esto ya renderiza y acomoda sus propios filtros)
     const ultimaSeccion = localStorage.getItem(`${usuarioActual}_ultima_seccion`) || 'home';
     await showSection(ultimaSeccion);
 
-    // Activar botón nav
-    const btn = document.getElementById(`nav-${ultimaSeccion}`);
-    if (btn) {
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active'));
-        btn.classList.add('nav-active');
-    }
-
-    // 6. SINCRONIZAR SELECTORES Y INPUTS DE FECHA EN LA UI
-    const state = window.AppState;
-
-    const inputAnInicio = document.getElementById('an-fecha-inicio');
-    const inputAnFin = document.getElementById('an-fecha-fin');
-    if (inputAnInicio) inputAnInicio.value = state.filtrosActuales.inicio;
-    if (inputAnFin) inputAnFin.value = state.filtrosActuales.fin;
-
-    const inputIngresoFecha = document.getElementById('in-fecha-inicio');
-    if (inputIngresoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`)) {
-        inputIngresoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
-    }
-
-    const inputGastoFecha = document.getElementById('ex-fecha-inicio');
-    if (inputGastoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`)) {
-        inputGastoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
-    }
-
-    // Sincronizar selectores tradicionales
-    const selectoresMes = ['in-mes', 'ex-mes', 'res-mes'];
-    const selectoresAnio = ['in-año', 'ex-año', 'res-año'];
-
-    selectoresMes.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = state.filtrosActuales.mes;
-    });
-
-    selectoresAnio.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = state.filtrosActuales.año;
-    });
-
-    const inputFecha = document.getElementById('in-fecha');
-    if (inputFecha) {
-        inputFecha.value = hoyStr;
-    }
-
-    // 7. EJECUTAR REFRESCO INICIAL
+    // 7. EJECUTAR REFRESCO INICIAL Y SINCRONIZACIÓN EN SEGUNDO PLANO
     refrescarVistaActual();
 
-    // 8. SINCRONIZACIÓN EN SEGUNDO PLANO
-    inicializarSincronizacion().then(() => {
-        refrescarVistaActual();
-    });
+    if (typeof inicializarSincronizacion === 'function') {
+        inicializarSincronizacion().then(() => {
+            refrescarVistaActual();
+        });
+    }
 });
 
 // Variable global fuera de la función
