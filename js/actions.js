@@ -81,11 +81,14 @@ async function guardarRegistro(tipo) {
     const comprobanteTicket = await archivoABase64(fileTicket);
     const comprobantePdf = await archivoABase64(filePdf);
     const comprobanteXml = await archivoABase64(fileXml);
+    const usuarioActual = (localStorage.getItem('usuarioLogueado') || 'default').toLowerCase();
+
 
     const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
         tipo,
+        userName: usuarioActual, // El nombre o identificador de quien registra
         fecha: document.getElementById(`${pref}-fecha`).value,
         cat: selectCat.value.trim().toUpperCase(),
         desc: textoDesc || 'SIN NOMBRE',
