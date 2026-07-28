@@ -409,6 +409,11 @@ window.obtenerMovimientosFiltrados = function () {
 }
 
 function fMXN(monto) {
+    // Si ya viene con formato (ej. "$10,500.00"), limpiamos todo excepto números y puntos
+    if (typeof monto === 'string') {
+        monto = monto.replace(/[^0-9.-]+/g, "");
+    }
+
     const valor = parseFloat(monto);
 
     if (isNaN(valor)) {
