@@ -77,10 +77,15 @@
                         <input type="file" id="file-xml" class="form-control" style="padding: 6px; font-size: 0.85rem;">
                     </div>
                 </div>
-                <div class="col-span-2 border-t border-stone-200 pt-4 mt-2">
-                    <button onclick="guardarRegistro('gasto')"
-                        class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Guardar
+                <div class="col-span-2 border-t border-stone-200 pt-4 mt-2 flex gap-3">
+                    <button id="btn-guardar-gasto" onclick="guardarRegistro('gasto')"
+                        class="w-full bg-stone-700 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all">Guardar
                         Registro</button>
+
+                    <button id="btn-cancelar-gasto" onclick="cancelarEdicion('gasto')" style="display: none;"
+                        class="px-5 bg-gray-300 text-gray-700 py-4 rounded-xl font-bold uppercase text-xs tracking-widest transition-all hover:bg-gray-400">
+                        Cancelar
+                    </button>
                 </div>
             </div>
         </div>
