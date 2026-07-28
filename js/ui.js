@@ -731,17 +731,26 @@ function restaurarFiltrosIngresos() {
 }
 
 function formatCurrency(input, hiddenId) {
-    // 1. Extraer solo los dígitos numéricos
-    let value = input.value.replace(/\D/g, "");
-    let numericValue = value ? parseFloat(value) / 100 : 0;
+    // 1. Extraer estrictamente solo los dígitos numéricos actuales
+    let rawValue = input.value.replace(/\D/g, "");
     
-    // 2. Actualizar el input oculto con el valor numérico real
+    if (!rawValue) {
+        input.value = "";
+        const hiddenInput = document.getElementById(hiddenId);
+        if (hiddenInput) hiddenInput.value = 0;
+        return;
+    }
+
+    // 2. Convertir a número manejando los centavos dividiendo entre 100
+    let numericValue = parseInt(rawValue, 10) / 100;
+    
+    // 3. Actualizar el input oculto con el valor numérico limpio
     const hiddenInput = document.getElementById(hiddenId);
     if (hiddenInput) {
         hiddenInput.value = numericValue;
     }
 
-    // 3. Aplicar el formato visual estándar (sin añadir texto extra "MXN" al final)
+    // 4. Aplicar el formato visual estándar de moneda mexicana
     input.value = numericValue.toLocaleString('es-MX', { 
         style: 'currency', 
         currency: 'MXN' 
