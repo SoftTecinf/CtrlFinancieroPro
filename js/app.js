@@ -53,12 +53,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 4. APLICAR VALORES POR DEFECTO PARA RANGOS (Aislados por usuario en sessionStorage)
+    // Navegación persistente por usuario (La consultamos primero para saber en qué sección estamos)
+    const ultimaSeccion = localStorage.getItem(`${usuarioActual}_ultima_seccion`) || 'home';
+
+    // 4. APLICAR VALORES POR DEFECTO Y RESPETAR FILTROS SEGÚN LA SECCIÓN ACTIVA
     const primerDiaMesStr = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
 
-    if (!window.AppState.filtrosActuales.inicio) {
-        window.AppState.filtrosActuales.inicio = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_inicio`) || primerDiaMesStr;
+    const filtroIngresosInicio = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
+    const filtroGastosInicio = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
+    const filtroAnalisisInicio = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_inicio`);
+
+    // Asignar el filtro de inicio dependiendo de la sección donde se encuentre el usuario al dar F5
+    if (ultimaSeccion === 'ingresos' && filtroIngresosInicio) {
+        window.AppState.filtrosActuales.inicio = filtroIngresosInicio;
+    } else if (ultimaSeccion === 'gastos' && filtroGastosInicio) {
+        window.AppState.filtrosActuales.inicio = filtroGastosInicio;
+    } else if ((ultimaSeccion === 'analisis' || ultimaSeccion === 'resumen') && filtroAnalisisInicio) {
+        window.AppState.filtrosActuales.inicio = filtroAnalisisInicio;
+    } else if (!window.AppState.filtrosActuales.inicio) {
+        window.AppState.filtrosActuales.inicio = primerDiaMesStr;
     }
+
     if (!window.AppState.filtrosActuales.fin) {
         window.AppState.filtrosActuales.fin = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_fin`) || hoyStr;
     }
@@ -78,8 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headerDate.innerText = ahora.toLocaleDateString('es-MX', opciones).toUpperCase();
     }
 
-    // Navegación persistente por usuario
-    const ultimaSeccion = localStorage.getItem(`${usuarioActual}_ultima_seccion`) || 'home';
+    // Cargar la sección exacta donde estaba el usuario
     await showSection(ultimaSeccion);
 
     // Activar botón nav
@@ -98,13 +112,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (inputAnFin) inputAnFin.value = state.filtrosActuales.fin;
 
     const inputIngresoFecha = document.getElementById('in-fecha-inicio');
-    if (inputIngresoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`)) {
-        inputIngresoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
+    if (inputIngresoFecha && filtroIngresosInicio) {
+        inputIngresoFecha.value = filtroIngresosInicio;
     }
 
     const inputGastoFecha = document.getElementById('ex-fecha-inicio');
-    if (inputGastoFecha && sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`)) {
-        inputGastoFecha.value = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
+    if (inputGastoFecha && filtroGastosInicio) {
+        inputGastoFecha.value = filtroGastosInicio;
     }
 
     // Sincronizar selectores tradicionales
