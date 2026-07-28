@@ -362,14 +362,14 @@ function prepararEdicion(id, tipo) {
     }, 200);
 
     document.getElementById(`${pref}-desc`).value = mov.desc;
-
-    // 🛠️ CORRECCIÓN DEL MONTO: Limpiamos cualquier símbolo anterior para evitar duplicaciones
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
 
     if (mask && hidden) {
-        // Extraemos solo los números y puntos por si acaso 'mov.monto' trae formato previo
-        const montoLimpio = parseFloat(mov.monto.toString().replace(/[^0-9.]/g, '')) || 0;
+        // 🛠️ Limpiamos cualquier símbolo, comas o letras para obtener solo el número puro
+        let montoStr = mov.monto !== undefined && mov.monto !== null ? mov.monto.toString() : "0";
+        let montoLimpio = parseFloat(montoStr.replace(/[^0-9.]/g, '')) || 0;
+
         hidden.value = montoLimpio;
         mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
