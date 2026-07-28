@@ -406,26 +406,14 @@ function prepararEdicion(id, tipo) {
 }
 
 function cancelarEdicion(tipo) {
+    // 1. Limpiamos el ID que estaba en edición
     window.editandoId = null;
     const pref = tipo === 'ingreso' ? 'in' : 'ex';
 
-    // 1. Limpiar los campos del formulario
-    document.getElementById(`${pref}-fecha`).value = '';
-    document.getElementById(`${pref}-categoria`).value = '';
-    document.getElementById(`${pref}-desc`).value = '';
-    
-    const mask = document.getElementById(`${pref}-monto-mask`);
-    const hidden = document.getElementById(`${pref}-monto-hidden`);
-    if (mask) mask.value = '';
-    if (hidden) hidden.value = '0';
+    // 2. Llamamos a tu función para restablecer todos los inputs y archivos
+    limpiarFormulario(tipo);
 
-    // 2. Restaurar textos de los archivos a "No hay archivo"
-    ['textoTicketActual', 'textoPdfActual', 'textoXmlActual'].forEach(id => {
-        const span = document.getElementById(id);
-        if (span) span.innerHTML = `<span style="color: #6b7280; font-style: italic;">No hay archivo</span>`;
-    });
-
-    // 3. Restaurar el botón principal a "Guardar Registro"
+    // 3. Restaurar el texto del botón principal a "Guardar Registro"
     const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
     if (btn1) {
         btn1.innerText = "GUARDAR REGISTRO";
