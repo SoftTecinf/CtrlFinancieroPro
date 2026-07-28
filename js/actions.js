@@ -84,6 +84,23 @@ async function guardarRegistro(tipo) {
     const usuarioActual = (localStorage.getItem('session_userName') || localStorage.getItem('session_user') || '').toLowerCase();
 
     const idMovi = window.editandoId || Date.now();
+
+    // 🛠️ Limpiamos el monto para garantizar que sea un número puro antes de enviarlo
+    const montoCrudo = monto !== undefined && monto !== null ? monto.toString() : "0";
+    const montoPuro = parseFloat(montoCrudo.replace(/[^0-9.]/g, '')) || 0;
+
+    const nuevaData = {
+        id: idMovi,
+        tipo,
+        userName: usuarioActual,
+        fecha: document.getElementById(`${pref}-fecha`).value,
+        cat: selectCat.value.trim().toUpperCase(),
+        desc: textoDesc || 'SIN NOMBRE',
+        monto: montoPuro, // 👈 Aquí mandamos el número limpio
+        ticket: comprobanteTicket,
+        facturaPdf: comprobantePdf,
+        facturaXml: comprobanteXml
+    };
     const nuevaData = {
         id: idMovi,
         tipo,
@@ -366,10 +383,11 @@ function prepararEdicion(id, tipo) {
     const hidden = document.getElementById(`${pref}-monto-hidden`);
 
     if (mask && hidden) {
-        // 🛠️ Limpiamos cualquier símbolo, comas o letras para obtener solo el número puro
-        let montoStr = mov.monto !== undefined && mov.monto !== null ? mov.monto.toString() : "0";
-        let montoLimpio = parseFloat(montoStr.replace(/[^0-9.]/g, '')) || 0;
+        // 🛠️ Extraemos estrictamente los números y el punto decimal, sin importar si viene con '$', comas o letras
+        const valorCrudo = mov.monto !== undefined && mov.monto !== null ? mov.monto.toString() : "0";
+        const montoLimpio = parseFloat(valorCrudo.replace(/[^0-9.]/g, '')) || 0;
 
+        // Asignamos el valor limpio al input oculto y formateamos la máscara visual de forma segura
         hidden.value = montoLimpio;
         mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
