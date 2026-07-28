@@ -82,9 +82,7 @@ async function guardarRegistro(tipo) {
     const comprobantePdf = await archivoABase64(filePdf);
     const comprobanteXml = await archivoABase64(fileXml);
     const usuarioActual = (localStorage.getItem('session_userName') || localStorage.getItem('session_user') || '').toLowerCase();
-    console.warn(localStorage.getItem('session_userName'));
-    console.warn(localStorage.getItem('session_user'));
-
+    
     const idMovi = window.editandoId || Date.now();
     const nuevaData = {
         id: idMovi,
