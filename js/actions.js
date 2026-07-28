@@ -367,41 +367,33 @@ function prepararEdicion(id, tipo) {
     }, 200);
 
     document.getElementById(`${pref}-desc`).value = mov.desc;
+    
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
 
     if (mask && hidden) {
-        // 🛠️ Extraemos estrictamente los números y el punto decimal, sin importar si viene con '$', comas o letras
-        if (mask && hidden) {
-            // 🛠️ Conversión limpia y segura para evitar que los decimales o puntos se desplacen
-            let montoLimpio = 0;
-            if (mov.monto !== undefined && mov.monto !== null) {
-                // Si viene como string con símbolos, los removemos; si ya es número, lo usamos directo
-                let limpioStr = mov.monto.toString().replace(/[^0-9.]/g, '');
-                montoLimpio = parseFloat(limpioStr) || 0;
-            }
-
-            // Asignamos directamente el valor numérico limpio
-            hidden.value = montoLimpio;
-            mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        let montoLimpio = 0;
+        if (mov.monto !== undefined && mov.monto !== null) {
+            let limpioStr = mov.monto.toString().replace(/[^0-9.]/g, '');
+            montoLimpio = parseFloat(limpioStr) || 0;
         }
 
-        // Asignamos el valor limpio al input oculto y formateamos la máscara visual de forma segura
         hidden.value = montoLimpio;
         mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
     }
 
     // 🛠️ CONFIGURACIÓN DEL BOTÓN PRINCIPAL
-    const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`);
+    const btn1 = document.querySelector(`#sec-${tipo}s button[onclick^="guardarRegistro"]`) || document.getElementById(`btn-guardar-${tipo}`);
     if (btn1) {
         btn1.innerText = "ACTUALIZAR REGISTRO";
         btn1.classList.add('ring-4', 'ring-amber-100', 'bg-amber-600');
     }
 
-    // 🛠️ MOSTRAR EL BOTÓN DE CANCELAR
+    // 🛠️ MOSTRAR EL BOTÓN DE CANCELAR (FORZANDO VISIBILIDAD CORRECTAMENTE)
     const btnCancelar = document.getElementById(`btn-cancelar-${tipo}`);
     if (btnCancelar) {
-        btnCancelar.style.display = 'block';
+        btnCancelar.style.display = 'block'; // Fuerza que se muestre quitando el ocultamiento en línea
+        btnCancelar.classList.remove('hidden'); // Por si usa clase hidden de Tailwind
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
