@@ -372,8 +372,19 @@ function prepararEdicion(id, tipo) {
 
     if (mask && hidden) {
         // 🛠️ Extraemos estrictamente los números y el punto decimal, sin importar si viene con '$', comas o letras
-        const valorCrudo = mov.monto !== undefined && mov.monto !== null ? mov.monto.toString() : "0";
-        const montoLimpio = parseFloat(valorCrudo.replace(/[^0-9.]/g, '')) || 0;
+        if (mask && hidden) {
+            // 🛠️ Conversión limpia y segura para evitar que los decimales o puntos se desplacen
+            let montoLimpio = 0;
+            if (mov.monto !== undefined && mov.monto !== null) {
+                // Si viene como string con símbolos, los removemos; si ya es número, lo usamos directo
+                let limpioStr = mov.monto.toString().replace(/[^0-9.]/g, '');
+                montoLimpio = parseFloat(limpioStr) || 0;
+            }
+
+            // Asignamos directamente el valor numérico limpio
+            hidden.value = montoLimpio;
+            mask.value = montoLimpio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+        }
 
         // Asignamos el valor limpio al input oculto y formateamos la máscara visual de forma segura
         hidden.value = montoLimpio;
