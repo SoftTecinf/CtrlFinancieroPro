@@ -155,7 +155,7 @@ async function showSection(sectionId) {
     const usuarioActual = (localStorage.getItem('usuarioLogueado') || 'default').toLowerCase();
     // 🛠️ CORREGIDO: Usar la clave aislada por usuario para que F5 la encuentre correctamente
     localStorage.setItem(`${usuarioActual}_ultima_seccion`, sectionId);
-    
+
     const container = document.getElementById('app-container');
     if (!container) return;
 
@@ -192,13 +192,21 @@ async function showSection(sectionId) {
                 const mesHomeEl = document.getElementById('ex-mes') || document.getElementById('res-mes');
                 const anioHomeEl = document.getElementById('ex-año') || document.getElementById('res-año');
 
-                if (mesHomeEl && mesGuardado !== null) {
+                // Solo asignamos si hay algo guardado Y el elemento en pantalla existe, 
+                // asegurándonos de no sobrescribir si el usuario ya tenía otra selección activa.
+                if (mesHomeEl && mesGuardado !== null && !mesHomeEl.value) {
                     mesHomeEl.value = mesGuardado;
                     window.AppState.filtrosActuales.mes = parseInt(mesGuardado);
+                } else if (mesHomeEl && mesHomeEl.value) {
+                    // Si ya tiene un valor en pantalla, actualizamos el estado con lo que ya está ahí para mantenerlo sincronizado
+                    window.AppState.filtrosActuales.mes = parseInt(mesHomeEl.value);
                 }
-                if (anioHomeEl && anioGuardado !== null) {
+
+                if (anioHomeEl && anioGuardado !== null && !anioHomeEl.value) {
                     anioHomeEl.value = anioGuardado;
                     window.AppState.filtrosActuales.año = parseInt(anioGuardado);
+                } else if (anioHomeEl && anioHomeEl.value) {
+                    window.AppState.filtrosActuales.año = parseInt(anioHomeEl.value);
                 }
 
                 inicializarFuncionesPorSeccion(sectionId);
@@ -213,24 +221,46 @@ async function showSection(sectionId) {
             else if (sectionId === 'ingresos') {
                 const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_inicio`);
                 const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_ingresos_fin`);
-                if (inicioGuardado) { document.getElementById('in-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
-                if (finGuardado) { document.getElementById('in-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
+
+                // Solo asignamos si el usuario tenía algo guardado, de lo contrario respetamos lo que ya está en memoria
+                if (inicioGuardado) {
+                    document.getElementById('in-fecha-inicio').value = inicioGuardado;
+                    window.AppState.filtrosActuales.ingresosInicio = inicioGuardado;
+                }
+                if (finGuardado) {
+                    document.getElementById('in-fecha-fin').value = finGuardado;
+                    window.AppState.filtrosActuales.ingresosFin = finGuardado;
+                }
 
                 inicializarFuncionesPorSeccion(sectionId);
             }
             else if (sectionId === 'gastos') {
                 const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_inicio`);
                 const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_gastos_fin`);
-                if (inicioGuardado) { document.getElementById('ex-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
-                if (finGuardado) { document.getElementById('ex-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
+
+                if (inicioGuardado) {
+                    document.getElementById('ex-fecha-inicio').value = inicioGuardado;
+                    window.AppState.filtrosActuales.gastosInicio = inicioGuardado;
+                }
+                if (finGuardado) {
+                    document.getElementById('ex-fecha-fin').value = finGuardado;
+                    window.AppState.filtrosActuales.gastosFin = finGuardado;
+                }
 
                 inicializarFuncionesPorSeccion(sectionId);
             }
             else if (sectionId === 'resumen' || sectionId === 'analisis') {
                 const inicioGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_inicio`);
                 const finGuardado = sessionStorage.getItem(`${usuarioActual}_filtro_analisis_fin`);
-                if (inicioGuardado) { document.getElementById('an-fecha-inicio').value = inicioGuardado; window.AppState.filtrosActuales.inicio = inicioGuardado; }
-                if (finGuardado) { document.getElementById('an-fecha-fin').value = finGuardado; window.AppState.filtrosActuales.fin = finGuardado; }
+
+                if (inicioGuardado) {
+                    document.getElementById('an-fecha-inicio').value = inicioGuardado;
+                    window.AppState.filtrosActuales.analisisInicio = inicioGuardado;
+                }
+                if (finGuardado) {
+                    document.getElementById('an-fecha-fin').value = finGuardado;
+                    window.AppState.filtrosActuales.analisisFin = finGuardado;
+                }
 
                 inicializarFuncionesPorSeccion(sectionId);
             }
@@ -443,7 +473,7 @@ window.formatearFechaMX = function (fechaString) {
     return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-window.guardarFiltrosHome = function() {
+window.guardarFiltrosHome = function () {
     const mes = document.getElementById('ex-mes')?.value;
     const anio = document.getElementById('ex-año')?.value;
 
@@ -451,21 +481,21 @@ window.guardarFiltrosHome = function() {
     if (anio !== undefined) sessionStorage.setItem('filtro_home_anio', anio);
 };
 
-window.guardarFiltrosIngresos = function() {
+window.guardarFiltrosIngresos = function () {
     const inicio = document.getElementById('in-fecha-inicio')?.value;
     const fin = document.getElementById('in-fecha-fin')?.value;
     if (inicio) sessionStorage.setItem('filtro_ingresos_inicio', inicio);
     if (fin) sessionStorage.setItem('filtro_ingresos_fin', fin);
 };
 
-window.guardarFiltrosGastos = function() {
+window.guardarFiltrosGastos = function () {
     const inicio = document.getElementById('ex-fecha-inicio')?.value;
     const fin = document.getElementById('ex-fecha-fin')?.value;
     if (inicio) sessionStorage.setItem('filtro_gastos_inicio', inicio);
     if (fin) sessionStorage.setItem('filtro_gastos_fin', fin);
 };
 
-window.guardarFiltrosAnalisis = function() {
+window.guardarFiltrosAnalisis = function () {
     const inicio = document.getElementById('an-fecha-inicio')?.value;
     const fin = document.getElementById('an-fecha-fin')?.value;
     if (inicio) sessionStorage.setItem('filtro_analisis_inicio', inicio);
