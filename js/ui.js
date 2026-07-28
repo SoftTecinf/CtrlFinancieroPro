@@ -731,30 +731,41 @@ function restaurarFiltrosIngresos() {
 }
 
 function formatCurrency(input, hiddenId) {
-    // 1. Extraer estrictamente solo los dígitos numéricos actuales
+    // 1. Guardar la posición actual del cursor antes de cualquier cambio
+    let cursorPosition = input.selectionStart;
+    let oldLength = input.value.length;
+
+    // 2. Extraer estrictamente solo los dígitos numéricos
     let rawValue = input.value.replace(/\D/g, "");
     
-    if (!rawValue) {
-        input.value = "";
-        const hiddenInput = document.getElementById(hiddenId);
-        if (hiddenInput) hiddenInput.value = 0;
-        return;
+    let numericValue = 0;
+    if (rawValue) {
+        numericValue = parseInt(rawValue, 10) / 100;
     }
 
-    // 2. Convertir a número manejando los centavos dividiendo entre 100
-    let numericValue = parseInt(rawValue, 10) / 100;
-    
-    // 3. Actualizar el input oculto con el valor numérico limpio
+    // 3. Actualizar el input oculto
     const hiddenInput = document.getElementById(hiddenId);
     if (hiddenInput) {
         hiddenInput.value = numericValue;
     }
 
-    // 4. Aplicar el formato visual estándar de moneda mexicana
-    input.value = numericValue.toLocaleString('es-MX', { 
+    // 4. Aplicar el formato visual estándar (SIN el texto "MXN" al final)
+    let formattedValue = numericValue.toLocaleString('es-MX', { 
         style: 'currency', 
         currency: 'MXN' 
     });
+    
+    input.value = formattedValue;
+
+    // 5. Ajuste inteligente del cursor para que no brinque al final al borrar
+    let newLength = input.value.length;
+    cursorPosition = cursorPosition + (newLength - oldLength);
+    
+    // Evitar que rebase los límites
+    if (cursorPosition < 0) cursorPosition = 0;
+    if (cursorPosition > input.value.length) cursorPosition = input.value.length;
+    
+    input.setSelectionRange(cursorPosition, cursorPosition);
 }
 
 // Función de seguridad para actualizar elementos
