@@ -605,12 +605,15 @@ async function exportarFiltradoXLSX(tipo) {
             return;
         }
 
+        const fechaInicioStr;
+        const fechaFinStr;
+
         if (tipo === 'gasto') {
-            const fechaInicioStr = document.getElementById('ex-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
-            const fechaFinStr = document.getElementById('ex-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
+            fechaInicioStr = document.getElementById('ex-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
+            fechaFinStr = document.getElementById('ex-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
         } else {
-            const fechaInicioStr = document.getElementById('in-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
-            const fechaFinStr = document.getElementById('in-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
+            fechaInicioStr = document.getElementById('in-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
+            fechaFinStr = document.getElementById('in-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
 
         }
 
