@@ -605,9 +605,17 @@ async function exportarFiltradoXLSX(tipo) {
             return;
         }
 
-        const inputsFecha = document.querySelectorAll('input[type="date"]');
-        const txtInicio = inputsFecha.length > 0 ? inputsFecha[0].value : '';
-        const txtFin = inputsFecha.length > 1 ? inputsFecha[1].value : '';
+        if (tipo === 'gasto') {
+            const fechaInicioStr = document.getElementById('ex-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
+            const fechaFinStr = document.getElementById('ex-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
+        } else {
+            const fechaInicioStr = document.getElementById('in-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
+            const fechaFinStr = document.getElementById('in-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
+
+        }
+
+        const fechaInicio = new Date(fechaInicioStr + 'T00:00:00');
+        const fechaFin = new Date(fechaFinStr + 'T23:59:59');
 
         const ahora = new Date();
         const workbook = new ExcelJS.Workbook();
