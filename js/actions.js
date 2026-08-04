@@ -367,7 +367,7 @@ function prepararEdicion(id, tipo) {
     }, 200);
 
     document.getElementById(`${pref}-desc`).value = mov.desc;
-    
+
     const mask = document.getElementById(`${pref}-monto-mask`);
     const hidden = document.getElementById(`${pref}-monto-hidden`);
 
@@ -614,7 +614,11 @@ async function exportarFiltradoXLSX(tipo) {
         const ws = workbook.addWorksheet('Detalle');
         let filaFil = 1;
 
-        const periodoTexto = (txtInicio && txtFin) ? `DEL ${txtInicio} AL ${txtFin}` : `PERIODO ACTUAL`;
+        const periodoTexto = `DEL ${fechaInicio.toLocaleDateString('es-MX', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }).toUpperCase()} AL ${fechaFin.toLocaleDateString('es-MX', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }).toUpperCase()}`;
 
         filaFil = Encabezado(ws, "DETALLE DE " + tipo.toUpperCase(), filaFil);
         filaFil = Encabezado(ws, periodoTexto, filaFil);
@@ -685,9 +689,9 @@ window.generarLibroContable = async function () {
     const fechaReporteFormateada = ahora.toLocaleDateString('es-MX', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     }).toUpperCase();
-    const periodoTexto = `DEL ${fechaInicio.toLocaleDateString('es-MX',{
+    const periodoTexto = `DEL ${fechaInicio.toLocaleDateString('es-MX', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    }).toUpperCase()} AL ${fechaFin.toLocaleDateString('es-MX',{
+    }).toUpperCase()} AL ${fechaFin.toLocaleDateString('es-MX', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     }).toUpperCase()}`;
 
