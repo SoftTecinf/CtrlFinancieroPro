@@ -604,7 +604,6 @@ async function exportarFiltradoXLSX(tipo) {
             alert(`Sin movimientos de ${tipo} para el periodo seleccionado.`);
             return;
         }
-
         let fechaInicioStr;
         let fechaFinStr;
 
@@ -622,7 +621,7 @@ async function exportarFiltradoXLSX(tipo) {
         const ahora = new Date();
         const workbook = new ExcelJS.Workbook();
         const ws = workbook.addWorksheet('Detalle');
-        let filaFil = 1;
+        let filaLle = 1; // Usamos tu variable original para llevar el control de filas
 
         const periodoTexto = `DEL ${fechaInicio.toLocaleDateString('es-MX', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
