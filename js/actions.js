@@ -605,8 +605,8 @@ async function exportarFiltradoXLSX(tipo) {
             return;
         }
 
-        const fechaInicioStr;
-        const fechaFinStr;
+        let fechaInicioStr;
+        let fechaFinStr;
 
         if (tipo === 'gasto') {
             fechaInicioStr = document.getElementById('ex-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
@@ -614,7 +614,6 @@ async function exportarFiltradoXLSX(tipo) {
         } else {
             fechaInicioStr = document.getElementById('in-fecha-inicio')?.value || window.AppState?.filtrosActuales?.inicio;
             fechaFinStr = document.getElementById('in-fecha-fin')?.value || window.AppState?.filtrosActuales?.fin;
-
         }
 
         const fechaInicio = new Date(fechaInicioStr + 'T00:00:00');
