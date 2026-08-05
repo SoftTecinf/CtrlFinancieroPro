@@ -604,6 +604,7 @@ async function exportarFiltradoXLSX(tipo) {
             alert(`Sin movimientos de ${tipo} para el periodo seleccionado.`);
             return;
         }
+
         let fechaInicioStr;
         let fechaFinStr;
 
@@ -621,7 +622,7 @@ async function exportarFiltradoXLSX(tipo) {
         const ahora = new Date();
         const workbook = new ExcelJS.Workbook();
         const ws = workbook.addWorksheet('Detalle');
-        let filaLle = 1; // Usamos tu variable original para llevar el control de filas
+        let filaFil = 1; // Usamos tu variable original para llevar el control de filas
 
         const periodoTexto = `DEL ${fechaInicio.toLocaleDateString('es-MX', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -639,7 +640,8 @@ async function exportarFiltradoXLSX(tipo) {
         }
 
         if (typeof descargarArchivo === 'function') {
-            await descargarArchivo(workbook, "Detalle_" + tipo + "_" + (txtInicio || 'reporte') + "_al_" + (txtFin || 'fecha'));
+            // CORREGIDO: Se usan fechaInicioStr y fechaFinStr en lugar de txtInicio/txtFin
+            await descargarArchivo(workbook, "Detalle_" + tipo + "_" + (fechaInicioStr || 'reporte') + "_al_" + (fechaFinStr || 'fecha'));
         }
 
     } catch (error) {
